@@ -1,12 +1,33 @@
 <script lang="ts">
-  import { LayoutDashboard, Users, ListTree, Swords, Map, ScrollText, Moon, Sun, Play, Languages } from 'lucide-svelte';
+  import {
+    LayoutDashboard,
+    Users,
+    ListTree,
+    PawPrint,
+    Swords,
+    Map,
+    WandSparkles,
+    ScrollText,
+    Moon,
+    Sun,
+    Play,
+    Languages,
+  } from 'lucide-svelte';
   import { _ } from 'svelte-i18n';
   import Button from '../ui/Button.svelte';
   import Icon from '../ui/Icon.svelte';
   import { getTheme, toggleTheme, initTheme } from '../../lib/stores/theme.svelte';
   import { locale, setLocale, type SupportedLocale } from '../../lib/i18n';
 
-  export type NavScreen = 'overview' | 'warband' | 'adventure' | 'factions' | 'hexMap' | 'sessions';
+  export type NavScreen =
+    | 'overview'
+    | 'warband'
+    | 'adventure'
+    | 'bestiary'
+    | 'factions'
+    | 'hexMap'
+    | 'generators'
+    | 'sessions';
 
   interface Props {
     active: NavScreen;
@@ -24,8 +45,10 @@
     { screen: 'overview', icon: LayoutDashboard, key: 'nav.overview', enabled: true },
     { screen: 'warband', icon: Users, key: 'nav.warband', enabled: true },
     { screen: 'adventure', icon: ListTree, key: 'nav.adventure', enabled: true },
+    { screen: 'bestiary', icon: PawPrint, key: 'nav.bestiary', enabled: true },
     { screen: 'factions', icon: Swords, key: 'nav.factions', enabled: false },
     { screen: 'hexMap', icon: Map, key: 'nav.hexMap', enabled: false },
+    { screen: 'generators', icon: WandSparkles, key: 'nav.generators', enabled: true },
     { screen: 'sessions', icon: ScrollText, key: 'nav.sessions', enabled: true },
   ];
 

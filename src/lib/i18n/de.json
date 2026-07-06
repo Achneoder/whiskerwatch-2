@@ -3,8 +3,10 @@
     "overview": "Übersicht",
     "warband": "Gruppe",
     "adventure": "Abenteuer",
+    "bestiary": "Bestiarium",
     "factions": "Fraktionen",
     "hexMap": "Hexkarte",
+    "generators": "Generatoren",
     "sessions": "Sitzungen",
     "comingSoon": "Demnächst verfügbar"
   },
@@ -133,6 +135,64 @@
       "title": "Titel",
       "summary": "Zusammenfassung",
       "summaryPlaceholder": "Was ist passiert, was hat sich geändert, was kommt als Nächstes…"
+    }
+  },
+  "bestiary": {
+    "eyebrow": "Vorbereitung · Bestiarium",
+    "title": "Bestiarium",
+    "add": "Kreatur hinzufügen",
+    "empty": "Noch keine Kreaturen — füge dein erstes Statblock hinzu.",
+    "addTitle": "Kreatur hinzufügen",
+    "editTitle": "Kreatur bearbeiten",
+    "deleteTitle": "Kreatur löschen?",
+    "deleteMessage": "Dadurch wird {name} aus dem Bestiarium entfernt. Das kann nicht rückgängig gemacht werden — aber sonst ändert sich nichts an der Kampagne.",
+    "category": {
+      "Vermin": "Ungeziefer",
+      "Beast": "Bestie",
+      "Bird of Prey": "Greifvogel",
+      "Humanoid": "Humanoid",
+      "Aberration": "Aberration"
+    },
+    "form": {
+      "name": "Name",
+      "category": "Kategorie",
+      "hd": "TW",
+      "hp": "TP",
+      "armor": "Rüstung",
+      "attacks": "Angriffe",
+      "attackNamePlaceholder": "Angriffsname",
+      "attackDamagePlaceholder": "Schaden (z. B. W6)",
+      "special": "Besonderheit",
+      "notes": "Notizen"
+    }
+  },
+  "generators": {
+    "eyebrow": "Improvisieren · Generatoren",
+    "title": "Generatoren",
+    "dice": {
+      "eyebrow": "Würfel",
+      "title": "Würfeln",
+      "count": "Würfel",
+      "sides": "Seiten",
+      "modifier": "Modifikator",
+      "roll": "Würfeln"
+    },
+    "encounter": {
+      "eyebrow": "Begegnung",
+      "title": "Zufällige Begegnung",
+      "roll": "Begegnung würfeln"
+    },
+    "item": {
+      "eyebrow": "Gegenstand",
+      "title": "Zufälliger Gegenstand",
+      "roll": "Gegenstand würfeln"
+    },
+    "npc": {
+      "eyebrow": "NSC",
+      "title": "Zufälliger NSC",
+      "roll": "NSC würfeln",
+      "quirk": "Eigenheit:",
+      "want": "Will:"
     }
   }
 }

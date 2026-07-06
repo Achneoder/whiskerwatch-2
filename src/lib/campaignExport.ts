@@ -2,6 +2,7 @@ import { getParty, replaceParty, type PartyMember } from './stores/party.svelte'
 import { getHirelings, replaceHirelings, type Hireling } from './stores/hirelings.svelte';
 import { getBeats, replaceBeats, type Beat } from './stores/beats.svelte';
 import { getSessions, replaceSessions, type Session } from './stores/sessions.svelte';
+import { getBestiary, replaceBestiary, type BestiaryEntry } from './stores/bestiary.svelte';
 
 export const CAMPAIGN_EXPORT_VERSION = 1;
 
@@ -12,6 +13,7 @@ export interface CampaignExport {
   hirelings: Hireling[];
   beats: Beat[];
   sessions: Session[];
+  bestiary: BestiaryEntry[];
 }
 
 export function buildCampaignExport(): CampaignExport {
@@ -22,6 +24,7 @@ export function buildCampaignExport(): CampaignExport {
     hirelings: getHirelings(),
     beats: getBeats(),
     sessions: getSessions(),
+    bestiary: getBestiary(),
   };
 }
 
@@ -56,6 +59,19 @@ function isSession(value: unknown): value is Session {
   return typeof v.id === 'string' && typeof v.number === 'number' && typeof v.date === 'string' && typeof v.title === 'string';
 }
 
+function isBestiaryEntry(value: unknown): value is BestiaryEntry {
+  if (!value || typeof value !== 'object') return false;
+  const v = value as Record<string, unknown>;
+  return (
+    typeof v.id === 'string' &&
+    typeof v.name === 'string' &&
+    typeof v.category === 'string' &&
+    typeof v.hd === 'number' &&
+    typeof v.hp === 'number' &&
+    Array.isArray(v.attacks)
+  );
+}
+
 export function parseCampaignExport(text: string): CampaignExport {
   let data: unknown;
   try {
@@ -81,6 +97,9 @@ export function parseCampaignExport(text: string): CampaignExport {
   if (candidate.sessions !== undefined && (!Array.isArray(candidate.sessions) || !candidate.sessions.every(isSession))) {
     throw new Error('That file does not look like a Whiskerwatch campaign export.');
   }
+  if (candidate.bestiary !== undefined && (!Array.isArray(candidate.bestiary) || !candidate.bestiary.every(isBestiaryEntry))) {
+    throw new Error('That file does not look like a Whiskerwatch campaign export.');
+  }
 
   return {
     version: CAMPAIGN_EXPORT_VERSION,
@@ -89,6 +108,7 @@ export function parseCampaignExport(text: string): CampaignExport {
     hirelings: candidate.hirelings,
     beats: Array.isArray(candidate.beats) ? candidate.beats : [],
     sessions: Array.isArray(candidate.sessions) ? candidate.sessions : [],
+    bestiary: Array.isArray(candidate.bestiary) ? candidate.bestiary : [],
   };
 }
 
@@ -110,4 +130,5 @@ export async function importCampaign(file: File): Promise<void> {
   replaceHirelings(data.hirelings);
   replaceBeats(data.beats);
   replaceSessions(data.sessions);
+  replaceBestiary(data.bestiary);
 }

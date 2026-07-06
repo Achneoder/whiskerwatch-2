@@ -3,8 +3,10 @@
     "overview": "Overview",
     "warband": "Warband",
     "adventure": "Adventure",
+    "bestiary": "Bestiary",
     "factions": "Factions",
     "hexMap": "Hex map",
+    "generators": "Generators",
     "sessions": "Sessions",
     "comingSoon": "Coming soon"
   },
@@ -133,6 +135,64 @@
       "title": "Title",
       "summary": "Summary",
       "summaryPlaceholder": "What happened, what changed, what's next…"
+    }
+  },
+  "bestiary": {
+    "eyebrow": "Prep mode · bestiary",
+    "title": "Bestiary",
+    "add": "Add creature",
+    "empty": "No creatures yet — add your first stat block.",
+    "addTitle": "Add a creature",
+    "editTitle": "Edit creature",
+    "deleteTitle": "Delete creature?",
+    "deleteMessage": "This removes {name} from the bestiary. This can't be undone — but nothing else in the campaign changes.",
+    "category": {
+      "Vermin": "Vermin",
+      "Beast": "Beast",
+      "Bird of Prey": "Bird of Prey",
+      "Humanoid": "Humanoid",
+      "Aberration": "Aberration"
+    },
+    "form": {
+      "name": "Name",
+      "category": "Category",
+      "hd": "HD",
+      "hp": "HP",
+      "armor": "Armor",
+      "attacks": "Attacks",
+      "attackNamePlaceholder": "Attack name",
+      "attackDamagePlaceholder": "Damage (e.g. d6)",
+      "special": "Special",
+      "notes": "Notes"
+    }
+  },
+  "generators": {
+    "eyebrow": "Improvise · generators",
+    "title": "Generators",
+    "dice": {
+      "eyebrow": "Dice",
+      "title": "Roll dice",
+      "count": "Dice",
+      "sides": "Sides",
+      "modifier": "Modifier",
+      "roll": "Roll"
+    },
+    "encounter": {
+      "eyebrow": "Encounter",
+      "title": "Random encounter",
+      "roll": "Roll an encounter"
+    },
+    "item": {
+      "eyebrow": "Item",
+      "title": "Random item",
+      "roll": "Roll an item"
+    },
+    "npc": {
+      "eyebrow": "NPC",
+      "title": "Random NPC",
+      "roll": "Roll an NPC",
+      "quirk": "Quirk:",
+      "want": "Wants:"
     }
   }
 }

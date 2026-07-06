@@ -1,6 +1,7 @@
-import { readJSON, writeJSON } from '../storage';
+import { createPersistedList } from './persistedList.svelte';
 
 export interface PartyMember {
+  id: string;
   name: string;
   role: string;
   hp: number;
@@ -12,8 +13,9 @@ export interface PartyMember {
 const STORAGE_KEY = 'whiskerwatch:party';
 
 const seedParty: PartyMember[] = [
-  { name: 'Pip', role: 'Scout', hp: 4, max: 6, pips: 320, conditions: [] },
+  { id: crypto.randomUUID(), name: 'Pip', role: 'Scout', hp: 4, max: 6, pips: 320, conditions: [] },
   {
+    id: crypto.randomUUID(),
     name: 'Wren',
     role: 'Tinker',
     hp: 2,
@@ -22,6 +24,7 @@ const seedParty: PartyMember[] = [
     conditions: [{ tone: 'danger', label: 'Frightened' }],
   },
   {
+    id: crypto.randomUUID(),
     name: 'Bram',
     role: 'Warden',
     hp: 6,
@@ -29,22 +32,33 @@ const seedParty: PartyMember[] = [
     pips: 610,
     conditions: [{ tone: 'warning', label: 'Hungry' }],
   },
-  { name: 'Sedge', role: 'Sage', hp: 3, max: 6, pips: 140, conditions: [] },
+  { id: crypto.randomUUID(), name: 'Sedge', role: 'Sage', hp: 3, max: 6, pips: 140, conditions: [] },
 ];
 
-const party = $state<PartyMember[]>(readJSON(STORAGE_KEY, seedParty));
-
-function persist() {
-  writeJSON(STORAGE_KEY, party);
-}
+const list = createPersistedList<PartyMember>(STORAGE_KEY, seedParty);
 
 export function getParty(): PartyMember[] {
-  return party;
+  return list.items;
 }
 
-export function setHp(index: number, value: number): void {
-  const member = party[index];
+export function addMember(input: Omit<PartyMember, 'id'>): void {
+  list.add({ ...input, id: crypto.randomUUID() });
+}
+
+export function updateMember(id: string, patch: Partial<Omit<PartyMember, 'id'>>): void {
+  list.update(id, patch);
+}
+
+export function removeMember(id: string): void {
+  list.remove(id);
+}
+
+export function replaceParty(members: PartyMember[]): void {
+  list.replaceAll(members);
+}
+
+export function setHp(id: string, value: number): void {
+  const member = list.items.find((m) => m.id === id);
   if (!member) return;
-  member.hp = Math.max(0, Math.min(member.max, value));
-  persist();
+  list.update(id, { hp: Math.max(0, Math.min(member.max, value)) });
 }

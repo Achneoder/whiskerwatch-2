@@ -29,9 +29,11 @@ Because there's no server-side validation layer, defensive parsing/validation of
 
 ## Component organization
 
-- `src/lib/components/ui/` — small presentational primitives (Button, Card, Modal, HpBar, Icon, ConfirmDialog, etc.). No business logic.
-- `src/lib/components/forms/` — one form component per editable entity (e.g. `PartyForm`, `HirelingForm`, `FactionForm`, `HexNodeForm`, `SessionForm`, `BeatForm`, `BestiaryForm`).
-- `src/components/screens/` — one component per app screen (Dashboard, Roster, Adventure, Bestiary, Factions, HexMap, Generators, LiveSession, Settings), selected via in-app navigation state in the root `App.svelte`. Screens compose `ui/` and `forms/` components; they own layout and data-loading, not low-level rendering.
+- `src/components/ui/` — small presentational primitives (Button, Card, Modal, HpBar, StatusPill, Tag, DiceRoll, Input, Stepper, Icon, ConfirmDialog, etc.). No business logic.
+- `src/components/forms/` — one form component per editable entity (e.g. `PartyForm`, `HirelingForm`, `FactionForm`, `HexNodeForm`, `SessionForm`, `BeatForm`, `BestiaryForm`).
+- `src/components/layout/` — app-shell chrome shared across multiple screens (e.g. `AppSidebar`), as opposed to a single screen's own layout.
+- `src/components/screens/` — one component per app screen (Dashboard, Roster, Adventure, Bestiary, Factions, HexMap, Generators, LiveSession, Settings), selected via in-app navigation state in the root `App.svelte`. Screens compose `ui/`, `forms/`, and `layout/` components; they own data-loading, not low-level rendering.
+- `src/lib/stores/` — persisted app state (`.svelte.ts` modules using runes + `createPersistedList` from `persistedList.svelte.ts` for entity CRUD), backed by `src/lib/storage.ts`'s localStorage helpers.
 
 Keep this separation strict: a screen file should read like an outline of what's on it, not a wall of markup and logic.
 

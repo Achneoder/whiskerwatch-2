@@ -60,7 +60,7 @@
   </header>
 
   <main class="flex-1 w-full max-w-160 mx-auto p-[var(--sp-5)] flex flex-col gap-[var(--sp-5)]">
-    {#each party as member, i (member.name)}
+    {#each party as member (member.id)}
       {@const low = member.hp <= 2}
       <Card style={low ? 'border-color: var(--danger)' : undefined}>
         <div class="flex items-center gap-[var(--sp-4)] flex-wrap">
@@ -80,7 +80,7 @@
             max={member.max}
             tone="hp"
             size="live"
-            onchange={(v) => setHp(i, v)}
+            onchange={(v) => setHp(member.id, v)}
           />
         </div>
         <div class="mt-[var(--sp-4)]">

@@ -4,7 +4,7 @@ import Dashboard from './Dashboard.svelte';
 
 describe('Dashboard', () => {
   it('renders the warband and factions', () => {
-    render(Dashboard, { props: {} });
+    render(Dashboard, { props: { onnavigate: vi.fn() } });
 
     expect(screen.getByText('Pip')).toBeInTheDocument();
     expect(screen.getByText('Wren')).toBeInTheDocument();
@@ -13,12 +13,21 @@ describe('Dashboard', () => {
 
   it('calls onstartsession when the Start session button is clicked', async () => {
     const onstartsession = vi.fn();
-    const { component } = render(Dashboard, { props: { onstartsession } });
-    void component;
+    render(Dashboard, { props: { onnavigate: vi.fn(), onstartsession } });
 
     const button = screen.getByRole('button', { name: /start session/i });
     await button.click();
 
     expect(onstartsession).toHaveBeenCalledOnce();
+  });
+
+  it('calls onnavigate with "warband" when Manage is clicked', async () => {
+    const onnavigate = vi.fn();
+    render(Dashboard, { props: { onnavigate } });
+
+    const button = screen.getByRole('button', { name: /manage/i });
+    await button.click();
+
+    expect(onnavigate).toHaveBeenCalledWith('warband');
   });
 });

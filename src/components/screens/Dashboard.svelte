@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { LayoutDashboard, Users, Swords, Map, ScrollText, Moon, Sun, Play, Dice5, Plus, Languages } from 'lucide-svelte';
+  import { Dice5, Plus } from 'lucide-svelte';
   import { _ } from 'svelte-i18n';
   import Button from '../ui/Button.svelte';
   import Card from '../ui/Card.svelte';
@@ -7,19 +7,15 @@
   import StatusPill from '../ui/StatusPill.svelte';
   import Tag from '../ui/Tag.svelte';
   import Icon from '../ui/Icon.svelte';
+  import AppSidebar, { type NavScreen } from '../layout/AppSidebar.svelte';
   import { getParty } from '../../lib/stores/party.svelte';
-  import { getTheme, toggleTheme, initTheme } from '../../lib/stores/theme.svelte';
-  import { locale, setLocale, type SupportedLocale } from '../../lib/i18n';
 
   interface Props {
     onstartsession?: () => void;
+    onnavigate: (screen: NavScreen) => void;
   }
 
-  let { onstartsession }: Props = $props();
-
-  $effect(() => {
-    initTheme();
-  });
+  let { onstartsession, onnavigate }: Props = $props();
 
   const party = getParty();
   const wounded = $derived(party.filter((m) => m.hp < m.max).length);
@@ -53,63 +49,10 @@
   ];
 
   const activeClocks = factions.length;
-
-  const nav = [
-    { icon: LayoutDashboard, key: 'nav.overview', active: true },
-    { icon: Users, key: 'nav.warband', active: false },
-    { icon: Swords, key: 'nav.factions', active: false },
-    { icon: Map, key: 'nav.hexMap', active: false },
-    { icon: ScrollText, key: 'nav.sessions', active: false },
-  ];
-
-  function toggleLocale() {
-    const next: SupportedLocale = $locale === 'en' ? 'de' : 'en';
-    setLocale(next);
-  }
 </script>
 
 <div class="flex min-h-screen bg-[var(--bg)] text-[var(--text)]">
-  <!-- Sidebar -->
-  <aside
-    class="w-[var(--sidebar-w)] shrink-0 border-r border-[var(--border)] bg-[var(--surface)] py-[var(--sp-5)] px-[var(--sp-4)] flex flex-col gap-[var(--sp-5)]"
-  >
-    <div class="font-[family-name:var(--font-display)] font-extrabold text-[22px] tracking-[-0.02em]">
-      Whisker<span class="text-[var(--accent)]">watch</span>
-    </div>
-    <nav class="flex flex-col gap-0.5">
-      {#each nav as item (item.key)}
-        <span
-          class="flex items-center gap-2.5 py-2 px-2.5 rounded-[var(--radius-md)] text-[length:var(--text-body)] {item.active
-            ? 'font-bold text-[var(--accent)] bg-[var(--accent-tint)] cursor-default'
-            : 'font-medium text-[var(--text-secondary)] cursor-not-allowed opacity-60'}"
-          title={item.active ? undefined : $_('nav.comingSoon')}
-        >
-          <Icon icon={item.icon} />
-          {$_(item.key)}
-        </span>
-      {/each}
-    </nav>
-    <div class="mt-auto flex flex-col gap-2.5">
-      <Button variant="secondary" size="sm" block onclick={toggleLocale}>
-        {#snippet icon()}
-          <Icon icon={Languages} />
-        {/snippet}
-        {$_('locale.label')}: {$locale === 'en' ? 'EN' : 'DE'}
-      </Button>
-      <Button variant="secondary" size="sm" block onclick={toggleTheme}>
-        {#snippet icon()}
-          <Icon icon={getTheme() === 'light' ? Moon : Sun} />
-        {/snippet}
-        {getTheme() === 'light' ? $_('theme.dark') : $_('theme.light')}
-      </Button>
-      <Button variant="primary" block onclick={onstartsession}>
-        {#snippet icon()}
-          <Icon icon={Play} />
-        {/snippet}
-        {$_('dashboard.startSession')}
-      </Button>
-    </div>
-  </aside>
+  <AppSidebar active="overview" {onnavigate} {onstartsession} />
 
   <!-- Main -->
   <main class="flex-1 p-[var(--sp-6)] max-w-[var(--content-max)] flex flex-col gap-[var(--sp-5)]">
@@ -174,10 +117,10 @@
       <!-- Warband -->
       <Card eyebrow={$_('dashboard.warbandCard.eyebrow')} title="Grey Meadow four">
         {#snippet actions()}
-          <Button variant="ghost" size="sm">{$_('dashboard.warbandCard.manage')}</Button>
+          <Button variant="ghost" size="sm" onclick={() => onnavigate('warband')}>{$_('dashboard.warbandCard.manage')}</Button>
         {/snippet}
         <div class="flex flex-col gap-[var(--sp-3)]">
-          {#each party as member (member.name)}
+          {#each party as member (member.id)}
             <div class="flex items-center gap-[var(--sp-4)] py-2 border-b border-[var(--border)]">
               <div class="min-w-23">
                 <div class="font-[family-name:var(--font-display)] font-bold text-[length:var(--text-title)]">

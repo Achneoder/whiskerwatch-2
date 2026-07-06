@@ -47,5 +47,50 @@
     "hp": "TP",
     "lastRoll": "Letzter Wurf",
     "roll2d6": "2W6 würfeln"
+  },
+  "roster": {
+    "eyebrow": "Vorbereitung · Übersicht",
+    "title": "Übersicht",
+    "export": "Kampagne exportieren",
+    "import": "Kampagne importieren",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "warband": {
+      "eyebrow": "Gruppe",
+      "title": "Spielercharaktere",
+      "add": "Maus hinzufügen",
+      "empty": "Noch keine Mäuse — füge deinen ersten Spielercharakter hinzu.",
+      "addTitle": "Maus hinzufügen",
+      "editTitle": "Maus bearbeiten",
+      "deleteTitle": "Maus löschen?",
+      "deleteMessage": "Dadurch wird {name} aus der Übersicht entfernt. Das kann nicht rückgängig gemacht werden — aber sonst ändert sich nichts an der Kampagne."
+    },
+    "hirelings": {
+      "eyebrow": "Gefolge",
+      "title": "Angeheuerte Helfer",
+      "add": "Helfer hinzufügen",
+      "empty": "Noch kein Gefolge — füge einen Helfer hinzu, sobald die Gruppe jemanden anheuert.",
+      "addTitle": "Helfer hinzufügen",
+      "editTitle": "Helfer bearbeiten",
+      "deleteTitle": "Helfer löschen?",
+      "deleteMessage": "Dadurch wird {name} aus der Übersicht entfernt. Das kann nicht rückgängig gemacht werden — aber sonst ändert sich nichts an der Kampagne."
+    },
+    "form": {
+      "name": "Name",
+      "role": "Rolle",
+      "hp": "TP",
+      "maxHp": "Max. TP",
+      "pips": "Pips",
+      "loyalty": "Loyalität",
+      "notes": "Notizen",
+      "notesPlaceholder": "Lohn, mitgeführte Ausrüstung, Eigenheiten…",
+      "conditions": "Zustände",
+      "conditionPlaceholder": "Name des Zustands",
+      "addCondition": "Hinzufügen",
+      "toneDanger": "Gefahr",
+      "toneWarning": "Warnung",
+      "cancel": "Abbrechen",
+      "save": "Speichern"
+    }
   }
 }

@@ -3,8 +3,8 @@
 
   interface Props {
     open?: boolean;
-    title?: string;
-    eyebrow?: string;
+    title?: string | undefined;
+    eyebrow?: string | undefined;
     actions?: Snippet;
     onclose?: () => void;
     width?: number;

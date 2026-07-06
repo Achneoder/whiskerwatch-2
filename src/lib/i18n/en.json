@@ -47,5 +47,50 @@
     "hp": "HP",
     "lastRoll": "Last roll",
     "roll2d6": "Roll 2d6"
+  },
+  "roster": {
+    "eyebrow": "Prep mode · roster",
+    "title": "Roster",
+    "export": "Export campaign",
+    "import": "Import campaign",
+    "edit": "Edit",
+    "delete": "Delete",
+    "warband": {
+      "eyebrow": "Warband",
+      "title": "Player mice",
+      "add": "Add mouse",
+      "empty": "No mice yet — add your first player character.",
+      "addTitle": "Add a mouse",
+      "editTitle": "Edit mouse",
+      "deleteTitle": "Delete mouse?",
+      "deleteMessage": "This removes {name} from the roster. This can't be undone — but nothing else in the campaign changes."
+    },
+    "hirelings": {
+      "eyebrow": "Hirelings",
+      "title": "Hired help",
+      "add": "Add hireling",
+      "empty": "No hirelings yet — add one when the warband hires help.",
+      "addTitle": "Add a hireling",
+      "editTitle": "Edit hireling",
+      "deleteTitle": "Delete hireling?",
+      "deleteMessage": "This removes {name} from the roster. This can't be undone — but nothing else in the campaign changes."
+    },
+    "form": {
+      "name": "Name",
+      "role": "Role",
+      "hp": "HP",
+      "maxHp": "Max HP",
+      "pips": "Pips",
+      "loyalty": "Loyalty",
+      "notes": "Notes",
+      "notesPlaceholder": "Wage, gear carried, quirks…",
+      "conditions": "Conditions",
+      "conditionPlaceholder": "Condition name",
+      "addCondition": "Add",
+      "toneDanger": "Danger",
+      "toneWarning": "Warning",
+      "cancel": "Cancel",
+      "save": "Save"
+    }
   }
 }

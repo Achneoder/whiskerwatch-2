@@ -12,11 +12,41 @@ export interface PersistedList<T extends Identified> {
   replaceAll: (newItems: T[]) => void;
 }
 
+function ensureId<T extends Identified>(item: T): T {
+  if (typeof item?.id === 'string' && item.id.length > 0) return item;
+  return { ...item, id: crypto.randomUUID() };
+}
+
+/**
+ * Repairs data written by an older schema (e.g. entities saved before an `id`
+ * field existed) instead of crashing the app: a missing/duplicate id here
+ * would otherwise blow up every keyed `{#each ... (item.id)}` block downstream
+ * and unmount the whole page.
+ */
+function sanitize<T extends Identified>(raw: unknown, seed: T[]): T[] {
+  if (!Array.isArray(raw)) return seed;
+  const seenIds = new Set<string>();
+  return raw.map((item) => {
+    const withId = ensureId(item as T);
+    if (seenIds.has(withId.id)) return { ...withId, id: crypto.randomUUID() };
+    seenIds.add(withId.id);
+    return withId;
+  });
+}
+
 export function createPersistedList<T extends Identified>(storageKey: string, seed: T[]): PersistedList<T> {
-  const items = $state<T[]>(readJSON(storageKey, seed));
+  const raw = readJSON<unknown>(storageKey, seed);
+  const sanitized = sanitize(raw, seed);
+  const items = $state<T[]>(sanitized);
 
   function persist() {
     writeJSON(storageKey, items);
+  }
+
+  // If loading required repairs (missing/duplicate ids, or a malformed
+  // record), persist the fix immediately so it doesn't need repairing again.
+  if (JSON.stringify(raw) !== JSON.stringify(sanitized)) {
+    persist();
   }
 
   function add(item: T): void {

@@ -9,6 +9,8 @@
   import Icon from '../ui/Icon.svelte';
   import AppSidebar, { type NavScreen } from '../layout/AppSidebar.svelte';
   import { getParty } from '../../lib/stores/party.svelte';
+  import { getLastSession, getNextSessionNumber } from '../../lib/stores/sessions.svelte';
+  import { daysSince } from '../../lib/date';
 
   interface Props {
     onstartsession?: () => void;
@@ -20,6 +22,9 @@
   const party = getParty();
   const wounded = $derived(party.filter((m) => m.hp < m.max).length);
   const pipsTotal = $derived(party.reduce((sum, m) => sum + m.pips, 0));
+
+  const nextSessionNumber = $derived(getNextSessionNumber());
+  const lastSession = $derived(getLastSession());
 
   const factions = [
     {
@@ -61,7 +66,11 @@
         <div class="ww-label text-[var(--accent)]">{$_('dashboard.prepMode')}</div>
         <h1 class="text-[length:var(--text-h1)] mt-1">Grey Meadow Campaign</h1>
         <p class="mt-1 text-[var(--text-muted)] text-[length:var(--text-body)]">
-          {$_('dashboard.sessionSummary', { values: { session: 5, days: 6 } })}
+          {#if lastSession}
+            {$_('dashboard.sessionSummary', { values: { session: nextSessionNumber, days: daysSince(lastSession.date) } })}
+          {:else}
+            {$_('dashboard.sessionSummaryEmpty', { values: { session: nextSessionNumber } })}
+          {/if}
         </p>
       </div>
       <div class="flex gap-[var(--gap-inline)]">
@@ -106,10 +115,12 @@
           {$_('dashboard.stats.nearFull', { values: { count: 1 } })}
         </div>
       </Card>
-      <Card class="!rounded-[var(--radius-md)]">
+      <Card interactive class="!rounded-[var(--radius-md)]" onclick={() => onnavigate('sessions')}>
         <div class="ww-label mb-1.5">{$_('dashboard.stats.session')}</div>
-        <div class="ww-num font-bold text-[length:var(--stat-md)] leading-none">#5</div>
-        <div class="text-[length:var(--text-sm)] text-[var(--text-muted)] mt-1">The granary raid</div>
+        <div class="ww-num font-bold text-[length:var(--stat-md)] leading-none">#{nextSessionNumber}</div>
+        <div class="text-[length:var(--text-sm)] text-[var(--text-muted)] mt-1">
+          {lastSession ? lastSession.title : $_('dashboard.stats.noSessions')}
+        </div>
       </Card>
     </section>
 

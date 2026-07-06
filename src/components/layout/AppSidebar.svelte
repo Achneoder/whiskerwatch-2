@@ -1,12 +1,12 @@
 <script lang="ts">
-  import { LayoutDashboard, Users, Swords, Map, ScrollText, Moon, Sun, Play, Languages } from 'lucide-svelte';
+  import { LayoutDashboard, Users, ListTree, Swords, Map, ScrollText, Moon, Sun, Play, Languages } from 'lucide-svelte';
   import { _ } from 'svelte-i18n';
   import Button from '../ui/Button.svelte';
   import Icon from '../ui/Icon.svelte';
   import { getTheme, toggleTheme, initTheme } from '../../lib/stores/theme.svelte';
   import { locale, setLocale, type SupportedLocale } from '../../lib/i18n';
 
-  export type NavScreen = 'overview' | 'warband' | 'factions' | 'hexMap' | 'sessions';
+  export type NavScreen = 'overview' | 'warband' | 'adventure' | 'factions' | 'hexMap' | 'sessions';
 
   interface Props {
     active: NavScreen;
@@ -23,9 +23,10 @@
   const nav: { screen: NavScreen; icon: typeof LayoutDashboard; key: string; enabled: boolean }[] = [
     { screen: 'overview', icon: LayoutDashboard, key: 'nav.overview', enabled: true },
     { screen: 'warband', icon: Users, key: 'nav.warband', enabled: true },
+    { screen: 'adventure', icon: ListTree, key: 'nav.adventure', enabled: true },
     { screen: 'factions', icon: Swords, key: 'nav.factions', enabled: false },
     { screen: 'hexMap', icon: Map, key: 'nav.hexMap', enabled: false },
-    { screen: 'sessions', icon: ScrollText, key: 'nav.sessions', enabled: false },
+    { screen: 'sessions', icon: ScrollText, key: 'nav.sessions', enabled: true },
   ];
 
   function toggleLocale() {

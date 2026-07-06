@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/svelte';
+import { render, screen, fireEvent } from '@testing-library/svelte';
 import Dashboard from './Dashboard.svelte';
+import { replaceSessions } from '../../lib/stores/sessions.svelte';
 
 describe('Dashboard', () => {
   it('renders the warband and factions', () => {
@@ -29,5 +30,25 @@ describe('Dashboard', () => {
     await button.click();
 
     expect(onnavigate).toHaveBeenCalledWith('warband');
+  });
+
+  it('shows the next session number and last session title, and navigates to sessions', async () => {
+    replaceSessions([{ id: '1', number: 7, date: '2026-01-01', title: 'Into the deep sewers', summary: '' }]);
+    const onnavigate = vi.fn();
+    render(Dashboard, { props: { onnavigate } });
+
+    expect(screen.getByText('#8')).toBeInTheDocument();
+    expect(screen.getByText('Into the deep sewers')).toBeInTheDocument();
+
+    await fireEvent.click(screen.getByText('#8'));
+    expect(onnavigate).toHaveBeenCalledWith('sessions');
+  });
+
+  it('shows an empty state when no sessions are logged', () => {
+    replaceSessions([]);
+    render(Dashboard, { props: { onnavigate: vi.fn() } });
+
+    expect(screen.getByText('#1')).toBeInTheDocument();
+    expect(screen.getByText('No sessions logged yet')).toBeInTheDocument();
   });
 });

@@ -1,5 +1,7 @@
 import { getParty, replaceParty, type PartyMember } from './stores/party.svelte';
 import { getHirelings, replaceHirelings, type Hireling } from './stores/hirelings.svelte';
+import { getBeats, replaceBeats, type Beat } from './stores/beats.svelte';
+import { getSessions, replaceSessions, type Session } from './stores/sessions.svelte';
 
 export const CAMPAIGN_EXPORT_VERSION = 1;
 
@@ -8,6 +10,8 @@ export interface CampaignExport {
   exportedAt: string;
   party: PartyMember[];
   hirelings: Hireling[];
+  beats: Beat[];
+  sessions: Session[];
 }
 
 export function buildCampaignExport(): CampaignExport {
@@ -16,19 +20,40 @@ export function buildCampaignExport(): CampaignExport {
     exportedAt: new Date().toISOString(),
     party: getParty(),
     hirelings: getHirelings(),
+    beats: getBeats(),
+    sessions: getSessions(),
   };
 }
 
-function isPartyMember(value: unknown): value is PartyMember {
+function hasIdAndHp(value: unknown): value is { id: string; hp: number; max: number } {
   if (!value || typeof value !== 'object') return false;
   const v = value as Record<string, unknown>;
   return typeof v.id === 'string' && typeof v.name === 'string' && typeof v.hp === 'number' && typeof v.max === 'number';
 }
 
+function isPartyMember(value: unknown): value is PartyMember {
+  return hasIdAndHp(value);
+}
+
 function isHireling(value: unknown): value is Hireling {
+  return hasIdAndHp(value);
+}
+
+function isBeat(value: unknown): value is Beat {
   if (!value || typeof value !== 'object') return false;
   const v = value as Record<string, unknown>;
-  return typeof v.id === 'string' && typeof v.name === 'string' && typeof v.hp === 'number' && typeof v.max === 'number';
+  return (
+    typeof v.id === 'string' &&
+    (v.parentId === null || typeof v.parentId === 'string') &&
+    typeof v.title === 'string' &&
+    typeof v.status === 'string'
+  );
+}
+
+function isSession(value: unknown): value is Session {
+  if (!value || typeof value !== 'object') return false;
+  const v = value as Record<string, unknown>;
+  return typeof v.id === 'string' && typeof v.number === 'number' && typeof v.date === 'string' && typeof v.title === 'string';
 }
 
 export function parseCampaignExport(text: string): CampaignExport {
@@ -50,12 +75,20 @@ export function parseCampaignExport(text: string): CampaignExport {
   if (!Array.isArray(candidate.hirelings) || !candidate.hirelings.every(isHireling)) {
     throw new Error('That file does not look like a Whiskerwatch campaign export.');
   }
+  if (candidate.beats !== undefined && (!Array.isArray(candidate.beats) || !candidate.beats.every(isBeat))) {
+    throw new Error('That file does not look like a Whiskerwatch campaign export.');
+  }
+  if (candidate.sessions !== undefined && (!Array.isArray(candidate.sessions) || !candidate.sessions.every(isSession))) {
+    throw new Error('That file does not look like a Whiskerwatch campaign export.');
+  }
 
   return {
     version: CAMPAIGN_EXPORT_VERSION,
     exportedAt: typeof candidate.exportedAt === 'string' ? candidate.exportedAt : new Date().toISOString(),
     party: candidate.party,
     hirelings: candidate.hirelings,
+    beats: Array.isArray(candidate.beats) ? candidate.beats : [],
+    sessions: Array.isArray(candidate.sessions) ? candidate.sessions : [],
   };
 }
 
@@ -75,4 +108,6 @@ export async function importCampaign(file: File): Promise<void> {
   const data = parseCampaignExport(text);
   replaceParty(data.party);
   replaceHirelings(data.hirelings);
+  replaceBeats(data.beats);
+  replaceSessions(data.sessions);
 }

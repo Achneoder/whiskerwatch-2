@@ -2,6 +2,7 @@
   "nav": {
     "overview": "Übersicht",
     "warband": "Gruppe",
+    "adventure": "Abenteuer",
     "factions": "Fraktionen",
     "hexMap": "Hexkarte",
     "sessions": "Sitzungen",
@@ -17,6 +18,7 @@
   "dashboard": {
     "prepMode": "Vorbereitung · Laptop",
     "sessionSummary": "Vorbereitung für Sitzung {session} · zuletzt gespielt vor {days} Tagen",
+    "sessionSummaryEmpty": "Vorbereitung für Sitzung {session} · noch keine Sitzungen protokolliert",
     "startSession": "Sitzung starten",
     "roll": "Würfeln",
     "newFaction": "Neue Fraktion",
@@ -28,7 +30,8 @@
       "sharedPurse": "gemeinsame Kasse",
       "activeClocks": "Aktive Uhren",
       "nearFull": "{count} fast voll",
-      "session": "Sitzung"
+      "session": "Sitzung",
+      "noSessions": "Noch keine Sitzungen protokolliert"
     },
     "warbandCard": {
       "eyebrow": "Gruppe",
@@ -91,6 +94,45 @@
       "toneWarning": "Warnung",
       "cancel": "Abbrechen",
       "save": "Speichern"
+    }
+  },
+  "adventure": {
+    "eyebrow": "Vorbereitung · Abenteuer",
+    "title": "Abenteuer",
+    "addBeat": "Beat hinzufügen",
+    "addSubBeat": "Unter-Beat hinzufügen",
+    "empty": "Noch keine Beats — skizziere deinen ersten Handlungsstrang.",
+    "addTitle": "Beat hinzufügen",
+    "editTitle": "Beat bearbeiten",
+    "deleteTitle": "Beat löschen?",
+    "deleteMessage": "Dadurch wird „{title}“ aus dem Abriss entfernt. Das kann nicht rückgängig gemacht werden — aber sonst ändert sich nichts an der Kampagne.",
+    "deleteMessageWithChildren": "Dadurch werden „{title}“ und seine {count} Unter-Beats aus dem Abriss entfernt. Das kann nicht rückgängig gemacht werden — aber sonst ändert sich nichts an der Kampagne.",
+    "status": {
+      "planned": "Geplant",
+      "active": "Aktiv",
+      "done": "Erledigt"
+    },
+    "form": {
+      "title": "Titel",
+      "notes": "Notizen",
+      "status": "Status"
+    }
+  },
+  "sessions": {
+    "eyebrow": "Recap-Modus · Sitzungen",
+    "title": "Sitzungen",
+    "log": "Sitzung protokollieren",
+    "empty": "Noch keine Sitzungen protokolliert — trage eine ein, direkt nachdem ihr gespielt habt.",
+    "addTitle": "Sitzung protokollieren",
+    "editTitle": "Sitzung bearbeiten",
+    "deleteTitle": "Sitzung löschen?",
+    "deleteMessage": "Dadurch wird „{title}“ aus dem Sitzungsprotokoll entfernt. Das kann nicht rückgängig gemacht werden — aber sonst ändert sich nichts an der Kampagne.",
+    "form": {
+      "number": "Sitzung Nr.",
+      "date": "Datum",
+      "title": "Titel",
+      "summary": "Zusammenfassung",
+      "summaryPlaceholder": "Was ist passiert, was hat sich geändert, was kommt als Nächstes…"
     }
   }
 }

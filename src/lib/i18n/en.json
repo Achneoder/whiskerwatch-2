@@ -2,6 +2,7 @@
   "nav": {
     "overview": "Overview",
     "warband": "Warband",
+    "adventure": "Adventure",
     "factions": "Factions",
     "hexMap": "Hex map",
     "sessions": "Sessions",
@@ -17,6 +18,7 @@
   "dashboard": {
     "prepMode": "Prep mode · laptop",
     "sessionSummary": "Session {session} prep · last played {days} days ago",
+    "sessionSummaryEmpty": "Session {session} prep · no sessions logged yet",
     "startSession": "Start session",
     "roll": "Roll",
     "newFaction": "New faction",
@@ -28,7 +30,8 @@
       "sharedPurse": "shared purse",
       "activeClocks": "Active clocks",
       "nearFull": "{count} near full",
-      "session": "Session"
+      "session": "Session",
+      "noSessions": "No sessions logged yet"
     },
     "warbandCard": {
       "eyebrow": "Warband",
@@ -91,6 +94,45 @@
       "toneWarning": "Warning",
       "cancel": "Cancel",
       "save": "Save"
+    }
+  },
+  "adventure": {
+    "eyebrow": "Prep mode · adventure",
+    "title": "Adventure",
+    "addBeat": "Add beat",
+    "addSubBeat": "Add sub-beat",
+    "empty": "No beats yet — outline your first plot thread.",
+    "addTitle": "Add a beat",
+    "editTitle": "Edit beat",
+    "deleteTitle": "Delete beat?",
+    "deleteMessage": "This removes \"{title}\" from the outline. This can't be undone — but nothing else in the campaign changes.",
+    "deleteMessageWithChildren": "This removes \"{title}\" and its {count} sub-beats from the outline. This can't be undone — but nothing else in the campaign changes.",
+    "status": {
+      "planned": "Planned",
+      "active": "Active",
+      "done": "Done"
+    },
+    "form": {
+      "title": "Title",
+      "notes": "Notes",
+      "status": "Status"
+    }
+  },
+  "sessions": {
+    "eyebrow": "Recap mode · sessions",
+    "title": "Sessions",
+    "log": "Log session",
+    "empty": "No sessions logged yet — log one right after you play.",
+    "addTitle": "Log a session",
+    "editTitle": "Edit session",
+    "deleteTitle": "Delete session?",
+    "deleteMessage": "This removes \"{title}\" from the session log. This can't be undone — but nothing else in the campaign changes.",
+    "form": {
+      "number": "Session #",
+      "date": "Date",
+      "title": "Title",
+      "summary": "Summary",
+      "summaryPlaceholder": "What happened, what changed, what's next…"
     }
   }
 }

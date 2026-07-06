@@ -31,6 +31,9 @@
     "vitest": "^4.1.5"
   },
   "dependencies": {
+    "@fontsource/bitter": "^5.2.10",
+    "@fontsource/jetbrains-mono": "^5.2.8",
+    "@fontsource/nunito-sans": "^5.2.7",
     "lucide-svelte": "^1.0.1",
     "svelte": "^5.55.5",
     "svelte-i18n": "^4.0.1"

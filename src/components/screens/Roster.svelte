@@ -81,7 +81,7 @@
   }
 </script>
 
-<div class="flex min-h-screen bg-[var(--bg)] text-[var(--text)]">
+<div class="flex flex-col md:flex-row min-h-screen bg-[var(--bg)] text-[var(--text)]">
   <AppSidebar active="warband" {onnavigate} {onstartsession} />
 
   <main class="flex-1 p-[var(--sp-6)] max-w-[var(--content-max)] flex flex-col gap-[var(--sp-5)]">
@@ -115,7 +115,7 @@
       </div>
     {/if}
 
-    <div class="grid grid-cols-2 gap-[var(--sp-5)] items-start">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-[var(--sp-5)] items-start">
       <!-- Warband -->
       <Card eyebrow={$_('roster.warband.eyebrow')} title={$_('roster.warband.title')}>
         {#snippet actions()}
@@ -128,14 +128,14 @@
         {/snippet}
         <div class="flex flex-col gap-[var(--sp-3)]">
           {#each party as member (member.id)}
-            <div class="flex items-center gap-[var(--sp-4)] py-2 border-b border-[var(--border)]">
+            <div class="flex flex-wrap items-center gap-x-[var(--sp-4)] gap-y-2 py-2 border-b border-[var(--border)]">
               <div class="min-w-23">
                 <div class="font-[family-name:var(--font-display)] font-bold text-[length:var(--text-title)]">
                   {member.name}
                 </div>
                 <div class="text-[length:var(--text-sm)] text-[var(--text-muted)]">{member.role}</div>
               </div>
-              <div class="flex-1 min-w-0"><HpBar value={member.hp} max={member.max} label={$_('roster.form.hp')} size="sm" /></div>
+              <div class="flex-1 min-w-35"><HpBar value={member.hp} max={member.max} label={$_('roster.form.hp')} size="sm" /></div>
               <div class="flex gap-1.5 shrink-0">
                 {#each member.conditions as cond (cond.label)}
                   <StatusPill tone={cond.tone} size="sm">{cond.label}</StatusPill>
@@ -179,14 +179,14 @@
         {/snippet}
         <div class="flex flex-col gap-[var(--sp-3)]">
           {#each hirelings as hireling (hireling.id)}
-            <div class="flex items-center gap-[var(--sp-4)] py-2 border-b border-[var(--border)]">
+            <div class="flex flex-wrap items-center gap-x-[var(--sp-4)] gap-y-2 py-2 border-b border-[var(--border)]">
               <div class="min-w-23">
                 <div class="font-[family-name:var(--font-display)] font-bold text-[length:var(--text-title)]">
                   {hireling.name}
                 </div>
                 <div class="text-[length:var(--text-sm)] text-[var(--text-muted)]">{hireling.role}</div>
               </div>
-              <div class="flex-1 min-w-0"><HpBar value={hireling.hp} max={hireling.max} label={$_('roster.form.hp')} size="sm" /></div>
+              <div class="flex-1 min-w-35"><HpBar value={hireling.hp} max={hireling.max} label={$_('roster.form.hp')} size="sm" /></div>
               <div class="w-24 shrink-0">
                 <HpBar value={hireling.loyalty} max={6} label={$_('roster.form.loyalty')} tone="accent" size="sm" />
               </div>

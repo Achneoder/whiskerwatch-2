@@ -32,7 +32,7 @@
   let npc = $state<GeneratedNpc | null>(null);
 </script>
 
-<div class="flex min-h-screen bg-[var(--bg)] text-[var(--text)]">
+<div class="flex flex-col md:flex-row min-h-screen bg-[var(--bg)] text-[var(--text)]">
   <AppSidebar active="generators" {onnavigate} {onstartsession} />
 
   <main class="flex-1 p-[var(--sp-6)] max-w-[var(--content-max)] flex flex-col gap-[var(--sp-5)]">
@@ -41,7 +41,7 @@
       <h1 class="text-[length:var(--text-h1)] mt-1">{$_('generators.title')}</h1>
     </header>
 
-    <div class="grid grid-cols-2 gap-[var(--sp-4)]">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-[var(--sp-4)]">
       <!-- Dice -->
       <Card eyebrow={$_('generators.dice.eyebrow')} title={$_('generators.dice.title')}>
         <div class="flex flex-col gap-[var(--sp-4)]">

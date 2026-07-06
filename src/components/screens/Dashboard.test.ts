@@ -16,8 +16,11 @@ describe('Dashboard', () => {
     const onstartsession = vi.fn();
     render(Dashboard, { props: { onnavigate: vi.fn(), onstartsession } });
 
-    const button = screen.getByRole('button', { name: /start session/i });
-    await button.click();
+    // AppSidebar renders a desktop <aside> and a mobile <header> nav in
+    // parallel (toggled via CSS breakpoints jsdom doesn't apply), so both
+    // "Start session" buttons exist in the DOM at once here.
+    const [button] = screen.getAllByRole('button', { name: /start session/i });
+    await button!.click();
 
     expect(onstartsession).toHaveBeenCalledOnce();
   });

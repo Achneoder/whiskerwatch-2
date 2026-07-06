@@ -66,15 +66,17 @@
         {/each}
       </div>
     {/if}
-    <div class="flex gap-2 items-center">
+    <div class="flex gap-2 items-center flex-wrap">
       <select
         bind:value={newConditionTone}
-        class="h-[var(--tap)] rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--surface-raised)] px-2 text-[length:var(--text-sm)]"
+        class="h-[var(--tap)] rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--surface-raised)] px-2 text-[length:var(--text-sm)] shrink-0"
       >
         <option value="danger">{$_('roster.form.toneDanger')}</option>
         <option value="warning">{$_('roster.form.toneWarning')}</option>
       </select>
-      <Input bind:value={newCondition} size="sm" placeholder={$_('roster.form.conditionPlaceholder')} />
+      <div class="flex-1 min-w-32">
+        <Input bind:value={newCondition} size="sm" placeholder={$_('roster.form.conditionPlaceholder')} />
+      </div>
       <Button type="button" variant="secondary" size="sm" onclick={addCondition}>{$_('roster.form.addCondition')}</Button>
     </div>
   </div>

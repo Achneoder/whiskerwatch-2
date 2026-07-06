@@ -92,9 +92,13 @@
         {/each}
       </ul>
     {/if}
-    <div class="flex gap-2">
-      <Input bind:value={newAttackName} size="sm" placeholder={$_('bestiary.form.attackNamePlaceholder')} />
-      <Input bind:value={newAttackDamage} size="sm" placeholder={$_('bestiary.form.attackDamagePlaceholder')} />
+    <div class="flex gap-2 flex-wrap">
+      <div class="flex-1 min-w-32">
+        <Input bind:value={newAttackName} size="sm" placeholder={$_('bestiary.form.attackNamePlaceholder')} />
+      </div>
+      <div class="flex-1 min-w-32">
+        <Input bind:value={newAttackDamage} size="sm" placeholder={$_('bestiary.form.attackDamagePlaceholder')} />
+      </div>
       <Button type="button" variant="secondary" size="sm" onclick={addAttack}>{$_('roster.form.addCondition')}</Button>
     </div>
   </div>

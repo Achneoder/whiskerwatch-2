@@ -43,7 +43,7 @@
   }
 </script>
 
-<div class="flex min-h-screen bg-[var(--bg)] text-[var(--text)]">
+<div class="flex flex-col md:flex-row min-h-screen bg-[var(--bg)] text-[var(--text)]">
   <AppSidebar active="adventure" {onnavigate} {onstartsession} />
 
   <main class="flex-1 p-[var(--sp-6)] max-w-[var(--content-max)] flex flex-col gap-[var(--sp-5)]">

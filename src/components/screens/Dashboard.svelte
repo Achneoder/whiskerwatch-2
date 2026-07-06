@@ -32,7 +32,7 @@
   const nearFull = $derived(factions.filter((f) => f.of > 0 && f.clock >= f.of - 1).length);
 </script>
 
-<div class="flex min-h-screen bg-[var(--bg)] text-[var(--text)]">
+<div class="flex flex-col md:flex-row min-h-screen bg-[var(--bg)] text-[var(--text)]">
   <AppSidebar active="overview" {onnavigate} {onstartsession} />
 
   <!-- Main -->
@@ -65,7 +65,7 @@
       </div>
     </header>
 
-    <section class="grid grid-cols-4 gap-[var(--sp-3)]">
+    <section class="grid grid-cols-2 sm:grid-cols-4 gap-[var(--sp-3)]">
       <Card class="!rounded-[var(--radius-md)]">
         <div class="ww-label mb-1.5">{$_('dashboard.stats.warband')}</div>
         <div class="ww-num font-bold text-[length:var(--stat-md)] leading-none">
@@ -100,7 +100,7 @@
       </Card>
     </section>
 
-    <div class="grid grid-cols-[1.1fr_1fr] gap-[var(--sp-5)] items-start">
+    <div class="grid grid-cols-1 lg:grid-cols-[1.1fr_1fr] gap-[var(--sp-5)] items-start">
       <!-- Warband -->
       <Card eyebrow={$_('dashboard.warbandCard.eyebrow')} title="Grey Meadow four">
         {#snippet actions()}
@@ -108,14 +108,14 @@
         {/snippet}
         <div class="flex flex-col gap-[var(--sp-3)]">
           {#each party as member (member.id)}
-            <div class="flex items-center gap-[var(--sp-4)] py-2 border-b border-[var(--border)]">
+            <div class="flex flex-wrap items-center gap-x-[var(--sp-4)] gap-y-2 py-2 border-b border-[var(--border)]">
               <div class="min-w-23">
                 <div class="font-[family-name:var(--font-display)] font-bold text-[length:var(--text-title)]">
                   {member.name}
                 </div>
                 <div class="text-[length:var(--text-sm)] text-[var(--text-muted)]">{member.role}</div>
               </div>
-              <div class="flex-1 min-w-0">
+              <div class="flex-1 min-w-35">
                 <HpBar value={member.hp} max={member.max} label={$_('dashboard.warbandCard.hp')} size="sm" />
               </div>
               <div class="flex gap-1.5 shrink-0">

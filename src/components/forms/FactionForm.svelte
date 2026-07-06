@@ -115,8 +115,10 @@
         {/each}
       </ul>
     {/if}
-    <div class="flex gap-2">
-      <Input bind:value={newTag} size="sm" placeholder={$_('factions.form.tagPlaceholder')} />
+    <div class="flex gap-2 flex-wrap">
+      <div class="flex-1 min-w-32">
+        <Input bind:value={newTag} size="sm" placeholder={$_('factions.form.tagPlaceholder')} />
+      </div>
       <Button type="button" variant="secondary" size="sm" onclick={addTag}>{$_('roster.form.addCondition')}</Button>
     </div>
   </div>

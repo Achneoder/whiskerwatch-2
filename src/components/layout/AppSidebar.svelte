@@ -58,8 +58,9 @@
   }
 </script>
 
+<!-- Desktop / tablet-landscape sidebar -->
 <aside
-  class="w-[var(--sidebar-w)] shrink-0 border-r border-[var(--border)] bg-[var(--surface)] py-[var(--sp-5)] px-[var(--sp-4)] flex flex-col gap-[var(--sp-5)]"
+  class="hidden md:flex md:w-[var(--sidebar-w)] shrink-0 border-r border-[var(--border)] bg-[var(--surface)] py-[var(--sp-5)] px-[var(--sp-4)] flex-col gap-[var(--sp-5)]"
 >
   <div class="font-[family-name:var(--font-display)] font-extrabold text-[22px] tracking-[-0.02em]">
     Whisker<span class="text-[var(--accent)]">watch</span>
@@ -106,3 +107,59 @@
     {/if}
   </div>
 </aside>
+
+<!-- Mobile / tablet-portrait top bar -->
+<header class="flex md:hidden flex-col sticky top-0 z-10 bg-[var(--surface)] border-b border-[var(--border)] w-full">
+  <div class="flex items-center justify-between gap-[var(--sp-3)] px-[var(--sp-4)] py-[var(--sp-3)]">
+    <div class="font-[family-name:var(--font-display)] font-extrabold text-[18px] tracking-[-0.02em] shrink-0">
+      Whisker<span class="text-[var(--accent)]">watch</span>
+    </div>
+    <div class="flex items-center gap-1.5 shrink-0">
+      <button
+        type="button"
+        aria-label={$_('locale.label')}
+        onclick={toggleLocale}
+        class="grid place-items-center w-9 h-9 rounded-[var(--radius-md)] text-[var(--text-secondary)] hover:bg-[var(--surface-raised)] cursor-pointer"
+      >
+        <Icon icon={Languages} />
+      </button>
+      <button
+        type="button"
+        aria-label={getTheme() === 'light' ? $_('theme.dark') : $_('theme.light')}
+        onclick={toggleTheme}
+        class="grid place-items-center w-9 h-9 rounded-[var(--radius-md)] text-[var(--text-secondary)] hover:bg-[var(--surface-raised)] cursor-pointer"
+      >
+        <Icon icon={getTheme() === 'light' ? Moon : Sun} />
+      </button>
+      {#if onstartsession}
+        <button
+          type="button"
+          aria-label={$_('dashboard.startSession')}
+          onclick={onstartsession}
+          class="grid place-items-center w-9 h-9 rounded-[var(--radius-md)] bg-[var(--accent)] text-[var(--on-accent)] cursor-pointer"
+        >
+          <Icon icon={Play} />
+        </button>
+      {/if}
+    </div>
+  </div>
+  <nav class="flex overflow-x-auto gap-1 px-[var(--sp-2)] pb-[var(--sp-2)]">
+    {#each nav as item (item.key)}
+      <button
+        type="button"
+        onclick={() => item.enabled && onnavigate(item.screen)}
+        disabled={!item.enabled}
+        title={item.enabled ? undefined : $_('nav.comingSoon')}
+        class="flex flex-col items-center gap-0.5 shrink-0 py-1.5 px-3 rounded-[var(--radius-md)] text-[length:var(--text-caption)] whitespace-nowrap {active ===
+        item.screen
+          ? 'font-bold text-[var(--accent)] bg-[var(--accent-tint)] cursor-default'
+          : item.enabled
+            ? 'font-medium text-[var(--text-secondary)] cursor-pointer hover:bg-[var(--surface-raised)]'
+            : 'font-medium text-[var(--text-secondary)] cursor-not-allowed opacity-60'}"
+      >
+        <Icon icon={item.icon} />
+        {$_(item.key)}
+      </button>
+    {/each}
+  </nav>
+</header>

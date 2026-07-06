@@ -7,11 +7,21 @@
   import HexMap from './components/screens/HexMap.svelte';
   import Generators from './components/screens/Generators.svelte';
   import Sessions from './components/screens/Sessions.svelte';
+  import Settings from './components/screens/Settings.svelte';
   import LiveSession from './components/screens/LiveSession.svelte';
   import type { NavScreen } from './components/layout/AppSidebar.svelte';
 
   let screen = $state<
-    'dashboard' | 'roster' | 'adventure' | 'bestiary' | 'factions' | 'hexMap' | 'generators' | 'sessions' | 'live'
+    | 'dashboard'
+    | 'roster'
+    | 'adventure'
+    | 'bestiary'
+    | 'factions'
+    | 'hexMap'
+    | 'generators'
+    | 'sessions'
+    | 'settings'
+    | 'live'
   >('dashboard');
 
   function navigate(target: NavScreen) {
@@ -23,6 +33,7 @@
     else if (target === 'hexMap') screen = 'hexMap';
     else if (target === 'generators') screen = 'generators';
     else if (target === 'sessions') screen = 'sessions';
+    else if (target === 'settings') screen = 'settings';
   }
 </script>
 
@@ -42,6 +53,8 @@
   <Generators onnavigate={navigate} onstartsession={() => (screen = 'live')} />
 {:else if screen === 'sessions'}
   <Sessions onnavigate={navigate} onstartsession={() => (screen = 'live')} />
+{:else if screen === 'settings'}
+  <Settings onnavigate={navigate} onstartsession={() => (screen = 'live')} />
 {:else}
   <Dashboard onnavigate={navigate} onstartsession={() => (screen = 'live')} />
 {/if}

@@ -36,6 +36,24 @@ describe('AppSidebar', () => {
     expect(onnavigate).toHaveBeenCalledWith('hexMap');
   });
 
+  it('navigates to settings from the sidebar', async () => {
+    const onnavigate = vi.fn();
+    const { container } = render(AppSidebar, { props: { active: 'overview', onnavigate } });
+
+    await getDesktopNav(container).getByRole('button', { name: /settings/i }).click();
+
+    expect(onnavigate).toHaveBeenCalledWith('settings');
+  });
+
+  it('marks the settings entry as the current page when active', () => {
+    const { container } = render(AppSidebar, { props: { active: 'settings', onnavigate: vi.fn() } });
+
+    expect(getDesktopNav(container).getByRole('button', { name: /settings/i })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+  });
+
   it('only renders the start session button when onstartsession is provided', () => {
     const { container, rerender } = render(AppSidebar, { props: { active: 'overview', onnavigate: vi.fn() } });
     expect(getDesktopNav(container).queryByRole('button', { name: /start session/i })).not.toBeInTheDocument();

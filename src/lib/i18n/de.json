@@ -8,6 +8,7 @@
     "hexMap": "Hexkarte",
     "generators": "Generatoren",
     "sessions": "Sitzungen",
+    "settings": "Einstellungen",
     "comingSoon": "Demnächst verfügbar"
   },
   "theme": {
@@ -260,6 +261,43 @@
       "roll": "NSC würfeln",
       "quirk": "Eigenheit:",
       "want": "Will:"
+    }
+  },
+  "settings": {
+    "eyebrow": "Vorbereitung · Einstellungen",
+    "title": "Einstellungen",
+    "notice": {
+      "title": "Deine Kampagne existiert nur in diesem Browser.",
+      "body": "Es gibt kein Konto und keinen Server – alles, was du eingibst, wird lokal auf diesem Gerät gespeichert. Wenn du die Browserdaten löschst, den privaten- oder Inkognito-Modus nutzt oder das Gerät bzw. den Browser wechselst, geht sie verloren. Exportiere deine Kampagne regelmäßig (unten), um eine Sicherung zu behalten."
+    },
+    "appearance": {
+      "title": "Darstellung",
+      "hint": "Wird sofort in der ganzen App übernommen.",
+      "light": "Heller Bau",
+      "dark": "Dunkler Bau"
+    },
+    "language": {
+      "title": "Sprache",
+      "hint": "Ändert Beschriftungen und Texte sofort in der ganzen App.",
+      "en": "English",
+      "de": "Deutsch"
+    },
+    "data": {
+      "title": "Kampagnendaten",
+      "intro": "Exportiere alles – Gruppen, Söldner, Abenteuer, Bestiarium, Fraktionen, Hexkarte und Sitzungsprotokolle – in eine Datei, die du sichern oder auf ein anderes Gerät übertragen kannst.",
+      "exportHeading": "Exportieren",
+      "exportHint": "Lade eine einzelne JSON-Datei mit deiner gesamten Kampagne herunter.",
+      "export": "Kampagne exportieren",
+      "exportDone": "In deinen Downloads gespeichert.",
+      "importHeading": "Importieren",
+      "importHint": "Aus einer zuvor exportierten Datei wiederherstellen. Dies ersetzt alles, was aktuell in der App ist.",
+      "import": "Kampagne importieren",
+      "importDone": "Kampagne wiederhergestellt.",
+      "footer": "Tipp: Exportiere nach jeder Sitzung, damit nichts verloren geht, falls der Speicher dieses Browsers geleert wird.",
+      "confirmTitle": "Kampagnendaten ersetzen?",
+      "confirmMessage": "Beim Importieren wird alles überschrieben, was aktuell in diesem Browser gespeichert ist. Das kann nur rückgängig gemacht werden, wenn du einen weiteren Export hast.",
+      "confirmAction": "Importieren und ersetzen",
+      "cancel": "Abbrechen"
     }
   }
 }

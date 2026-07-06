@@ -12,6 +12,7 @@
     Sun,
     Play,
     Languages,
+    Settings,
   } from 'lucide-svelte';
   import { _ } from 'svelte-i18n';
   import Button from '../ui/Button.svelte';
@@ -27,7 +28,8 @@
     | 'factions'
     | 'hexMap'
     | 'generators'
-    | 'sessions';
+    | 'sessions'
+    | 'settings';
 
   interface Props {
     active: NavScreen;
@@ -85,6 +87,18 @@
     {/each}
   </nav>
   <div class="mt-auto flex flex-col gap-2.5">
+    <button
+      type="button"
+      aria-current={active === 'settings' ? 'page' : undefined}
+      onclick={() => onnavigate('settings')}
+      class="flex items-center gap-2.5 py-2 px-2.5 rounded-[var(--radius-md)] text-[length:var(--text-body)] text-left border-t border-[var(--border)] pt-3 {active ===
+      'settings'
+        ? 'font-bold text-[var(--accent)] bg-[var(--accent-tint)] cursor-default'
+        : 'font-medium text-[var(--text-secondary)] cursor-pointer hover:bg-[var(--surface-raised)]'}"
+    >
+      <Icon icon={Settings} />
+      {$_('nav.settings')}
+    </button>
     <Button variant="secondary" size="sm" block onclick={toggleLocale}>
       {#snippet icon()}
         <Icon icon={Languages} />
@@ -115,6 +129,17 @@
       Whisker<span class="text-[var(--accent)]">watch</span>
     </div>
     <div class="flex items-center gap-1.5 shrink-0">
+      <button
+        type="button"
+        aria-label={$_('nav.settings')}
+        aria-current={active === 'settings' ? 'page' : undefined}
+        onclick={() => onnavigate('settings')}
+        class="grid place-items-center w-9 h-9 rounded-[var(--radius-md)] cursor-pointer {active === 'settings'
+          ? 'text-[var(--accent)] bg-[var(--accent-tint)]'
+          : 'text-[var(--text-secondary)] hover:bg-[var(--surface-raised)]'}"
+      >
+        <Icon icon={Settings} />
+      </button>
       <button
         type="button"
         aria-label={$_('locale.label')}

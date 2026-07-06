@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Whiskerwatch">
+  <rect width="512" height="512" fill="#2E6A5E"/>
+  <!-- Mouse ears -->
+  <circle cx="176" cy="150" r="60" fill="#FBF6EA"/>
+  <circle cx="336" cy="150" r="60" fill="#FBF6EA"/>
+  <circle cx="176" cy="150" r="30" fill="#D9E7E1"/>
+  <circle cx="336" cy="150" r="30" fill="#D9E7E1"/>
+  <!-- Head -->
+  <ellipse cx="256" cy="290" rx="120" ry="110" fill="#FBF6EA"/>
+  <!-- Eyes -->
+  <circle cx="216" cy="270" r="14" fill="#2E6A5E"/>
+  <circle cx="296" cy="270" r="14" fill="#2E6A5E"/>
+  <!-- Nose -->
+  <circle cx="256" cy="322" r="16" fill="#2E6A5E"/>
+  <!-- Whiskers -->
+  <g stroke="#2E6A5E" stroke-width="8" stroke-linecap="round">
+    <line x1="256" y1="330" x2="130" y2="316"/>
+    <line x1="256" y1="336" x2="128" y2="356"/>
+    <line x1="256" y1="330" x2="382" y2="316"/>
+    <line x1="256" y1="336" x2="384" y2="356"/>
+  </g>
+</svg>

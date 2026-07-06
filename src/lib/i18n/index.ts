@@ -25,14 +25,27 @@ function detectInitialLocale(): SupportedLocale {
   return 'en';
 }
 
+const initialLocale = detectInitialLocale();
+
 init({
   fallbackLocale: 'en',
-  initialLocale: detectInitialLocale(),
+  initialLocale,
 });
+
+// Keep the document language in sync so screen readers announce content in the
+// right language and pick the correct pronunciation/hyphenation rules.
+function syncDocumentLang(next: SupportedLocale): void {
+  if (typeof document !== 'undefined') {
+    document.documentElement.lang = next;
+  }
+}
+
+syncDocumentLang(initialLocale);
 
 export function setLocale(next: SupportedLocale): void {
   locale.set(next);
   writeJSON(STORAGE_KEY, next);
+  syncDocumentLang(next);
 }
 
 export { locale };

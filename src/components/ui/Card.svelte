@@ -34,6 +34,12 @@
   }
 </script>
 
+<!--
+  When interactive, this div is given role="button", keyboard handling, and a
+  focusable tabindex together — a self-consistent button. svelte-check can't see
+  through the conditional role to know the tabindex is on an interactive element.
+-->
+<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 <div
   {onclick}
   onkeydown={interactive ? handleKeydown : undefined}

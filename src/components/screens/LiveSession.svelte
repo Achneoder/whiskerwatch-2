@@ -1,5 +1,6 @@
 <script lang="ts">
   import { ChevronLeft, Dices } from 'lucide-svelte';
+  import { _ } from 'svelte-i18n';
   import Button from '../ui/Button.svelte';
   import Card from '../ui/Card.svelte';
   import HpBar from '../ui/HpBar.svelte';
@@ -44,13 +45,13 @@
   >
     <button
       onclick={onexit}
-      aria-label="End session"
+      aria-label={$_('liveSession.exitAriaLabel')}
       class="inline-flex items-center gap-2 bg-none border-none text-[var(--text-muted)] cursor-pointer text-[length:var(--text-body)] font-[family-name:var(--font-body)]"
     >
-      <Icon icon={ChevronLeft} size="live" />Prep
+      <Icon icon={ChevronLeft} size="live" />{$_('liveSession.exit')}
     </button>
     <div class="text-center">
-      <div class="ww-label text-[var(--accent)]">Live · Session 5</div>
+      <div class="ww-label text-[var(--accent)]">{$_('liveSession.eyebrow', { values: { session: 5 } })}</div>
       <div class="font-[family-name:var(--font-display)] font-bold text-[length:var(--text-h3)]">
         The granary raid
       </div>
@@ -73,7 +74,14 @@
               </div>
             {/each}
           </div>
-          <Stepper label="HP" value={member.hp} max={member.max} tone="hp" size="live" onchange={(v) => setHp(i, v)} />
+          <Stepper
+            label={$_('liveSession.hp')}
+            value={member.hp}
+            max={member.max}
+            tone="hp"
+            size="live"
+            onchange={(v) => setHp(i, v)}
+          />
         </div>
         <div class="mt-[var(--sp-4)]">
           <HpBar value={member.hp} max={member.max} label="" showValue={false} size="live" />
@@ -87,14 +95,21 @@
     class="sticky bottom-0 bg-[var(--surface)] border-t border-[var(--border)] p-[var(--sp-5)] flex flex-col items-center gap-[var(--sp-4)] shadow-[var(--shadow-lg)]"
   >
     {#if roll}
-      <DiceRoll dice={roll.dice} notation="2d6" total={roll.total} outcome={roll.outcome} label="Last roll" size="live" />
+      <DiceRoll
+        dice={roll.dice}
+        notation="2d6"
+        total={roll.total}
+        outcome={roll.outcome}
+        label={$_('liveSession.lastRoll')}
+        size="live"
+      />
     {/if}
     <div class="flex gap-[var(--sp-3)] w-full max-w-160">
       <Button variant="primary" size="live" block onclick={doRoll}>
         {#snippet icon()}
           <Icon icon={Dices} size="live" />
         {/snippet}
-        Roll 2d6
+        {$_('liveSession.roll2d6')}
       </Button>
     </div>
   </div>

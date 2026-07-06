@@ -1,0 +1,51 @@
+{
+  "nav": {
+    "overview": "Übersicht",
+    "warband": "Gruppe",
+    "factions": "Fraktionen",
+    "hexMap": "Hexkarte",
+    "sessions": "Sitzungen",
+    "comingSoon": "Demnächst verfügbar"
+  },
+  "theme": {
+    "dark": "Dunkler Bau",
+    "light": "Heller Bau"
+  },
+  "locale": {
+    "label": "Sprache"
+  },
+  "dashboard": {
+    "prepMode": "Vorbereitung · Laptop",
+    "sessionSummary": "Vorbereitung für Sitzung {session} · zuletzt gespielt vor {days} Tagen",
+    "startSession": "Sitzung starten",
+    "roll": "Würfeln",
+    "newFaction": "Neue Fraktion",
+    "stats": {
+      "warband": "Gruppe",
+      "mice": "{count} Mäuse",
+      "wounded": "{count} verwundet",
+      "pipsBanked": "Pips gespart",
+      "sharedPurse": "gemeinsame Kasse",
+      "activeClocks": "Aktive Uhren",
+      "nearFull": "{count} fast voll",
+      "session": "Sitzung"
+    },
+    "warbandCard": {
+      "eyebrow": "Gruppe",
+      "manage": "Verwalten",
+      "hp": "TP"
+    },
+    "factionsCard": {
+      "heading": "Fraktionen & Uhren",
+      "clock": "Uhr"
+    }
+  },
+  "liveSession": {
+    "eyebrow": "Live · Sitzung {session}",
+    "exit": "Vorbereitung",
+    "exitAriaLabel": "Sitzung beenden",
+    "hp": "TP",
+    "lastRoll": "Letzter Wurf",
+    "roll2d6": "2W6 würfeln"
+  }
+}

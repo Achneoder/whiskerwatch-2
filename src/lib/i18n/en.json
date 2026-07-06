@@ -1,0 +1,51 @@
+{
+  "nav": {
+    "overview": "Overview",
+    "warband": "Warband",
+    "factions": "Factions",
+    "hexMap": "Hex map",
+    "sessions": "Sessions",
+    "comingSoon": "Coming soon"
+  },
+  "theme": {
+    "dark": "Dark burrow",
+    "light": "Light burrow"
+  },
+  "locale": {
+    "label": "Language"
+  },
+  "dashboard": {
+    "prepMode": "Prep mode · laptop",
+    "sessionSummary": "Session {session} prep · last played {days} days ago",
+    "startSession": "Start session",
+    "roll": "Roll",
+    "newFaction": "New faction",
+    "stats": {
+      "warband": "Warband",
+      "mice": "{count} mice",
+      "wounded": "{count} wounded",
+      "pipsBanked": "Pips banked",
+      "sharedPurse": "shared purse",
+      "activeClocks": "Active clocks",
+      "nearFull": "{count} near full",
+      "session": "Session"
+    },
+    "warbandCard": {
+      "eyebrow": "Warband",
+      "manage": "Manage",
+      "hp": "HP"
+    },
+    "factionsCard": {
+      "heading": "Factions & clocks",
+      "clock": "Clock"
+    }
+  },
+  "liveSession": {
+    "eyebrow": "Live · Session {session}",
+    "exit": "Prep",
+    "exitAriaLabel": "End session",
+    "hp": "HP",
+    "lastRoll": "Last roll",
+    "roll2d6": "Roll 2d6"
+  }
+}

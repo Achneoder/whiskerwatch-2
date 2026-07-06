@@ -3,6 +3,9 @@ import { getHirelings, replaceHirelings, type Hireling } from './stores/hireling
 import { getBeats, replaceBeats, type Beat } from './stores/beats.svelte';
 import { getSessions, replaceSessions, type Session } from './stores/sessions.svelte';
 import { getBestiary, replaceBestiary, type BestiaryEntry } from './stores/bestiary.svelte';
+import { getFactions, replaceFactions, type Faction } from './stores/factions.svelte';
+import { getFactionEdges, replaceFactionEdges, type FactionEdge } from './stores/factionEdges.svelte';
+import { getHexNodes, replaceHexNodes, type HexNode } from './stores/hexmap.svelte';
 
 export const CAMPAIGN_EXPORT_VERSION = 1;
 
@@ -14,6 +17,9 @@ export interface CampaignExport {
   beats: Beat[];
   sessions: Session[];
   bestiary: BestiaryEntry[];
+  factions: Faction[];
+  factionEdges: FactionEdge[];
+  hexNodes: HexNode[];
 }
 
 export function buildCampaignExport(): CampaignExport {
@@ -25,6 +31,9 @@ export function buildCampaignExport(): CampaignExport {
     beats: getBeats(),
     sessions: getSessions(),
     bestiary: getBestiary(),
+    factions: getFactions(),
+    factionEdges: getFactionEdges(),
+    hexNodes: getHexNodes(),
   };
 }
 
@@ -72,6 +81,44 @@ function isBestiaryEntry(value: unknown): value is BestiaryEntry {
   );
 }
 
+function isFaction(value: unknown): value is Faction {
+  if (!value || typeof value !== 'object') return false;
+  const v = value as Record<string, unknown>;
+  return (
+    typeof v.id === 'string' &&
+    typeof v.name === 'string' &&
+    typeof v.disposition === 'string' &&
+    typeof v.clock === 'number' &&
+    typeof v.of === 'number' &&
+    Array.isArray(v.tags)
+  );
+}
+
+function isFactionEdge(value: unknown): value is FactionEdge {
+  if (!value || typeof value !== 'object') return false;
+  const v = value as Record<string, unknown>;
+  return (
+    typeof v.id === 'string' &&
+    typeof v.sourceId === 'string' &&
+    typeof v.targetId === 'string' &&
+    typeof v.type === 'string'
+  );
+}
+
+function isHexNode(value: unknown): value is HexNode {
+  if (!value || typeof value !== 'object') return false;
+  const v = value as Record<string, unknown>;
+  return (
+    typeof v.id === 'string' &&
+    typeof v.q === 'number' &&
+    typeof v.r === 'number' &&
+    typeof v.terrain === 'string' &&
+    typeof v.name === 'string' &&
+    typeof v.notes === 'string' &&
+    typeof v.discovered === 'boolean'
+  );
+}
+
 export function parseCampaignExport(text: string): CampaignExport {
   let data: unknown;
   try {
@@ -100,6 +147,18 @@ export function parseCampaignExport(text: string): CampaignExport {
   if (candidate.bestiary !== undefined && (!Array.isArray(candidate.bestiary) || !candidate.bestiary.every(isBestiaryEntry))) {
     throw new Error('That file does not look like a Whiskerwatch campaign export.');
   }
+  if (candidate.factions !== undefined && (!Array.isArray(candidate.factions) || !candidate.factions.every(isFaction))) {
+    throw new Error('That file does not look like a Whiskerwatch campaign export.');
+  }
+  if (
+    candidate.factionEdges !== undefined &&
+    (!Array.isArray(candidate.factionEdges) || !candidate.factionEdges.every(isFactionEdge))
+  ) {
+    throw new Error('That file does not look like a Whiskerwatch campaign export.');
+  }
+  if (candidate.hexNodes !== undefined && (!Array.isArray(candidate.hexNodes) || !candidate.hexNodes.every(isHexNode))) {
+    throw new Error('That file does not look like a Whiskerwatch campaign export.');
+  }
 
   return {
     version: CAMPAIGN_EXPORT_VERSION,
@@ -109,6 +168,9 @@ export function parseCampaignExport(text: string): CampaignExport {
     beats: Array.isArray(candidate.beats) ? candidate.beats : [],
     sessions: Array.isArray(candidate.sessions) ? candidate.sessions : [],
     bestiary: Array.isArray(candidate.bestiary) ? candidate.bestiary : [],
+    factions: Array.isArray(candidate.factions) ? candidate.factions : [],
+    factionEdges: Array.isArray(candidate.factionEdges) ? candidate.factionEdges : [],
+    hexNodes: Array.isArray(candidate.hexNodes) ? candidate.hexNodes : [],
   };
 }
 
@@ -131,4 +193,7 @@ export async function importCampaign(file: File): Promise<void> {
   replaceBeats(data.beats);
   replaceSessions(data.sessions);
   replaceBestiary(data.bestiary);
+  replaceFactions(data.factions);
+  replaceFactionEdges(data.factionEdges);
+  replaceHexNodes(data.hexNodes);
 }

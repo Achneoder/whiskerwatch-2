@@ -12,16 +12,17 @@ describe('AppSidebar', () => {
     expect(onnavigate).toHaveBeenCalledWith('warband');
   });
 
-  it('does not call onnavigate for a disabled nav item', async () => {
+  it('navigates to factions and the hex map now that both screens are enabled', async () => {
     const onnavigate = vi.fn();
     render(AppSidebar, { props: { active: 'overview', onnavigate } });
 
     const factionsButton = screen.getByRole('button', { name: /factions/i });
-    expect(factionsButton).toBeDisabled();
-
+    expect(factionsButton).not.toBeDisabled();
     await factionsButton.click();
+    expect(onnavigate).toHaveBeenCalledWith('factions');
 
-    expect(onnavigate).not.toHaveBeenCalled();
+    await screen.getByRole('button', { name: /hex map/i }).click();
+    expect(onnavigate).toHaveBeenCalledWith('hexMap');
   });
 
   it('only renders the start session button when onstartsession is provided', () => {

@@ -5,13 +5,16 @@ import { getHirelings } from './stores/hirelings.svelte';
 import { getBeats } from './stores/beats.svelte';
 import { getSessions } from './stores/sessions.svelte';
 import { getBestiary } from './stores/bestiary.svelte';
+import { getFactions } from './stores/factions.svelte';
+import { getFactionEdges } from './stores/factionEdges.svelte';
+import { getHexNodes } from './stores/hexmap.svelte';
 
 describe('campaignExport', () => {
   beforeEach(() => {
     localStorage.clear();
   });
 
-  it('builds an export containing the current party, hirelings, beats, sessions and bestiary', () => {
+  it('builds an export containing the current party, hirelings, beats, sessions, bestiary, factions and hexes', () => {
     const data = buildCampaignExport();
 
     expect(data.version).toBe(1);
@@ -20,6 +23,9 @@ describe('campaignExport', () => {
     expect(data.beats).toEqual(getBeats());
     expect(data.sessions).toEqual(getSessions());
     expect(data.bestiary).toEqual(getBestiary());
+    expect(data.factions).toEqual(getFactions());
+    expect(data.factionEdges).toEqual(getFactionEdges());
+    expect(data.hexNodes).toEqual(getHexNodes());
     expect(typeof data.exportedAt).toBe('string');
   });
 
@@ -32,15 +38,31 @@ describe('campaignExport', () => {
     expect(parsed.beats).toEqual(data.beats);
     expect(parsed.sessions).toEqual(data.sessions);
     expect(parsed.bestiary).toEqual(data.bestiary);
+    expect(parsed.factions).toEqual(data.factions);
+    expect(parsed.factionEdges).toEqual(data.factionEdges);
+    expect(parsed.hexNodes).toEqual(data.hexNodes);
   });
 
-  it('treats missing beats/sessions/bestiary as empty arrays for backward compatibility with older exports', () => {
+  it('treats missing collections as empty arrays for backward compatibility with older exports', () => {
     const legacy = JSON.stringify({ version: 1, exportedAt: '2026-01-01T00:00:00.000Z', party: [], hirelings: [] });
     const parsed = parseCampaignExport(legacy);
 
     expect(parsed.beats).toEqual([]);
     expect(parsed.sessions).toEqual([]);
     expect(parsed.bestiary).toEqual([]);
+    expect(parsed.factions).toEqual([]);
+    expect(parsed.factionEdges).toEqual([]);
+    expect(parsed.hexNodes).toEqual([]);
+  });
+
+  it('rejects a faction entry missing required fields', () => {
+    const bad = JSON.stringify({ party: [], hirelings: [], factions: [{ id: '1' }] });
+    expect(() => parseCampaignExport(bad)).toThrow(/does not look like/);
+  });
+
+  it('rejects a hex node missing required fields', () => {
+    const bad = JSON.stringify({ party: [], hirelings: [], hexNodes: [{ id: '1' }] });
+    expect(() => parseCampaignExport(bad)).toThrow(/does not look like/);
   });
 
   it('rejects a bestiary entry missing required fields', () => {

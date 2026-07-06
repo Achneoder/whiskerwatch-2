@@ -45,6 +45,8 @@
   --plum: #7A4A6B;      /* faction clocks / info */
   --plum-strong: #5E3651;
   --plum-soft: #EEDEE9;
+  --brook: #2F6E8C;     /* hex-map water terrain */
+  --brook-soft: #D6E6EF;
 
   /* ============================================================
      Layer 2 — Semantic aliases (LIGHT is the default)
@@ -74,11 +76,17 @@
   --on-danger: var(--paper-2);
 
   --success: var(--moss);
+  --success-hover: var(--moss-strong);
   --success-tint: var(--moss-soft);
   --warning: var(--honey);
+  --warning-hover: var(--honey-strong);
   --warning-tint: var(--honey-soft);
   --clock: var(--plum);
+  --clock-hover: var(--plum-strong);
   --clock-tint: var(--plum-soft);
+
+  --terrain-water: var(--brook);
+  --terrain-water-tint: var(--brook-soft);
 
   color-scheme: light;
 }
@@ -118,6 +126,8 @@
   --plum: #B584A6;
   --plum-strong: #C89DBB;
   --plum-soft: #33232E;
+  --brook: #5AA6C4;
+  --brook-soft: #16303B;
 
   --on-accent: var(--pine-on);
   --on-danger: #FBF3E4;

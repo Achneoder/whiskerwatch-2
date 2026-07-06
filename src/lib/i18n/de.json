@@ -166,6 +166,73 @@
       "notes": "Notizen"
     }
   },
+  "factions": {
+    "eyebrow": "Vorbereitung · Fraktionen",
+    "title": "Fraktionen",
+    "add": "Fraktion hinzufügen",
+    "empty": "Noch keine Fraktionen — füge die erste Macht auf der Wiese hinzu.",
+    "addTitle": "Fraktion hinzufügen",
+    "editTitle": "Fraktion bearbeiten",
+    "deleteTitle": "Fraktion löschen?",
+    "deleteMessage": "Dadurch werden {name} und ihre Beziehungen entfernt. Das kann nicht rückgängig gemacht werden — aber sonst ändert sich nichts an der Kampagne.",
+    "clock": "Uhr",
+    "disposition": {
+      "hostile": "Feindlich",
+      "neutral": "Neutral",
+      "ally": "Verbündet"
+    },
+    "relation": {
+      "ally": "Verbündet",
+      "enemy": "Feind",
+      "rival": "Rivale"
+    },
+    "graph": {
+      "heading": "Beziehungen",
+      "legend": "Legende",
+      "empty": "Füge Fraktionen hinzu, um das Beziehungsgeflecht zu sehen."
+    },
+    "form": {
+      "name": "Name",
+      "disposition": "Gesinnung",
+      "clock": "Uhr",
+      "of": "Segmente",
+      "note": "Notiz",
+      "tags": "Schlagwörter",
+      "tagPlaceholder": "Schlagwort hinzufügen",
+      "relationships": "Beziehungen",
+      "relationType": "Art",
+      "addRelationship": "Beziehung hinzufügen",
+      "targetPlaceholder": "Fraktion",
+      "relationshipsAddFirst": "Speichere die Fraktion zuerst, dann kannst du Beziehungen hinzufügen."
+    }
+  },
+  "hexMap": {
+    "eyebrow": "Vorbereitung · Hexkarte",
+    "title": "Hexkarte",
+    "empty": "Noch keine Hexfelder kartiert — tippe auf ein Feld, um es zu beschreiben.",
+    "addTitle": "Feld beschreiben",
+    "editTitle": "Feld bearbeiten",
+    "deleteTitle": "Feld löschen?",
+    "deleteMessage": "Dadurch wird {name} von der Karte entfernt. Das kann nicht rückgängig gemacht werden — aber sonst ändert sich nichts an der Kampagne.",
+    "legend": "Legende",
+    "clear": "Feld löschen",
+    "terrain": {
+      "meadow": "Wiese",
+      "hedgerow": "Hecke",
+      "forest": "Wald",
+      "water": "Wasser",
+      "hills": "Hügel",
+      "ruins": "Ruinen",
+      "settlement": "Siedlung"
+    },
+    "form": {
+      "terrain": "Gelände",
+      "name": "Name",
+      "namePlaceholder": "Ortsname (optional)",
+      "notes": "Notizen",
+      "discovered": "Von der Gruppe entdeckt"
+    }
+  },
   "generators": {
     "eyebrow": "Improvisieren · Generatoren",
     "title": "Generatoren",

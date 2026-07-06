@@ -10,6 +10,7 @@
   import AppSidebar, { type NavScreen } from '../layout/AppSidebar.svelte';
   import { getParty } from '../../lib/stores/party.svelte';
   import { getLastSession, getNextSessionNumber } from '../../lib/stores/sessions.svelte';
+  import { getFactions, dispositionTagTone } from '../../lib/stores/factions.svelte';
   import { daysSince } from '../../lib/date';
 
   interface Props {
@@ -26,34 +27,9 @@
   const nextSessionNumber = $derived(getNextSessionNumber());
   const lastSession = $derived(getLastSession());
 
-  const factions = [
-    {
-      name: 'The Gnawing Court',
-      tone: 'danger' as const,
-      clock: 3,
-      of: 6,
-      note: 'Rats tunnelling beneath the granary.',
-      tags: ['Hostile', 'Sewers'],
-    },
-    {
-      name: 'Owl Bridge Toll',
-      tone: 'clock' as const,
-      clock: 1,
-      of: 4,
-      note: 'A barn owl demands a cut of all passage.',
-      tags: ['Neutral'],
-    },
-    {
-      name: 'The Seed-Keepers',
-      tone: 'success' as const,
-      clock: 5,
-      of: 6,
-      note: 'Field mice hoarding winter stores. Allied.',
-      tags: ['Ally', 'Meadow'],
-    },
-  ];
-
-  const activeClocks = factions.length;
+  const factions = getFactions();
+  const activeClocks = $derived(factions.length);
+  const nearFull = $derived(factions.filter((f) => f.of > 0 && f.clock >= f.of - 1).length);
 </script>
 
 <div class="flex min-h-screen bg-[var(--bg)] text-[var(--text)]">
@@ -80,7 +56,7 @@
           {/snippet}
           {$_('dashboard.roll')}
         </Button>
-        <Button variant="secondary" size="sm">
+        <Button variant="secondary" size="sm" onclick={() => onnavigate('factions')}>
           {#snippet icon()}
             <Icon icon={Plus} />
           {/snippet}
@@ -112,7 +88,7 @@
           {activeClocks}
         </div>
         <div class="text-[length:var(--text-sm)] text-[var(--text-muted)] mt-1">
-          {$_('dashboard.stats.nearFull', { values: { count: 1 } })}
+          {$_('dashboard.stats.nearFull', { values: { count: nearFull } })}
         </div>
       </Card>
       <Card interactive class="!rounded-[var(--radius-md)]" onclick={() => onnavigate('sessions')}>
@@ -155,16 +131,16 @@
       <!-- Factions -->
       <div class="flex flex-col gap-[var(--sp-4)]">
         <div class="ww-label">{$_('dashboard.factionsCard.heading')}</div>
-        {#each factions as faction (faction.name)}
-          <Card interactive class="!rounded-[var(--radius-md)]">
+        {#each factions as faction (faction.id)}
+          <Card interactive class="!rounded-[var(--radius-md)]" onclick={() => onnavigate('factions')}>
             {#snippet footer()}
-              <div class="flex items-center justify-between">
-                <StatusPill tone={faction.tone} count={faction.clock} of={faction.of}
+              <div class="flex items-center justify-between gap-[var(--sp-3)] flex-wrap">
+                <StatusPill tone="clock" count={faction.clock} of={faction.of}
                   >{$_('dashboard.factionsCard.clock')}</StatusPill
                 >
-                <div class="flex gap-1.5">
+                <div class="flex gap-1.5 flex-wrap">
                   {#each faction.tags as tag (tag)}
-                    <Tag tone={faction.tone === 'success' ? 'success' : 'default'}>{tag}</Tag>
+                    <Tag tone={dispositionTagTone[faction.disposition]}>{tag}</Tag>
                   {/each}
                 </div>
               </div>
@@ -175,6 +151,9 @@
             <p class="mt-1 text-[var(--text-secondary)] text-[length:var(--text-body)]">{faction.note}</p>
           </Card>
         {/each}
+        {#if factions.length === 0}
+          <p class="text-[var(--text-muted)] text-[length:var(--text-sm)]">{$_('factions.empty')}</p>
+        {/if}
       </div>
     </div>
   </main>

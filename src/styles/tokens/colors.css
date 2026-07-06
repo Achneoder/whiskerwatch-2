@@ -1,0 +1,126 @@
+/* ============================================================
+   Whiskerwatch — Color tokens
+   Warm woodland palette. Parchment paper, ink-brown text, a single
+   pine-teal accent that carries across both themes, plus warm
+   semantic colors for HP/danger, success, warning and faction clocks.
+   ------------------------------------------------------------
+   Layer 1: raw named ramps  (--paper-*, --ink-*, --pine-*, …)
+   Layer 2: semantic aliases (--bg, --text, --accent, --hp, …)
+   Consumers should use Layer 2.
+   ============================================================ */
+
+:root {
+  /* --- Raw ramps: parchment surfaces (light) --- */
+  --paper-0: #F1E7CF;   /* app background — warm cream */
+  --paper-1: #F8F1DF;   /* surface / panel */
+  --paper-2: #FDF8ED;   /* raised card / input field */
+  --paper-sunk: #EADFC2; /* recessed wells, track backgrounds */
+
+  /* --- Raw ramps: ink (light) --- */
+  --ink-0: #2C231A;     /* primary text — dark walnut */
+  --ink-1: #4C3F30;     /* secondary text */
+  --ink-2: #786853;     /* muted / captions */
+  --ink-3: #9B8869;     /* faint / placeholder */
+
+  /* --- Borders (light) --- */
+  --line: #DFCFA9;
+  --line-strong: #C9B384;
+
+  /* --- Pine-teal accent (signature) --- */
+  --pine: #2E6A5E;
+  --pine-strong: #234F46;
+  --pine-soft: #D9E7E1;
+  --pine-on: #FBF6EA;   /* text/icon on pine */
+
+  /* --- Semantic hues (light) --- */
+  --barn: #B23A2E;      /* HP / danger */
+  --barn-strong: #8C2C22;
+  --barn-soft: #F4DDD5;
+  --moss: #5C7A38;      /* success */
+  --moss-strong: #47611f;
+  --moss-soft: #E5EAD1;
+  --honey: #BC8412;     /* warning */
+  --honey-strong: #8f640b;
+  --honey-soft: #F6E9C2;
+  --plum: #7A4A6B;      /* faction clocks / info */
+  --plum-strong: #5E3651;
+  --plum-soft: #EEDEE9;
+
+  /* ============================================================
+     Layer 2 — Semantic aliases (LIGHT is the default)
+     ============================================================ */
+  --bg: var(--paper-0);
+  --surface: var(--paper-1);
+  --surface-raised: var(--paper-2);
+  --surface-sunk: var(--paper-sunk);
+
+  --text: var(--ink-0);
+  --text-secondary: var(--ink-1);
+  --text-muted: var(--ink-2);
+  --text-faint: var(--ink-3);
+
+  --border: var(--line);
+  --border-strong: var(--line-strong);
+
+  --accent: var(--pine);
+  --accent-hover: var(--pine-strong);
+  --accent-tint: var(--pine-soft);
+  --on-accent: var(--pine-on);
+
+  --hp: var(--barn);
+  --danger: var(--barn);
+  --danger-hover: var(--barn-strong);
+  --danger-tint: var(--barn-soft);
+  --on-danger: var(--paper-2);
+
+  --success: var(--moss);
+  --success-tint: var(--moss-soft);
+  --warning: var(--honey);
+  --warning-tint: var(--honey-soft);
+  --clock: var(--plum);
+  --clock-tint: var(--plum-soft);
+
+  color-scheme: light;
+}
+
+/* ============================================================
+   DARK theme — warm near-black burrow, cream text.
+   Same accent identity, brighter so it reads at low light.
+   ============================================================ */
+[data-theme="dark"] {
+  --paper-0: #1F1811;
+  --paper-1: #2A2219;
+  --paper-2: #342A1F;
+  --paper-sunk: #17110B;
+
+  --ink-0: #F1E8D6;
+  --ink-1: #D6C8B0;
+  --ink-2: #A9997E;
+  --ink-3: #7E6E56;
+
+  --line: #453A2B;
+  --line-strong: #5C4E3A;
+
+  --pine: #58A594;
+  --pine-strong: #74BEAD;
+  --pine-soft: #1E3A34;
+  --pine-on: #14231F;
+
+  --barn: #DB5C4C;
+  --barn-strong: #EC7C6D;
+  --barn-soft: #3A211C;
+  --moss: #92B462;
+  --moss-strong: #ABC97F;
+  --moss-soft: #26301A;
+  --honey: #DDA936;
+  --honey-strong: #ECBE56;
+  --honey-soft: #382C13;
+  --plum: #B584A6;
+  --plum-strong: #C89DBB;
+  --plum-soft: #33232E;
+
+  --on-accent: var(--pine-on);
+  --on-danger: #FBF3E4;
+
+  color-scheme: dark;
+}

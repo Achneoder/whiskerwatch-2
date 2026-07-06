@@ -1,0 +1,97 @@
+/* ============================================================
+   Whiskerwatch — Spacing, layout & density tokens
+   ------------------------------------------------------------
+   One 4px-based scale drives both modes. DENSITY is the core idea:
+   the same components get more breathing room and bigger hit
+   targets as the viewport shrinks toward table use — the opposite
+   of the usual "more space on desktop" instinct, because the small
+   screen IS the live-play screen.
+   ============================================================ */
+
+:root {
+  /* Base spacing scale (4px grid) */
+  --sp-1: 0.25rem;   /* 4  */
+  --sp-2: 0.5rem;    /* 8  */
+  --sp-3: 0.75rem;   /* 12 */
+  --sp-4: 1rem;      /* 16 */
+  --sp-5: 1.5rem;    /* 24 */
+  --sp-6: 2rem;      /* 32 */
+  --sp-7: 3rem;      /* 48 */
+  --sp-8: 4rem;      /* 64 */
+
+  /* Corner radii — soft, hand-cut, never pill-slick except chips */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  /* Border widths */
+  --bw: 1px;
+  --bw-strong: 2px;
+
+  /* Minimum interactive target.
+     Prep = comfortable mouse target; Live = fat-finger safe. */
+  --tap: 36px;
+
+  /* Component insets, keyed to density */
+  --pad-card: var(--sp-4);
+  --pad-control-y: var(--sp-2);
+  --pad-control-x: var(--sp-4);
+  --gap-stack: var(--sp-3);   /* vertical rhythm between rows */
+  --gap-inline: var(--sp-2);  /* between chips/buttons in a row */
+
+  /* Content measure */
+  --measure: 68ch;
+
+  /* Named layout widths */
+  --sidebar-w: 264px;
+  --content-max: 1200px;
+}
+
+/* ============================================================
+   BREAKPOINT / DENSITY RULES
+   The system recognises three zones. Density is expressed as token
+   overrides, so every component thickens up automatically — no
+   per-component media queries needed downstream.
+
+     ≥ 960px   PREP     laptop, GM alone, mouse. Dense is fine.
+     600–959   HYBRID   tablet, could be either. Middle ground.
+     < 600px   LIVE     phone at the table. Max legibility + targets.
+   ============================================================ */
+
+/* HYBRID — tablet */
+@media (max-width: 959px) {
+  :root {
+    --tap: 44px;
+    --pad-card: var(--sp-5);
+    --pad-control-y: var(--sp-3);
+    --gap-stack: var(--sp-4);
+  }
+}
+
+/* LIVE — phone at the table. Everything opens up: bigger targets,
+   more padding, more space between tappable rows so a fumbled
+   thumb never hits the wrong control. */
+@media (max-width: 599px) {
+  :root {
+    --tap: 56px;
+    --pad-card: var(--sp-5);
+    --pad-control-y: var(--sp-4);
+    --pad-control-x: var(--sp-5);
+    --gap-stack: var(--sp-5);
+    --gap-inline: var(--sp-3);
+    --radius-md: 12px;
+    --radius-lg: 18px;
+  }
+}
+
+/* Explicit override — force live density on any viewport (e.g. a
+   "cast to table" mode) without waiting for the breakpoint. */
+:root[data-density="live"], [data-density="live"] {
+  --tap: 56px;
+  --pad-card: var(--sp-5);
+  --pad-control-y: var(--sp-4);
+  --pad-control-x: var(--sp-5);
+  --gap-stack: var(--sp-5);
+  --gap-inline: var(--sp-3);
+}

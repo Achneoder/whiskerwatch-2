@@ -1,0 +1,46 @@
+/* ============================================================
+   Whiskerwatch — Base element defaults
+   Minimal resets + the brand's default page surface. Kept small so
+   consumers inherit warmth without fighting Tailwind's preflight.
+   ============================================================ */
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  line-height: var(--lh-body);
+  font-weight: var(--w-regular);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: var(--w-bold);
+  line-height: var(--lh-heading);
+  letter-spacing: var(--ls-tight);
+  color: var(--text);
+  margin: 0;
+}
+
+/* Uppercase micro-label used throughout the app for section eyebrows */
+.ww-label {
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  font-weight: var(--w-bold);
+  letter-spacing: var(--ls-caption);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* Tabular numeric run — HP, pips, dice, clock counts */
+.ww-num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+::selection { background: var(--accent-tint); color: var(--text); }
+
+:focus-visible { outline: none; box-shadow: var(--ring); border-radius: var(--radius-sm); }

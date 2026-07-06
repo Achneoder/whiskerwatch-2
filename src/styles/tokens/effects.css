@@ -1,0 +1,47 @@
+/* ============================================================
+   Whiskerwatch — Effects: shadows, motion, focus
+   ------------------------------------------------------------
+   Shadows are warm-brown, low and soft — printed-card lift, never
+   the cold grey drop-shadow of a web dashboard. Motion is quick and
+   settled (a gentle ease-out), with one playful cue reserved for
+   dice. No bounce on UI chrome.
+   ============================================================ */
+
+:root {
+  /* Warm shadows (brown-tinted, not neutral grey) */
+  --shadow-sm: 0 1px 2px rgba(58, 42, 24, 0.10);
+  --shadow-md: 0 2px 6px rgba(58, 42, 24, 0.12), 0 1px 2px rgba(58, 42, 24, 0.08);
+  --shadow-lg: 0 8px 24px rgba(45, 32, 18, 0.18), 0 2px 6px rgba(45, 32, 18, 0.10);
+  --shadow-modal: 0 20px 60px rgba(30, 20, 10, 0.35);
+
+  /* Inset for wells / pressed states / meter tracks */
+  --shadow-inset: inset 0 1px 3px rgba(58, 42, 24, 0.14);
+
+  /* Focus ring — pine, always visible, generous for the table */
+  --ring: 0 0 0 3px color-mix(in srgb, var(--accent) 38%, transparent);
+  --ring-danger: 0 0 0 3px color-mix(in srgb, var(--danger) 38%, transparent);
+
+  /* Motion — durations are unitless (multiply by 1ms at usage) */
+  --dur-fast: 120;
+  --dur: 180;
+  --dur-slow: 320;
+  --ease: cubic-bezier(0.32, 0.72, 0.28, 1);
+  --ease-snappy: cubic-bezier(0.4, 0, 0.2, 1);
+  --dice-bounce: cubic-bezier(0.5, 1.6, 0.5, 1);
+}
+
+[data-theme="dark"] {
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.40), 0 1px 2px rgba(0, 0, 0, 0.30);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.55), 0 2px 6px rgba(0, 0, 0, 0.40);
+  --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.65);
+  --shadow-inset: inset 0 1px 3px rgba(0, 0, 0, 0.45);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0;
+    --dur: 0;
+    --dur-slow: 0;
+  }
+}

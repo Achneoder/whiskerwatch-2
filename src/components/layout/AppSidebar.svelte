@@ -46,8 +46,8 @@
     { screen: 'warband', icon: Users, key: 'nav.warband', enabled: true },
     { screen: 'adventure', icon: ListTree, key: 'nav.adventure', enabled: true },
     { screen: 'bestiary', icon: PawPrint, key: 'nav.bestiary', enabled: true },
-    { screen: 'factions', icon: Swords, key: 'nav.factions', enabled: false },
-    { screen: 'hexMap', icon: Map, key: 'nav.hexMap', enabled: false },
+    { screen: 'factions', icon: Swords, key: 'nav.factions', enabled: true },
+    { screen: 'hexMap', icon: Map, key: 'nav.hexMap', enabled: true },
     { screen: 'generators', icon: WandSparkles, key: 'nav.generators', enabled: true },
     { screen: 'sessions', icon: ScrollText, key: 'nav.sessions', enabled: true },
   ];

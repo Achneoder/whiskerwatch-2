@@ -166,6 +166,73 @@
       "notes": "Notes"
     }
   },
+  "factions": {
+    "eyebrow": "Prep mode · factions",
+    "title": "Factions",
+    "add": "Add faction",
+    "empty": "No factions yet — add your first power in the meadow.",
+    "addTitle": "Add a faction",
+    "editTitle": "Edit faction",
+    "deleteTitle": "Delete faction?",
+    "deleteMessage": "This removes {name} and its relationships. This can't be undone — but nothing else in the campaign changes.",
+    "clock": "Clock",
+    "disposition": {
+      "hostile": "Hostile",
+      "neutral": "Neutral",
+      "ally": "Ally"
+    },
+    "relation": {
+      "ally": "Ally",
+      "enemy": "Enemy",
+      "rival": "Rival"
+    },
+    "graph": {
+      "heading": "Relationships",
+      "legend": "Legend",
+      "empty": "Add factions to see the relationship web."
+    },
+    "form": {
+      "name": "Name",
+      "disposition": "Disposition",
+      "clock": "Clock",
+      "of": "Segments",
+      "note": "Note",
+      "tags": "Tags",
+      "tagPlaceholder": "Add a tag",
+      "relationships": "Relationships",
+      "relationType": "Type",
+      "addRelationship": "Add relationship",
+      "targetPlaceholder": "Faction",
+      "relationshipsAddFirst": "Save the faction first, then add relationships."
+    }
+  },
+  "hexMap": {
+    "eyebrow": "Prep mode · hex map",
+    "title": "Hex map",
+    "empty": "No hexes charted yet — tap a hex to describe it.",
+    "addTitle": "Describe hex",
+    "editTitle": "Edit hex",
+    "deleteTitle": "Clear hex?",
+    "deleteMessage": "This clears {name} from the map. This can't be undone — but nothing else in the campaign changes.",
+    "legend": "Legend",
+    "clear": "Clear hex",
+    "terrain": {
+      "meadow": "Meadow",
+      "hedgerow": "Hedgerow",
+      "forest": "Forest",
+      "water": "Water",
+      "hills": "Hills",
+      "ruins": "Ruins",
+      "settlement": "Settlement"
+    },
+    "form": {
+      "terrain": "Terrain",
+      "name": "Name",
+      "namePlaceholder": "Location name (optional)",
+      "notes": "Notes",
+      "discovered": "Discovered by the party"
+    }
+  },
   "generators": {
     "eyebrow": "Improvise · generators",
     "title": "Generators",

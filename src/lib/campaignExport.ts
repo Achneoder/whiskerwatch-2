@@ -58,7 +58,9 @@ function isBeat(value: unknown): value is Beat {
     typeof v.id === 'string' &&
     (v.parentId === null || typeof v.parentId === 'string') &&
     typeof v.title === 'string' &&
-    typeof v.status === 'string'
+    typeof v.status === 'string' &&
+    (v.hexNodeId === undefined || v.hexNodeId === null || typeof v.hexNodeId === 'string') &&
+    (v.factionIds === undefined || (Array.isArray(v.factionIds) && v.factionIds.every((id) => typeof id === 'string')))
   );
 }
 

@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/svelte';
 import FactionForm from './FactionForm.svelte';
 import type { Faction } from '../../lib/stores/factions.svelte';
+import type { Beat } from '../../lib/stores/beats.svelte';
 
 const sample: Faction = {
   id: '1',
@@ -74,5 +75,21 @@ describe('FactionForm', () => {
     await fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
 
     expect(oncancel).toHaveBeenCalledOnce();
+  });
+
+  it('shows beats touching this faction, read-only', () => {
+    const beat: Beat = {
+      id: 'b1',
+      parentId: null,
+      title: 'The granary raid',
+      notes: '',
+      status: 'active',
+      hexNodeId: null,
+      factionIds: ['1'],
+    };
+    render(FactionForm, { props: { initial: sample, beats: [beat], onsave: vi.fn(), oncancel: vi.fn() } });
+
+    expect(screen.getByText('Beats touching this faction')).toBeInTheDocument();
+    expect(screen.getByText('The granary raid')).toBeInTheDocument();
   });
 });

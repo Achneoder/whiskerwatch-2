@@ -17,6 +17,8 @@
     type Beat,
     type BeatStatus,
   } from '../../lib/stores/beats.svelte';
+  import { getHexNodes } from '../../lib/stores/hexmap.svelte';
+  import { getFactions } from '../../lib/stores/factions.svelte';
 
   interface Props {
     onnavigate: (screen: NavScreen) => void;
@@ -26,11 +28,13 @@
   let { onnavigate, onstartsession }: Props = $props();
 
   const beats = getBeats();
+  const hexNodes = getHexNodes();
+  const factions = getFactions();
 
   let beatModal = $state<{ mode: 'add'; parentId: string | null } | { mode: 'edit'; beat: Beat } | null>(null);
   let deleteTarget = $state<Beat | null>(null);
 
-  function saveBeat(data: { title: string; notes: string; status: BeatStatus }) {
+  function saveBeat(data: { title: string; notes: string; status: BeatStatus; hexNodeId: string | null; factionIds: string[] }) {
     if (beatModal?.mode === 'edit') updateBeat(beatModal.beat.id, data);
     else if (beatModal) addBeat({ ...data, parentId: beatModal.parentId });
     beatModal = null;
@@ -66,6 +70,8 @@
       {:else}
         <BeatTree
           {beats}
+          {hexNodes}
+          {factions}
           parentId={null}
           onedit={(beat) => (beatModal = { mode: 'edit', beat })}
           ondelete={(beat) => (deleteTarget = beat)}
@@ -85,6 +91,8 @@
   {#if beatModal}
     <BeatForm
       initial={beatModal.mode === 'edit' ? beatModal.beat : undefined}
+      {hexNodes}
+      {factions}
       onsave={saveBeat}
       oncancel={() => (beatModal = null)}
     />

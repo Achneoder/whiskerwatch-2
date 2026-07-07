@@ -75,6 +75,27 @@ describe('campaignExport', () => {
     expect(() => parseCampaignExport(bad)).toThrow(/does not look like/);
   });
 
+  it('rejects a beat entry with a malformed factionIds field', () => {
+    const bad = JSON.stringify({
+      party: [],
+      hirelings: [],
+      beats: [{ id: '1', parentId: null, title: 'Beat', status: 'planned', factionIds: 'not-an-array' }],
+      sessions: [],
+    });
+    expect(() => parseCampaignExport(bad)).toThrow(/does not look like/);
+  });
+
+  it('accepts a beat entry with hexNodeId and factionIds', () => {
+    const ok = JSON.stringify({
+      party: [],
+      hirelings: [],
+      beats: [{ id: '1', parentId: null, title: 'Beat', status: 'planned', hexNodeId: 'hex-1', factionIds: ['fac-1'] }],
+      sessions: [],
+    });
+    const parsed = parseCampaignExport(ok);
+    expect(parsed.beats).toHaveLength(1);
+  });
+
   it('rejects a session entry missing required fields', () => {
     const bad = JSON.stringify({ party: [], hirelings: [], beats: [], sessions: [{ id: '1' }] });
     expect(() => parseCampaignExport(bad)).toThrow(/does not look like/);

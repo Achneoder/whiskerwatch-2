@@ -1,4 +1,5 @@
 import { createPersistedList } from './persistedList.svelte';
+import { clearHexNodeFromBeats } from './beats.svelte';
 
 export type HexTerrain = 'meadow' | 'hedgerow' | 'forest' | 'water' | 'hills' | 'ruins' | 'settlement';
 
@@ -120,8 +121,10 @@ export function updateHexNode(id: string, patch: Partial<Omit<HexNode, 'id'>>): 
   list.update(id, patch);
 }
 
+/** Removes a hex node and cascades to any beats that referenced it. */
 export function removeHexNode(id: string): void {
   list.remove(id);
+  clearHexNodeFromBeats(id);
 }
 
 export function replaceHexNodes(nodes: HexNode[]): void {

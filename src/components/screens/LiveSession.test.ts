@@ -73,7 +73,9 @@ describe('LiveSession', () => {
       { id: 'f1', name: 'The Court', disposition: 'hostile', clock: 3, of: 6, note: '', tags: [] },
       { id: 'f2', name: 'The Keepers', disposition: 'ally', clock: 1, of: 6, note: '', tags: [] },
     ]);
-    replaceBeats([{ id: 'b1', parentId: null, title: 'The granary raid', notes: '', status: 'active' }]);
+    replaceBeats([
+      { id: 'b1', parentId: null, title: 'The granary raid', notes: '', status: 'active', hexNodeId: null, factionIds: [] },
+    ]);
     replaceSessions([{ id: 's1', number: 5, date: '2026-01-01', title: 'Into the tunnels', summary: '' }]);
   }
 

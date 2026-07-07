@@ -8,6 +8,7 @@
   import Icon from '../ui/Icon.svelte';
   import type { Faction, FactionDisposition } from '../../lib/stores/factions.svelte';
   import type { FactionEdge, FactionRelationType } from '../../lib/stores/factionEdges.svelte';
+  import type { Beat } from '../../lib/stores/beats.svelte';
 
   interface Props {
     initial?: Faction | undefined;
@@ -15,11 +16,12 @@
     oncancel: () => void;
     otherFactions?: Faction[];
     edges?: FactionEdge[];
+    beats?: Beat[];
     onaddedge?: (edge: Omit<FactionEdge, 'id'>) => void;
     onremoveedge?: (id: string) => void;
   }
 
-  let { initial, onsave, oncancel, otherFactions = [], edges = [], onaddedge, onremoveedge }: Props = $props();
+  let { initial, onsave, oncancel, otherFactions = [], edges = [], beats = [], onaddedge, onremoveedge }: Props = $props();
 
   const dispositions: FactionDisposition[] = ['hostile', 'neutral', 'ally'];
   const relationTypes: FactionRelationType[] = ['ally', 'enemy', 'rival'];
@@ -175,6 +177,19 @@
       {/if}
     {/if}
   </div>
+
+  {#if initial && beats.length > 0}
+    <div class="flex flex-col gap-2">
+      <span class="ww-label">{$_('factions.form.beats')}</span>
+      <ul class="flex gap-1.5 flex-wrap">
+        {#each beats as beat (beat.id)}
+          <li class="py-1 px-2 bg-[var(--surface-sunk)] rounded-[var(--radius-sm)] text-[length:var(--text-sm)]">
+            {beat.title}
+          </li>
+        {/each}
+      </ul>
+    </div>
+  {/if}
 
   <div class="flex justify-end gap-[var(--gap-inline)] pt-[var(--sp-2)]">
     <Button type="button" variant="ghost" onclick={oncancel}>{$_('roster.form.cancel')}</Button>

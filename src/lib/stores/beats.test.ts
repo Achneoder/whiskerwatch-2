@@ -1,5 +1,14 @@
 import { describe, expect, it, beforeEach } from 'vitest';
-import { getBeats, addBeat, updateBeat, removeBeat, getDescendantCount, replaceBeats } from './beats.svelte';
+import {
+  getBeats,
+  addBeat,
+  updateBeat,
+  removeBeat,
+  getDescendantCount,
+  replaceBeats,
+  clearHexNodeFromBeats,
+  removeFactionFromBeats,
+} from './beats.svelte';
 
 describe('beats store', () => {
   beforeEach(() => {
@@ -43,5 +52,39 @@ describe('beats store', () => {
 
     expect(getBeats()).toHaveLength(1);
     expect(getBeats()[0]?.title).toBe('Unrelated');
+  });
+
+  it('defaults hexNodeId and factionIds when omitted', () => {
+    addBeat({ parentId: null, title: 'Find the tunnel', notes: '', status: 'planned' });
+
+    expect(getBeats()[0]?.hexNodeId).toBeNull();
+    expect(getBeats()[0]?.factionIds).toEqual([]);
+  });
+
+  it('accepts an explicit hexNodeId and factionIds', () => {
+    addBeat({ parentId: null, title: 'Raid', notes: '', status: 'planned', hexNodeId: 'hex-1', factionIds: ['fac-1'] });
+
+    expect(getBeats()[0]?.hexNodeId).toBe('hex-1');
+    expect(getBeats()[0]?.factionIds).toEqual(['fac-1']);
+  });
+
+  it('clears hexNodeId from beats referencing a removed hex', () => {
+    addBeat({ parentId: null, title: 'Raid', notes: '', status: 'planned', hexNodeId: 'hex-1' });
+    addBeat({ parentId: null, title: 'Elsewhere', notes: '', status: 'planned', hexNodeId: 'hex-2' });
+
+    clearHexNodeFromBeats('hex-1');
+
+    expect(getBeats().find((b) => b.title === 'Raid')?.hexNodeId).toBeNull();
+    expect(getBeats().find((b) => b.title === 'Elsewhere')?.hexNodeId).toBe('hex-2');
+  });
+
+  it('removes a faction id from every beat that referenced it', () => {
+    addBeat({ parentId: null, title: 'Raid', notes: '', status: 'planned', factionIds: ['fac-1', 'fac-2'] });
+    addBeat({ parentId: null, title: 'Unrelated', notes: '', status: 'planned', factionIds: ['fac-2'] });
+
+    removeFactionFromBeats('fac-1');
+
+    expect(getBeats().find((b) => b.title === 'Raid')?.factionIds).toEqual(['fac-2']);
+    expect(getBeats().find((b) => b.title === 'Unrelated')?.factionIds).toEqual(['fac-2']);
   });
 });

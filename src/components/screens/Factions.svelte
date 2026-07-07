@@ -25,6 +25,7 @@
     removeFactionEdge,
     type FactionRelationType,
   } from '../../lib/stores/factionEdges.svelte';
+  import { getBeats } from '../../lib/stores/beats.svelte';
 
   interface Props {
     onnavigate: (screen: NavScreen) => void;
@@ -35,6 +36,7 @@
 
   const factions = getFactions();
   const edges = getFactionEdges();
+  const beats = getBeats();
 
   let factionModal = $state<{ mode: 'add' } | { mode: 'edit'; entry: Faction } | null>(null);
   let deleteTarget = $state<Faction | null>(null);
@@ -53,6 +55,10 @@
         const otherId = e.sourceId === id ? e.targetId : e.sourceId;
         return { id: e.id, type: e.type, name: factions.find((f) => f.id === otherId)?.name ?? '—' };
       });
+  }
+
+  function beatsFor(id: string) {
+    return beats.filter((b) => b.factionIds.includes(id));
   }
 
   function saveFaction(data: Omit<Faction, 'id'>) {
@@ -142,6 +148,13 @@
                 {/each}
               </div>
             {/if}
+            {#if beatsFor(faction.id).length > 0}
+              <div class="flex gap-1.5 flex-wrap mt-2">
+                {#each beatsFor(faction.id) as beat (beat.id)}
+                  <Tag size="sm">{$_('factions.beatTagPrefix')} · {beat.title}</Tag>
+                {/each}
+              </div>
+            {/if}
           </Card>
         {/each}
         {#if factions.length === 0}
@@ -167,6 +180,7 @@
       initial={modal.mode === 'edit' ? modal.entry : undefined}
       otherFactions={modal.mode === 'edit' ? factions.filter((f) => f.id !== modal.entry.id) : []}
       {edges}
+      beats={modal.mode === 'edit' ? beatsFor(modal.entry.id) : []}
       onaddedge={(edge) => addFactionEdge(edge)}
       onremoveedge={(id) => removeFactionEdge(id)}
       onsave={saveFaction}

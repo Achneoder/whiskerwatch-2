@@ -7,6 +7,7 @@ import {
   removeHexNode,
   replaceHexNodes,
 } from './hexmap.svelte';
+import { getBeats, addBeat, replaceBeats } from './beats.svelte';
 
 function seedOne() {
   addHexNode({ q: 0, r: 0, terrain: 'meadow', name: 'Home', notes: '', discovered: false });
@@ -41,5 +42,15 @@ describe('hexmap store', () => {
     addHexNode({ q: 2, r: -1, terrain: 'hills', name: 'Ridge', notes: '', discovered: false });
     expect(getHexNodeAt(2, -1)?.name).toBe('Ridge');
     expect(getHexNodeAt(0, 0)).toBeUndefined();
+  });
+
+  it('cascades to beats referencing a removed hex node', () => {
+    replaceBeats([]);
+    const id = seedOne();
+    addBeat({ parentId: null, title: 'Raid', notes: '', status: 'planned', hexNodeId: id });
+
+    removeHexNode(id);
+
+    expect(getBeats()[0]?.hexNodeId).toBeNull();
   });
 });

@@ -4,6 +4,7 @@
   import Button from '../ui/Button.svelte';
   import Modal from '../ui/Modal.svelte';
   import ConfirmDialog from '../ui/ConfirmDialog.svelte';
+  import Tag from '../ui/Tag.svelte';
   import HexNodeForm from '../forms/HexNodeForm.svelte';
   import HexCanvas from './HexCanvas.svelte';
   import {
@@ -16,6 +17,7 @@
     TERRAINS,
     type HexNode,
   } from '../../lib/stores/hexmap.svelte';
+  import { getBeats } from '../../lib/stores/beats.svelte';
 
   interface Props {
     onnavigate: (screen: NavScreen) => void;
@@ -25,6 +27,11 @@
   let { onnavigate, onstartsession }: Props = $props();
 
   const hexes = getHexNodes();
+  const beats = getBeats();
+
+  function beatsFor(hexNodeId: string) {
+    return beats.filter((b) => b.hexNodeId === hexNodeId);
+  }
 
   let selected = $state<{ q: number; r: number } | null>(null);
   let hexModal = $state<{ mode: 'add'; q: number; r: number } | { mode: 'edit'; node: HexNode } | null>(null);
@@ -104,6 +111,16 @@
           {$_('hexMap.clear')}
         </Button>
       </div>
+      {#if beatsFor(node.id).length > 0}
+        <div class="flex flex-col gap-1.5 mb-[var(--sp-4)]">
+          <span class="ww-label">{$_('hexMap.beatsTouching')}</span>
+          <div class="flex gap-1.5 flex-wrap">
+            {#each beatsFor(node.id) as beat (beat.id)}
+              <Tag size="sm">{beat.title}</Tag>
+            {/each}
+          </div>
+        </div>
+      {/if}
     {/if}
     <HexNodeForm
       initial={hexModal.mode === 'edit' ? hexModal.node : undefined}

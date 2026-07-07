@@ -3,6 +3,7 @@ import { render, screen, fireEvent, within } from '@testing-library/svelte';
 import Factions from './Factions.svelte';
 import { replaceFactions, type Faction } from '../../lib/stores/factions.svelte';
 import { replaceFactionEdges } from '../../lib/stores/factionEdges.svelte';
+import { replaceBeats } from '../../lib/stores/beats.svelte';
 
 const court: Faction = {
   id: '1',
@@ -18,6 +19,7 @@ describe('Factions', () => {
   beforeEach(() => {
     replaceFactions([]);
     replaceFactionEdges([]);
+    replaceBeats([]);
   });
 
   it('adds a new faction', async () => {
@@ -57,5 +59,15 @@ describe('Factions', () => {
     render(Factions, { props: { onnavigate: vi.fn() } });
 
     expect(screen.getByText(/No factions yet/)).toBeInTheDocument();
+  });
+
+  it('shows a beat linked to a faction as a tag on its card', () => {
+    replaceFactions([court]);
+    replaceBeats([
+      { id: 'b1', parentId: null, title: 'The granary raid', notes: '', status: 'active', hexNodeId: null, factionIds: ['1'] },
+    ]);
+    render(Factions, { props: { onnavigate: vi.fn() } });
+
+    expect(screen.getByText(/The granary raid/)).toBeInTheDocument();
   });
 });

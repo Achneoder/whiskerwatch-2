@@ -1,5 +1,6 @@
 import { createPersistedList } from './persistedList.svelte';
 import { removeEdgesForFaction } from './factionEdges.svelte';
+import { removeFactionFromBeats } from './beats.svelte';
 import { seedFactions } from './factionSeed';
 
 export type FactionDisposition = 'hostile' | 'neutral' | 'ally';
@@ -56,6 +57,7 @@ export function bumpFactionClock(id: string, delta: number): void {
 export function removeFaction(id: string): void {
   list.remove(id);
   removeEdgesForFaction(id);
+  removeFactionFromBeats(id);
 }
 
 export function replaceFactions(factions: Faction[]): void {

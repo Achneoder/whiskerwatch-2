@@ -183,7 +183,12 @@
     "form": {
       "title": "Title",
       "notes": "Notes",
-      "status": "Status"
+      "status": "Status",
+      "hexLink": "Linked hex",
+      "hexLinkNone": "— none —",
+      "factions": "Linked factions",
+      "factionsPlaceholder": "Faction",
+      "addFactionLink": "Add faction"
     }
   },
   "sessions": {
@@ -257,6 +262,7 @@
       "legend": "Legend",
       "empty": "Add factions to see the relationship web."
     },
+    "beatTagPrefix": "Beat",
     "form": {
       "name": "Name",
       "disposition": "Disposition",
@@ -269,7 +275,8 @@
       "relationType": "Type",
       "addRelationship": "Add relationship",
       "targetPlaceholder": "Faction",
-      "relationshipsAddFirst": "Save the faction first, then add relationships."
+      "relationshipsAddFirst": "Save the faction first, then add relationships.",
+      "beats": "Beats touching this faction"
     }
   },
   "hexMap": {
@@ -282,6 +289,7 @@
     "deleteMessage": "This clears {name} from the map. This can't be undone — but nothing else in the campaign changes.",
     "legend": "Legend",
     "clear": "Clear hex",
+    "beatsTouching": "Beats touching this hex",
     "terrain": {
       "meadow": "Meadow",
       "hedgerow": "Hedgerow",

@@ -2,12 +2,18 @@
   import { Plus, Pencil, Trash2 } from 'lucide-svelte';
   import { _ } from 'svelte-i18n';
   import StatusPill from '../ui/StatusPill.svelte';
+  import Tag from '../ui/Tag.svelte';
   import Icon from '../ui/Icon.svelte';
   import BeatTree from './BeatTree.svelte';
   import type { Beat, BeatStatus } from '../../lib/stores/beats.svelte';
+  import type { HexNode } from '../../lib/stores/hexmap.svelte';
+  import type { Faction } from '../../lib/stores/factions.svelte';
+  import { hexLabel } from '../../lib/hex';
 
   interface Props {
     beats: Beat[];
+    hexNodes?: HexNode[];
+    factions?: Faction[];
     parentId: string | null;
     depth?: number;
     onedit: (beat: Beat) => void;
@@ -16,9 +22,19 @@
     onstatuschange: (beat: Beat, status: BeatStatus) => void;
   }
 
-  let { beats, parentId, depth = 0, onedit, ondelete, onaddchild, onstatuschange }: Props = $props();
+  let { beats, hexNodes = [], factions = [], parentId, depth = 0, onedit, ondelete, onaddchild, onstatuschange }: Props = $props();
 
   const children = $derived(beats.filter((b) => b.parentId === parentId));
+
+  function hexTagFor(beat: Beat): string | null {
+    if (!beat.hexNodeId) return null;
+    const node = hexNodes.find((h) => h.id === beat.hexNodeId);
+    return node ? hexLabel(node.q, node.r) : null;
+  }
+
+  function factionTagsFor(beat: Beat): string[] {
+    return beat.factionIds.map((id) => factions.find((f) => f.id === id)?.name).filter((name): name is string => !!name);
+  }
 
   const nextStatus: Record<BeatStatus, BeatStatus> = {
     planned: 'active',
@@ -43,6 +59,16 @@
         <div class="font-[family-name:var(--font-display)] font-bold text-[length:var(--text-title)]">{beat.title}</div>
         {#if beat.notes}
           <p class="text-[length:var(--text-sm)] text-[var(--text-muted)] mt-0.5 line-clamp-2">{beat.notes}</p>
+        {/if}
+        {#if hexTagFor(beat) || factionTagsFor(beat).length > 0}
+          <div class="flex gap-1 flex-wrap mt-1">
+            {#if hexTagFor(beat)}
+              <Tag size="sm">{hexTagFor(beat)}</Tag>
+            {/if}
+            {#each factionTagsFor(beat) as name (name)}
+              <Tag size="sm" tone="accent">{name}</Tag>
+            {/each}
+          </div>
         {/if}
       </div>
       <div class="flex gap-1 shrink-0">
@@ -72,6 +98,16 @@
         </button>
       </div>
     </div>
-    <BeatTree {beats} parentId={beat.id} depth={depth + 1} {onedit} {ondelete} {onaddchild} {onstatuschange} />
+    <BeatTree
+      {beats}
+      {hexNodes}
+      {factions}
+      parentId={beat.id}
+      depth={depth + 1}
+      {onedit}
+      {ondelete}
+      {onaddchild}
+      {onstatuschange}
+    />
   </div>
 {/each}

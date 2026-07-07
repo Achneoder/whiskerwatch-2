@@ -8,6 +8,7 @@ import {
   bumpFactionClock,
 } from './factions.svelte';
 import { getFactionEdges, addFactionEdge, replaceFactionEdges } from './factionEdges.svelte';
+import { getBeats, addBeat, replaceBeats } from './beats.svelte';
 
 function seedOne(name = 'The Court') {
   addFaction({ name, disposition: 'hostile', clock: 3, of: 6, note: '', tags: ['Hostile'] });
@@ -82,5 +83,15 @@ describe('factions store', () => {
     removeFaction(a);
 
     expect(getFactionEdges()).toHaveLength(0);
+  });
+
+  it('cascades to beats referencing a removed faction', () => {
+    replaceBeats([]);
+    const a = seedOne('A');
+    addBeat({ parentId: null, title: 'Raid', notes: '', status: 'planned', factionIds: [a, 'other'] });
+
+    removeFaction(a);
+
+    expect(getBeats()[0]?.factionIds).toEqual(['other']);
   });
 });

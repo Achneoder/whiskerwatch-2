@@ -183,7 +183,12 @@
     "form": {
       "title": "Titel",
       "notes": "Notizen",
-      "status": "Status"
+      "status": "Status",
+      "hexLink": "Verknüpftes Feld",
+      "hexLinkNone": "— keins —",
+      "factions": "Verknüpfte Fraktionen",
+      "factionsPlaceholder": "Fraktion",
+      "addFactionLink": "Fraktion hinzufügen"
     }
   },
   "sessions": {
@@ -257,6 +262,7 @@
       "legend": "Legende",
       "empty": "Füge Fraktionen hinzu, um das Beziehungsgeflecht zu sehen."
     },
+    "beatTagPrefix": "Beat",
     "form": {
       "name": "Name",
       "disposition": "Gesinnung",
@@ -269,7 +275,8 @@
       "relationType": "Art",
       "addRelationship": "Beziehung hinzufügen",
       "targetPlaceholder": "Fraktion",
-      "relationshipsAddFirst": "Speichere die Fraktion zuerst, dann kannst du Beziehungen hinzufügen."
+      "relationshipsAddFirst": "Speichere die Fraktion zuerst, dann kannst du Beziehungen hinzufügen.",
+      "beats": "Beats, die diese Fraktion betreffen"
     }
   },
   "hexMap": {
@@ -282,6 +289,7 @@
     "deleteMessage": "Dadurch wird {name} von der Karte entfernt. Das kann nicht rückgängig gemacht werden — aber sonst ändert sich nichts an der Kampagne.",
     "legend": "Legende",
     "clear": "Feld löschen",
+    "beatsTouching": "Beats, die dieses Feld betreffen",
     "terrain": {
       "meadow": "Wiese",
       "hedgerow": "Hecke",

@@ -24,6 +24,7 @@ function member(overrides: Partial<PartyMember> = {}): PartyMember {
     status: 'active',
     conditions: [],
     scars: [],
+    items: [],
     ...overrides,
   };
 }
@@ -44,6 +45,7 @@ function hireling(overrides: Partial<Hireling> = {}): Hireling {
     status: 'active',
     conditions: [],
     scars: [],
+    items: [],
     ...overrides,
   };
 }

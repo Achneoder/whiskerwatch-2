@@ -44,6 +44,7 @@ describe('HirelingForm', () => {
           status: 'active',
           conditions: [],
           scars: [],
+          items: [],
         },
         onsave: vi.fn(),
         oncancel: vi.fn(),

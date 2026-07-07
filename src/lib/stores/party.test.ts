@@ -34,6 +34,7 @@ function member(overrides: Partial<PartyMember> = {}): Omit<PartyMember, 'id'> {
     status: 'active' as const,
     conditions: [],
     scars: [],
+    items: [],
     ...overrides,
   };
   return rest;

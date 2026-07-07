@@ -3,7 +3,9 @@
   import Input from '../ui/Input.svelte';
   import Stepper from '../ui/Stepper.svelte';
   import Button from '../ui/Button.svelte';
+  import ItemSlotGrid from './ItemSlotGrid.svelte';
   import { CONDITIONS, type ConditionName } from '../../lib/conditions';
+  import { addItem, removeItem, updateItem, type Item } from '../../lib/items';
   import type { PartyMember } from '../../lib/stores/party.svelte';
 
   interface Props {
@@ -20,6 +22,7 @@
   let max = $state(initial?.max ?? 6);
   let pips = $state(initial?.pips ?? 0);
   let conditions = $state<ConditionName[]>(initial ? [...initial.conditions] : []);
+  let items = $state<Item[]>(initial ? [...initial.items] : []);
 
   // STR/DEX/WIL, XP/level, status, and scars aren't editable from this form
   // yet (that's a follow-up pass) — an edit carries the member's existing
@@ -52,7 +55,7 @@
           scars: initial.scars,
         }
       : { str: 10, maxStr: 10, dex: 10, wil: 10, xp: 0, level: 1, status: 'active' as const, scars: [] };
-    onsave({ name: name.trim(), role: role.trim(), hp, max, pips, conditions, ...attributes });
+    onsave({ name: name.trim(), role: role.trim(), hp, max, pips, conditions, items, ...attributes });
   }
 </script>
 
@@ -81,6 +84,13 @@
       {/each}
     </div>
   </div>
+
+  <ItemSlotGrid
+    {items}
+    onadd={(input) => (items = addItem(items, input))}
+    onremove={(itemId) => (items = removeItem(items, itemId))}
+    onupdate={(itemId, patch) => (items = updateItem(items, itemId, patch))}
+  />
 
   <div class="flex justify-end gap-[var(--gap-inline)] pt-[var(--sp-2)]">
     <Button type="button" variant="ghost" onclick={oncancel}>{$_('roster.form.cancel')}</Button>

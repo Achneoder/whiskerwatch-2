@@ -1,6 +1,7 @@
 import { createPersistedList } from './persistedList.svelte';
 import { migrateConditions, type ConditionName, type Scar } from '../conditions';
 import { applyDamage, type DamageOutcome } from '../combat';
+import { addItem, removeItem, updateItem, type Item } from '../items';
 
 export interface Hireling {
   id: string;
@@ -21,6 +22,8 @@ export interface Hireling {
   conditions: ConditionName[];
   /** Permanent Fatal Wounds outcomes — separate from `conditions`, never auto-cleared. */
   scars: Scar[];
+  /** Flat inventory list — see `items.ts` for the fixed 10-slot cap this is checked against (not reduced for hirelings). */
+  items: Item[];
 }
 
 const STORAGE_KEY = 'whiskerwatch:hirelings';
@@ -41,6 +44,7 @@ const seedHirelings: Hireling[] = [
     status: 'active',
     conditions: [],
     scars: [],
+    items: [],
   },
 ];
 
@@ -48,6 +52,19 @@ function isScar(value: unknown): value is Scar {
   if (!value || typeof value !== 'object') return false;
   const v = value as Record<string, unknown>;
   return typeof v.label === 'string' && typeof v.note === 'string';
+}
+
+function isItem(value: unknown): value is Item {
+  if (!value || typeof value !== 'object') return false;
+  const v = value as Record<string, unknown>;
+  return (
+    typeof v.id === 'string' &&
+    typeof v.name === 'string' &&
+    (v.slots === 1 || v.slots === 2) &&
+    (v.charges === null || typeof v.charges === 'number') &&
+    (v.maxCharges === null || typeof v.maxCharges === 'number') &&
+    typeof v.notes === 'string'
+  );
 }
 
 /**
@@ -74,6 +91,7 @@ function normalizeHireling(raw: unknown): Hireling {
     status: r.status === 'deceased' ? 'deceased' : 'active',
     conditions: migrateConditions(r.conditions),
     scars: Array.isArray(r.scars) ? r.scars.filter(isScar) : [],
+    items: Array.isArray(r.items) ? r.items.filter(isItem) : [],
   };
 }
 
@@ -146,4 +164,22 @@ export function removeHirelingCondition(id: string, condition: ConditionName): v
   const hireling = list.items.find((h) => h.id === id);
   if (!hireling) return;
   list.update(id, { conditions: hireling.conditions.filter((c) => c !== condition) });
+}
+
+export function addHirelingItem(id: string, input: Omit<Item, 'id'>): void {
+  const hireling = list.items.find((h) => h.id === id);
+  if (!hireling) return;
+  list.update(id, { items: addItem(hireling.items, input) });
+}
+
+export function removeHirelingItem(id: string, itemId: string): void {
+  const hireling = list.items.find((h) => h.id === id);
+  if (!hireling) return;
+  list.update(id, { items: removeItem(hireling.items, itemId) });
+}
+
+export function updateHirelingItem(id: string, itemId: string, patch: Partial<Omit<Item, 'id'>>): void {
+  const hireling = list.items.find((h) => h.id === id);
+  if (!hireling) return;
+  list.update(id, { items: updateItem(hireling.items, itemId, patch) });
 }

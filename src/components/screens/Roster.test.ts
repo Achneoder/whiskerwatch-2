@@ -38,6 +38,7 @@ describe('Roster', () => {
         status: 'active',
         conditions: [],
         scars: [],
+        items: [],
       },
     ]);
     render(Roster, { props: { onnavigate: vi.fn() } });

@@ -30,6 +30,7 @@ function hireling(overrides: Partial<Hireling> = {}): Omit<Hireling, 'id'> {
     status: 'active' as const,
     conditions: [],
     scars: [],
+    items: [],
     ...overrides,
   };
   return rest;

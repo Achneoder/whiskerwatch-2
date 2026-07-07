@@ -1,6 +1,7 @@
 import { createPersistedList } from './persistedList.svelte';
 import { migrateConditions, type ConditionName, type Scar } from '../conditions';
 import { applyDamage, type DamageOutcome } from '../combat';
+import { addItem, removeItem, updateItem, type Item } from '../items';
 
 export interface PartyMember {
   id: string;
@@ -22,6 +23,8 @@ export interface PartyMember {
   conditions: ConditionName[];
   /** Permanent Fatal Wounds outcomes — separate from `conditions`, never auto-cleared. */
   scars: Scar[];
+  /** Flat inventory list — see `items.ts` for the fixed 10-slot cap this is checked against. */
+  items: Item[];
 }
 
 const STORAGE_KEY = 'whiskerwatch:party';
@@ -66,6 +69,7 @@ const seedParty: PartyMember[] = [
     status: 'active',
     conditions: [],
     scars: [],
+    items: [],
   },
   {
     id: crypto.randomUUID(),
@@ -83,6 +87,7 @@ const seedParty: PartyMember[] = [
     status: 'active',
     conditions: ['frightened'],
     scars: [],
+    items: [],
   },
   {
     id: crypto.randomUUID(),
@@ -100,6 +105,7 @@ const seedParty: PartyMember[] = [
     status: 'active',
     conditions: ['hungry-thirsty'],
     scars: [],
+    items: [],
   },
   {
     id: crypto.randomUUID(),
@@ -117,6 +123,7 @@ const seedParty: PartyMember[] = [
     status: 'active',
     conditions: [],
     scars: [],
+    items: [],
   },
 ];
 
@@ -124,6 +131,19 @@ function isScar(value: unknown): value is Scar {
   if (!value || typeof value !== 'object') return false;
   const v = value as Record<string, unknown>;
   return typeof v.label === 'string' && typeof v.note === 'string';
+}
+
+function isItem(value: unknown): value is Item {
+  if (!value || typeof value !== 'object') return false;
+  const v = value as Record<string, unknown>;
+  return (
+    typeof v.id === 'string' &&
+    typeof v.name === 'string' &&
+    (v.slots === 1 || v.slots === 2) &&
+    (v.charges === null || typeof v.charges === 'number') &&
+    (v.maxCharges === null || typeof v.maxCharges === 'number') &&
+    typeof v.notes === 'string'
+  );
 }
 
 /**
@@ -152,6 +172,7 @@ function normalizeMember(raw: unknown): PartyMember {
     status: r.status === 'deceased' ? 'deceased' : 'active',
     conditions: migrateConditions(r.conditions),
     scars: Array.isArray(r.scars) ? r.scars.filter(isScar) : [],
+    items: Array.isArray(r.items) ? r.items.filter(isItem) : [],
   };
 }
 
@@ -231,6 +252,24 @@ export function removeCondition(id: string, condition: ConditionName): void {
   const member = list.items.find((m) => m.id === id);
   if (!member) return;
   list.update(id, { conditions: member.conditions.filter((c) => c !== condition) });
+}
+
+export function addMemberItem(id: string, input: Omit<Item, 'id'>): void {
+  const member = list.items.find((m) => m.id === id);
+  if (!member) return;
+  list.update(id, { items: addItem(member.items, input) });
+}
+
+export function removeMemberItem(id: string, itemId: string): void {
+  const member = list.items.find((m) => m.id === id);
+  if (!member) return;
+  list.update(id, { items: removeItem(member.items, itemId) });
+}
+
+export function updateMemberItem(id: string, itemId: string, patch: Partial<Omit<Item, 'id'>>): void {
+  const member = list.items.find((m) => m.id === id);
+  if (!member) return;
+  list.update(id, { items: updateItem(member.items, itemId, patch) });
 }
 
 export interface DowntimeResult {

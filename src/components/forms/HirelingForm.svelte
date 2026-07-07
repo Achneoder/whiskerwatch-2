@@ -3,7 +3,9 @@
   import Input from '../ui/Input.svelte';
   import Stepper from '../ui/Stepper.svelte';
   import Button from '../ui/Button.svelte';
+  import ItemSlotGrid from './ItemSlotGrid.svelte';
   import { CONDITIONS, type ConditionName } from '../../lib/conditions';
+  import { addItem, removeItem, updateItem, type Item } from '../../lib/items';
   import type { Hireling } from '../../lib/stores/hirelings.svelte';
 
   interface Props {
@@ -21,6 +23,7 @@
   let loyalty = $state(initial?.loyalty ?? 4);
   let notes = $state(initial?.notes ?? '');
   let conditions = $state<ConditionName[]>(initial ? [...initial.conditions] : []);
+  let items = $state<Item[]>(initial ? [...initial.items] : []);
 
   // STR/DEX/WIL and status/scars aren't editable from this form yet (that's
   // a follow-up pass) — an edit carries the hireling's existing values
@@ -43,7 +46,7 @@
     const attributes = initial
       ? { str: initial.str, maxStr: initial.maxStr, dex: initial.dex, wil: initial.wil, status: initial.status, scars: initial.scars }
       : { str: 10, maxStr: 10, dex: 10, wil: 10, status: 'active' as const, scars: [] };
-    onsave({ name: name.trim(), role: role.trim(), hp, max, loyalty, notes: notes.trim(), conditions, ...attributes });
+    onsave({ name: name.trim(), role: role.trim(), hp, max, loyalty, notes: notes.trim(), conditions, items, ...attributes });
   }
 </script>
 
@@ -81,6 +84,13 @@
       {/each}
     </div>
   </div>
+
+  <ItemSlotGrid
+    {items}
+    onadd={(input) => (items = addItem(items, input))}
+    onremove={(itemId) => (items = removeItem(items, itemId))}
+    onupdate={(itemId, patch) => (items = updateItem(items, itemId, patch))}
+  />
 
   <div class="flex justify-end gap-[var(--gap-inline)] pt-[var(--sp-2)]">
     <Button type="button" variant="ghost" onclick={oncancel}>{$_('roster.form.cancel')}</Button>

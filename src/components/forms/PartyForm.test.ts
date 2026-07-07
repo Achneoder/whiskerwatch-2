@@ -47,6 +47,7 @@ describe('PartyForm', () => {
           status: 'active',
           conditions: [],
           scars: [],
+          items: [],
         },
         onsave,
         oncancel: vi.fn(),

@@ -44,6 +44,14 @@ export function updateFaction(id: string, patch: Partial<Omit<Faction, 'id'>>): 
   list.update(id, patch);
 }
 
+/** Ticks a faction's clock up or down by `delta`, clamped to `[0, of]` — the tappable-pill action used at the table. */
+export function bumpFactionClock(id: string, delta: number): void {
+  const faction = list.items.find((f) => f.id === id);
+  if (!faction) return;
+  const clock = Math.max(0, Math.min(faction.of, faction.clock + delta));
+  list.update(id, { clock });
+}
+
 /** Removes a faction and cascades to any relationships that referenced it. */
 export function removeFaction(id: string): void {
   list.remove(id);

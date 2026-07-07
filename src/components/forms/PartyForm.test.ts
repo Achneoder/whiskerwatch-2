@@ -31,7 +31,23 @@ describe('PartyForm', () => {
     const onsave = vi.fn();
     render(PartyForm, {
       props: {
-        initial: { id: '1', name: 'Pip', role: 'Scout', hp: 4, max: 6, pips: 100, conditions: [] },
+        initial: {
+          id: '1',
+          name: 'Pip',
+          role: 'Scout',
+          hp: 4,
+          max: 6,
+          str: 10,
+          maxStr: 10,
+          dex: 10,
+          wil: 10,
+          pips: 100,
+          xp: 0,
+          level: 1,
+          status: 'active',
+          conditions: [],
+          scars: [],
+        },
         onsave,
         oncancel: vi.fn(),
       },
@@ -39,12 +55,11 @@ describe('PartyForm', () => {
 
     expect(screen.getByDisplayValue('Pip')).toBeInTheDocument();
 
-    await fireEvent.input(screen.getByPlaceholderText('Condition name'), { target: { value: 'Frightened' } });
-    await fireEvent.click(screen.getByRole('button', { name: 'Add' }));
+    await fireEvent.click(screen.getByRole('checkbox', { name: 'Frightened' }));
     await fireEvent.click(screen.getByRole('button', { name: 'Save' }));
 
     const saved = onsave.mock.calls[0]![0];
-    expect(saved.conditions).toEqual([{ tone: 'danger', label: 'Frightened' }]);
+    expect(saved.conditions).toEqual(['frightened']);
   });
 
   it('calls oncancel when Cancel is clicked', async () => {

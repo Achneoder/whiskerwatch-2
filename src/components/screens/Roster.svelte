@@ -19,6 +19,7 @@
     removeHireling,
     type Hireling,
   } from '../../lib/stores/hirelings.svelte';
+  import { CONDITIONS } from '../../lib/conditions';
   import { exportCampaign, importCampaign } from '../../lib/campaignExport';
 
   interface Props {
@@ -137,8 +138,8 @@
               </div>
               <div class="flex-1 min-w-35"><HpBar value={member.hp} max={member.max} label={$_('roster.form.hp')} size="sm" /></div>
               <div class="flex gap-1.5 shrink-0">
-                {#each member.conditions as cond (cond.label)}
-                  <StatusPill tone={cond.tone} size="sm">{cond.label}</StatusPill>
+                {#each member.conditions as cond (cond)}
+                  <StatusPill tone={CONDITIONS[cond].tone} size="sm">{CONDITIONS[cond].label}</StatusPill>
                 {/each}
               </div>
               <div class="flex gap-1 shrink-0">

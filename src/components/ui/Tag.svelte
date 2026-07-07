@@ -5,10 +5,11 @@
     tone?: 'default' | 'accent' | 'danger' | 'success' | 'warning' | 'clock';
     solid?: boolean;
     size?: 'sm' | 'md';
+    onclick?: (event: MouseEvent) => void;
     children: Snippet;
   }
 
-  let { tone = 'default', solid = false, size = 'md', children }: Props = $props();
+  let { tone = 'default', solid = false, size = 'md', onclick, children }: Props = $props();
 
   const hues = {
     default: 'var(--text-muted)',
@@ -34,10 +35,30 @@
   } as const;
 
   const hue = $derived(hues[tone]);
+
+  function handleKeydown(event: KeyboardEvent) {
+    if (!onclick) return;
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      onclick(event as unknown as MouseEvent);
+    }
+  }
 </script>
 
+<!--
+  When an onclick is passed, this span becomes a button (role, keyboard handler,
+  focusable tabindex all applied together). svelte-check can't see through the
+  conditional role to know the tabindex is on an interactive element.
+-->
+<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 <span
-  class="inline-flex items-center font-bold leading-[1.2] tracking-[0.02em] rounded-[var(--radius-sm)] {sizeClasses[size]}"
+  {onclick}
+  onkeydown={onclick ? handleKeydown : undefined}
+  role={onclick ? 'button' : undefined}
+  tabindex={onclick ? 0 : undefined}
+  class="inline-flex items-center font-bold leading-[1.2] tracking-[0.02em] rounded-[var(--radius-sm)] {onclick
+    ? 'cursor-pointer'
+    : ''} {sizeClasses[size]}"
   style:color={solid ? 'var(--on-accent)' : hue}
   style:background={solid ? hue : tints[tone]}
   style:border={solid ? '1px solid transparent' : `1px solid color-mix(in srgb, ${hue} 30%, transparent)`}

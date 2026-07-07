@@ -3,7 +3,7 @@
   import Input from '../ui/Input.svelte';
   import Stepper from '../ui/Stepper.svelte';
   import Button from '../ui/Button.svelte';
-  import StatusPill from '../ui/StatusPill.svelte';
+  import { CONDITIONS, type ConditionName } from '../../lib/conditions';
   import type { PartyMember } from '../../lib/stores/party.svelte';
 
   interface Props {
@@ -19,31 +19,40 @@
   let hp = $state(initial?.hp ?? 6);
   let max = $state(initial?.max ?? 6);
   let pips = $state(initial?.pips ?? 0);
-  let conditions = $state<{ tone: 'danger' | 'warning'; label: string }[]>(
-    initial ? initial.conditions.map((c) => ({ ...c })) : [],
-  );
-  let newCondition = $state('');
-  let newConditionTone = $state<'danger' | 'warning'>('danger');
+  let conditions = $state<ConditionName[]>(initial ? [...initial.conditions] : []);
+
+  // STR/DEX/WIL, XP/level, status, and scars aren't editable from this form
+  // yet (that's a follow-up pass) — an edit carries the member's existing
+  // values forward unchanged, and a new member starts with placeholder
+  // starting scores until character-creation-style stat entry exists.
+  const conditionNames = Object.keys(CONDITIONS) as ConditionName[];
 
   $effect(() => {
     if (hp > max) hp = max;
   });
 
-  function addCondition() {
-    const label = newCondition.trim();
-    if (!label) return;
-    conditions.push({ tone: newConditionTone, label });
-    newCondition = '';
-  }
-
-  function removeCondition(index: number) {
-    conditions.splice(index, 1);
+  function toggleCondition(condition: ConditionName) {
+    conditions = conditions.includes(condition)
+      ? conditions.filter((c) => c !== condition)
+      : [...conditions, condition];
   }
 
   function handleSubmit(event: SubmitEvent) {
     event.preventDefault();
     if (!name.trim()) return;
-    onsave({ name: name.trim(), role: role.trim(), hp, max, pips, conditions });
+    const attributes = initial
+      ? {
+          str: initial.str,
+          maxStr: initial.maxStr,
+          dex: initial.dex,
+          wil: initial.wil,
+          xp: initial.xp,
+          level: initial.level,
+          status: initial.status,
+          scars: initial.scars,
+        }
+      : { str: 10, maxStr: 10, dex: 10, wil: 10, xp: 0, level: 1, status: 'active' as const, scars: [] };
+    onsave({ name: name.trim(), role: role.trim(), hp, max, pips, conditions, ...attributes });
   }
 </script>
 
@@ -59,25 +68,17 @@
 
   <div class="flex flex-col gap-2">
     <span class="ww-label">{$_('roster.form.conditions')}</span>
-    {#if conditions.length > 0}
-      <div class="flex gap-2 flex-wrap">
-        {#each conditions as cond, i (cond.label + i)}
-          <StatusPill tone={cond.tone} size="sm" onclick={() => removeCondition(i)}>{cond.label} ×</StatusPill>
-        {/each}
-      </div>
-    {/if}
-    <div class="flex gap-2 items-center flex-wrap">
-      <select
-        bind:value={newConditionTone}
-        class="h-[var(--tap)] rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--surface-raised)] px-2 text-[length:var(--text-sm)] shrink-0"
-      >
-        <option value="danger">{$_('roster.form.toneDanger')}</option>
-        <option value="warning">{$_('roster.form.toneWarning')}</option>
-      </select>
-      <div class="flex-1 min-w-32">
-        <Input bind:value={newCondition} size="sm" placeholder={$_('roster.form.conditionPlaceholder')} />
-      </div>
-      <Button type="button" variant="secondary" size="sm" onclick={addCondition}>{$_('roster.form.addCondition')}</Button>
+    <div class="flex gap-x-4 gap-y-2 flex-wrap">
+      {#each conditionNames as condition (condition)}
+        <label class="inline-flex items-center gap-1.5 text-[length:var(--text-sm)] cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={conditions.includes(condition)}
+            onchange={() => toggleCondition(condition)}
+          />
+          {CONDITIONS[condition].label}
+        </label>
+      {/each}
     </div>
   </div>
 

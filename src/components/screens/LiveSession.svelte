@@ -1,14 +1,36 @@
 <script lang="ts">
-  import { ChevronLeft, Dices } from 'lucide-svelte';
   import { _ } from 'svelte-i18n';
-  import Button from '../ui/Button.svelte';
-  import Card from '../ui/Card.svelte';
-  import HpBar from '../ui/HpBar.svelte';
-  import StatusPill from '../ui/StatusPill.svelte';
-  import Stepper from '../ui/Stepper.svelte';
-  import DiceRoll from '../ui/DiceRoll.svelte';
-  import Icon from '../ui/Icon.svelte';
-  import { getParty, setHp } from '../../lib/stores/party.svelte';
+  import LiveSessionHeader from './LiveSessionHeader.svelte';
+  import FactionClockStrip from './FactionClockStrip.svelte';
+  import LiveSessionCard from './LiveSessionCard.svelte';
+  import SaveDock from './SaveDock.svelte';
+  import ConfirmDialog from '../ui/ConfirmDialog.svelte';
+  import Tag from '../ui/Tag.svelte';
+  import {
+    getParty,
+    dealDamage,
+    healHp,
+    killMember,
+    addCondition,
+    removeCondition,
+    updateMember,
+    type PartyMember,
+  } from '../../lib/stores/party.svelte';
+  import {
+    getHirelings,
+    dealHirelingDamage,
+    healHirelingHp,
+    killHireling,
+    addHirelingCondition,
+    removeHirelingCondition,
+    updateHireling,
+    type Hireling,
+  } from '../../lib/stores/hirelings.svelte';
+  import { getFactions, bumpFactionClock, updateFaction } from '../../lib/stores/factions.svelte';
+  import { getBeats } from '../../lib/stores/beats.svelte';
+  import { getLastSession } from '../../lib/stores/sessions.svelte';
+  import { rollSave } from '../../lib/generators/save';
+  import type { ConditionName } from '../../lib/conditions';
 
   interface Props {
     onexit?: () => void;
@@ -22,95 +44,281 @@
   });
 
   const party = getParty();
+  const hirelings = getHirelings();
+  const factions = getFactions();
 
-  interface Roll {
-    dice: [number, number];
-    total: number;
-    outcome: 'success' | 'partial' | 'fail';
+  const lastSession = $derived(getLastSession());
+  const activeBeat = $derived(getBeats().find((b) => b.status === 'active') ?? null);
+
+  const activeParty = $derived(party.filter((m) => m.status === 'active'));
+  const fallenParty = $derived(party.filter((m) => m.status === 'deceased'));
+  const activeHirelings = $derived(hirelings.filter((h) => h.status === 'active'));
+  const fallenHirelings = $derived(hirelings.filter((h) => h.status === 'deceased'));
+
+  const topFactions = $derived(
+    [...factions]
+      .filter((f) => f.of > 0)
+      .sort((a, b) => b.clock / b.of - a.clock / a.of)
+      .slice(0, 2)
+      .map((f) => ({ id: f.id, name: f.name, clock: f.clock, of: f.of })),
+  );
+
+  const saveableMembers = $derived([
+    ...activeParty.map((m) => ({ id: m.id, name: m.name, str: m.str, dex: m.dex, wil: m.wil })),
+    ...activeHirelings.map((h) => ({ id: h.id, name: h.name, str: h.str, dex: h.dex, wil: h.wil })),
+  ]);
+
+  type Source = 'party' | 'hireling';
+
+  // At most one card's drawer is open across the whole screen at a time —
+  // opening a new one closes whatever was already open.
+  let openDrawer = $state<{ id: string; kind: 'damage' | 'condition' } | null>(null);
+  let pendingStrSave = $state<{ id: string; source: Source; str: number } | null>(null);
+  let deathConfirm = $state<{ id: string; source: Source; name: string } | null>(null);
+
+  interface Notice {
+    id: string;
+    text: string;
+    undo?: (() => void) | undefined;
+  }
+  // A single "last action" notice for the whole screen — a GM acts on one
+  // mouse/faction at a time at the table, so this is simpler than a per-card
+  // timer and still matches the spec's "inline undo for ~6 seconds" ask.
+  let notice = $state<Notice | null>(null);
+  let noticeTimer: ReturnType<typeof setTimeout> | undefined;
+
+  function announce(id: string, text: string, undo?: () => void) {
+    clearTimeout(noticeTimer);
+    notice = { id, text, undo };
+    noticeTimer = setTimeout(() => {
+      notice = null;
+    }, 6000);
   }
 
-  let roll = $state<Roll | null>(null);
+  function dismissNotice() {
+    clearTimeout(noticeTimer);
+    notice = null;
+  }
 
-  function doRoll() {
-    const d: [number, number] = [1 + Math.floor(Math.random() * 6), 1 + Math.floor(Math.random() * 6)];
-    const total = d[0] + d[1];
-    roll = { dice: d, total, outcome: total >= 8 ? 'success' : total >= 6 ? 'partial' : 'fail' };
+  function drawerFor(id: string): 'damage' | 'condition' | null {
+    return openDrawer?.id === id ? openDrawer.kind : null;
+  }
+
+  function toggleDrawer(id: string, kind: 'damage' | 'condition') {
+    openDrawer = openDrawer?.id === id && openDrawer.kind === kind ? null : { id, kind };
+  }
+
+  function memberOf(source: Source, id: string): PartyMember | Hireling | undefined {
+    return source === 'party' ? party.find((m) => m.id === id) : hirelings.find((h) => h.id === id);
+  }
+
+  function handleDamage(source: Source, id: string, amount: number) {
+    const member = memberOf(source, id);
+    if (!member) return;
+    const before = { hp: member.hp, str: member.str };
+    const outcome = source === 'party' ? dealDamage(id, amount) : dealHirelingDamage(id, amount);
+    if (!outcome) return;
+
+    const restore = () => {
+      if (source === 'party') updateMember(id, before);
+      else updateHireling(id, before);
+    };
+    announce(id, $_('liveSession.damageApplied', { values: { amount } }), restore);
+
+    if (outcome.died) {
+      // STR hit exactly 0 — immediate death per the rules, no save.
+      deathConfirm = { id, source, name: member.name };
+    } else if (outcome.strSaveRequired) {
+      pendingStrSave = { id, source, str: outcome.newStr };
+    }
+  }
+
+  function handleHeal(source: Source, id: string, amount: number) {
+    const member = memberOf(source, id);
+    if (!member) return;
+    const before = { hp: member.hp, str: member.str };
+    if (source === 'party') healHp(id, amount);
+    else healHirelingHp(id, amount);
+
+    const restore = () => {
+      if (source === 'party') updateMember(id, before);
+      else updateHireling(id, before);
+    };
+    announce(id, $_('liveSession.healApplied', { values: { amount } }), restore);
+  }
+
+  function handleToggleCondition(source: Source, id: string, condition: ConditionName) {
+    const member = memberOf(source, id);
+    if (!member) return;
+    const has = member.conditions.includes(condition);
+    if (source === 'party') {
+      if (has) removeCondition(id, condition);
+      else addCondition(id, condition);
+    } else {
+      if (has) removeHirelingCondition(id, condition);
+      else addHirelingCondition(id, condition);
+    }
+  }
+
+  function resolveStrSave() {
+    if (!pendingStrSave) return;
+    const { id, source, str } = pendingStrSave;
+    const result = rollSave(str);
+    if (!result.passed) {
+      if (source === 'party') {
+        addCondition(id, 'injured');
+        addCondition(id, 'incapacitated');
+      } else {
+        addHirelingCondition(id, 'injured');
+        addHirelingCondition(id, 'incapacitated');
+      }
+    }
+    const key = result.passed ? 'liveSession.strSavePassed' : 'liveSession.strSaveFailed';
+    announce(id, $_(key, { values: { roll: result.roll, score: result.score } }));
+    pendingStrSave = null;
+  }
+
+  function requestDeath(source: Source, id: string) {
+    const member = memberOf(source, id);
+    if (!member) return;
+    deathConfirm = { id, source, name: member.name };
+  }
+
+  function confirmDeath() {
+    if (!deathConfirm) return;
+    if (deathConfirm.source === 'party') killMember(deathConfirm.id);
+    else killHireling(deathConfirm.id);
+    deathConfirm = null;
+  }
+
+  function bumpClock(id: string) {
+    const faction = factions.find((f) => f.id === id);
+    if (!faction) return;
+    const before = faction.clock;
+    bumpFactionClock(id, 1);
+    announce(`faction:${id}`, $_('liveSession.clockAdvanced', { values: { name: faction.name } }), () =>
+      updateFaction(id, { clock: before }),
+    );
   }
 </script>
 
 <div class="min-h-screen bg-[var(--bg)] text-[var(--text)] flex flex-col">
-  <!-- Top bar — deliberately sparse -->
-  <header
-    class="sticky top-0 z-5 flex items-center justify-between gap-[var(--sp-4)] py-[var(--sp-4)] px-[var(--sp-5)] bg-[var(--surface)] border-b border-[var(--border)]"
-  >
-    <button
-      onclick={onexit}
-      aria-label={$_('liveSession.exitAriaLabel')}
-      class="inline-flex items-center gap-2 bg-none border-none text-[var(--text-muted)] cursor-pointer text-[length:var(--text-body)] font-[family-name:var(--font-body)]"
-    >
-      <Icon icon={ChevronLeft} size="live" />{$_('liveSession.exit')}
-    </button>
-    <div class="text-center">
-      <div class="ww-label text-[var(--accent)]">{$_('liveSession.eyebrow', { values: { session: 5 } })}</div>
-      <div class="font-[family-name:var(--font-display)] font-bold text-[length:var(--text-h3)]">
-        The granary raid
-      </div>
-    </div>
-    <StatusPill tone="clock" count={3} of={6} size="md">Court</StatusPill>
-  </header>
+  <LiveSessionHeader
+    sessionNumber={lastSession?.number ?? null}
+    sessionTitle={lastSession?.title ?? null}
+    beatTitle={activeBeat?.title ?? null}
+    {onexit}
+  />
 
   <main class="flex-1 w-full max-w-160 mx-auto p-[var(--sp-5)] flex flex-col gap-[var(--sp-5)]">
-    {#each party as member (member.id)}
-      {@const low = member.hp <= 2}
-      <Card style={low ? 'border-color: var(--danger)' : undefined}>
-        <div class="flex items-center gap-[var(--sp-4)] flex-wrap">
-          <div class="flex-1 min-w-35">
-            <div class="font-[family-name:var(--font-display)] font-extrabold text-[length:var(--text-h3)]">
-              {member.name}
-            </div>
-            {#each member.conditions as cond (cond.label)}
-              <div class="mt-2">
-                <StatusPill tone="danger" size="live">{cond.label}</StatusPill>
+    <FactionClockStrip
+      factions={topFactions}
+      notice={notice && notice.id.startsWith('faction:') ? { text: notice.text, undo: notice.undo } : null}
+      onbump={bumpClock}
+      ondismissnotice={dismissNotice}
+    />
+
+    <section class="flex flex-col gap-[var(--sp-3)]">
+      <div class="ww-label">{$_('liveSession.party')}</div>
+      {#each activeParty as member (member.id)}
+        <LiveSessionCard
+          member={{
+            id: member.id,
+            name: member.name,
+            role: member.role,
+            hp: member.hp,
+            max: member.max,
+            str: member.str,
+            maxStr: member.maxStr,
+            conditions: member.conditions,
+          }}
+          drawer={drawerFor(member.id)}
+          notice={notice && notice.id === member.id ? { text: notice.text, undo: notice.undo } : null}
+          pendingStrSave={pendingStrSave?.id === member.id ? pendingStrSave.str : null}
+          ondamage={(amount) => handleDamage('party', member.id, amount)}
+          onheal={(amount) => handleHeal('party', member.id, amount)}
+          ontoggledrawer={(kind) => toggleDrawer(member.id, kind)}
+          ontogglecondition={(condition) => handleToggleCondition('party', member.id, condition)}
+          onresolvestrsave={resolveStrSave}
+          onrequestdeath={() => requestDeath('party', member.id)}
+          ondismissnotice={dismissNotice}
+        />
+      {/each}
+      {#if activeParty.length === 0}
+        <p class="text-[var(--text-muted)] text-[length:var(--text-body)]">{$_('liveSession.noParty')}</p>
+      {/if}
+      {#if fallenParty.length > 0}
+        <details>
+          <summary class="ww-label cursor-pointer">{$_('liveSession.fallen', { values: { count: fallenParty.length } })}</summary>
+          <div class="flex flex-col gap-1.5 mt-2">
+            {#each fallenParty as member (member.id)}
+              <div class="flex items-center gap-2 text-[var(--text-muted)]">
+                <span class="font-bold text-[length:var(--text-sm)]">{member.name}</span>
+                <Tag size="sm">{member.role}</Tag>
               </div>
             {/each}
           </div>
-          <Stepper
-            label={$_('liveSession.hp')}
-            value={member.hp}
-            max={member.max}
-            tone="hp"
-            size="live"
-            onchange={(v) => setHp(member.id, v)}
-          />
-        </div>
-        <div class="mt-[var(--sp-4)]">
-          <HpBar value={member.hp} max={member.max} label="" showValue={false} size="live" />
-        </div>
-      </Card>
-    {/each}
+        </details>
+      {/if}
+    </section>
+
+    <section class="flex flex-col gap-[var(--sp-3)]">
+      <div class="ww-label">{$_('liveSession.hirelings')}</div>
+      {#each activeHirelings as hireling (hireling.id)}
+        <LiveSessionCard
+          member={{
+            id: hireling.id,
+            name: hireling.name,
+            role: hireling.role,
+            hp: hireling.hp,
+            max: hireling.max,
+            str: hireling.str,
+            maxStr: hireling.maxStr,
+            conditions: hireling.conditions,
+          }}
+          drawer={drawerFor(hireling.id)}
+          notice={notice && notice.id === hireling.id ? { text: notice.text, undo: notice.undo } : null}
+          pendingStrSave={pendingStrSave?.id === hireling.id ? pendingStrSave.str : null}
+          ondamage={(amount) => handleDamage('hireling', hireling.id, amount)}
+          onheal={(amount) => handleHeal('hireling', hireling.id, amount)}
+          ontoggledrawer={(kind) => toggleDrawer(hireling.id, kind)}
+          ontogglecondition={(condition) => handleToggleCondition('hireling', hireling.id, condition)}
+          onresolvestrsave={resolveStrSave}
+          onrequestdeath={() => requestDeath('hireling', hireling.id)}
+          ondismissnotice={dismissNotice}
+        />
+      {/each}
+      {#if activeHirelings.length === 0}
+        <p class="text-[var(--text-muted)] text-[length:var(--text-body)]">{$_('liveSession.noHirelings')}</p>
+      {/if}
+      {#if fallenHirelings.length > 0}
+        <details>
+          <summary class="ww-label cursor-pointer">
+            {$_('liveSession.fallen', { values: { count: fallenHirelings.length } })}
+          </summary>
+          <div class="flex flex-col gap-1.5 mt-2">
+            {#each fallenHirelings as hireling (hireling.id)}
+              <div class="flex items-center gap-2 text-[var(--text-muted)]">
+                <span class="font-bold text-[length:var(--text-sm)]">{hireling.name}</span>
+                <Tag size="sm">{hireling.role}</Tag>
+              </div>
+            {/each}
+          </div>
+        </details>
+      {/if}
+    </section>
   </main>
 
-  <!-- Roll dock — the one obvious action, thumb-reachable -->
-  <div
-    class="sticky bottom-0 bg-[var(--surface)] border-t border-[var(--border)] p-[var(--sp-5)] flex flex-col items-center gap-[var(--sp-4)] shadow-[var(--shadow-lg)]"
-  >
-    {#if roll}
-      <DiceRoll
-        dice={roll.dice}
-        notation="2d6"
-        total={roll.total}
-        outcome={roll.outcome}
-        label={$_('liveSession.lastRoll')}
-        size="live"
-      />
-    {/if}
-    <div class="flex gap-[var(--sp-3)] w-full max-w-160">
-      <Button variant="primary" size="live" block onclick={doRoll}>
-        {#snippet icon()}
-          <Icon icon={Dices} size="live" />
-        {/snippet}
-        {$_('liveSession.roll2d6')}
-      </Button>
-    </div>
-  </div>
+  <SaveDock members={saveableMembers} />
 </div>
+
+<ConfirmDialog
+  open={deathConfirm !== null}
+  title={$_('liveSession.deathTitle')}
+  message={deathConfirm ? $_('liveSession.deathMessage', { values: { name: deathConfirm.name } }) : undefined}
+  confirmLabel={$_('liveSession.confirmDeathAction')}
+  cancelLabel={$_('liveSession.cancel')}
+  danger
+  onconfirm={confirmDeath}
+  oncancel={() => (deathConfirm = null)}
+/>

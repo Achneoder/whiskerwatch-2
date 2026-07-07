@@ -63,7 +63,7 @@
       bind:value
       onfocus={() => (focused = true)}
       onblur={() => (focused = false)}
-      class="flex-1 min-w-0 border-none outline-none bg-transparent {d.py} {d.font} text-[var(--text)] leading-[var(--lh-body)] font-[family-name:var(--font-body)]"
+      class="ww-no-native-ring flex-1 min-w-0 border-none outline-none bg-transparent {d.py} {d.font} text-[var(--text)] leading-[var(--lh-body)] font-[family-name:var(--font-body)]"
       {...rest}
     />
     {#if suffix}

@@ -20,6 +20,7 @@
   },
   "dashboard": {
     "prepMode": "Prep mode · laptop",
+    "title": "My Campaign",
     "sessionSummary": "Session {session} prep · last played {days} days ago",
     "sessionSummaryEmpty": "Session {session} prep · no sessions logged yet",
     "startSession": "Start session",
@@ -38,6 +39,7 @@
     },
     "warbandCard": {
       "eyebrow": "Warband",
+      "title": "Warband",
       "manage": "Manage",
       "hp": "HP"
     },
@@ -123,6 +125,29 @@
       "cancel": "Cancel",
       "save": "Save"
     }
+  },
+  "inventory": {
+    "heading": "Inventory",
+    "slotsUsed": "{used} / {max} slots used",
+    "paws": "Paws",
+    "body": "Body",
+    "addItem": "Add item",
+    "emptySlotAria": "Empty slot, add item",
+    "filledSlotAria": "{name}, {slots} {slotWord}, edit item",
+    "slotSingular": "slot",
+    "slotPlural": "slots",
+    "chargesAria": "{current} of {max} charges remaining",
+    "overburdenedTitle": "Overburdened.",
+    "overburdenedMessage": "A mouse can't carry more than 10 slots — drop something before the next scene.",
+    "form": {
+      "name": "Name",
+      "slots": "Slots",
+      "charges": "Charges",
+      "notes": "Notes",
+      "notesPlaceholder": "d6 damage, Armor 2, keepsake…",
+      "editingSlot": "Editing slot"
+    },
+    "removeItem": "Remove item"
   },
   "adventure": {
     "eyebrow": "Prep mode · adventure",

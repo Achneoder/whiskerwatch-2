@@ -44,3 +44,7 @@ h1, h2, h3, h4 {
 ::selection { background: var(--accent-tint); color: var(--text); }
 
 :focus-visible { outline: none; box-shadow: var(--ring); border-radius: var(--radius-sm); }
+
+/* Input/Textarea draw their own ring on the wrapping div; suppress the
+   duplicate native ring on the inner control itself. */
+.ww-no-native-ring:focus-visible { box-shadow: none; }

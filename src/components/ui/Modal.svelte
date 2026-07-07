@@ -52,7 +52,9 @@
           &times;
         </button>
       </div>
-      <div class="px-[var(--sp-5)] overflow-y-auto flex-1">{@render children()}</div>
+      <div class="px-[var(--sp-5)] overflow-y-auto flex-1 {actions ? '' : 'pb-[var(--sp-5)]'}">
+        {@render children()}
+      </div>
       {#if actions}
         <div
           class="flex justify-end gap-[var(--gap-inline)] py-[var(--sp-4)] px-[var(--sp-5)] border-t border-[var(--border)] mt-[var(--sp-4)]"

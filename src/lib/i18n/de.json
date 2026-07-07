@@ -20,6 +20,7 @@
   },
   "dashboard": {
     "prepMode": "Vorbereitung · Laptop",
+    "title": "Meine Kampagne",
     "sessionSummary": "Vorbereitung für Sitzung {session} · zuletzt gespielt vor {days} Tagen",
     "sessionSummaryEmpty": "Vorbereitung für Sitzung {session} · noch keine Sitzungen protokolliert",
     "startSession": "Sitzung starten",
@@ -38,6 +39,7 @@
     },
     "warbandCard": {
       "eyebrow": "Gruppe",
+      "title": "Gruppe",
       "manage": "Verwalten",
       "hp": "TP"
     },
@@ -123,6 +125,29 @@
       "cancel": "Abbrechen",
       "save": "Speichern"
     }
+  },
+  "inventory": {
+    "heading": "Inventar",
+    "slotsUsed": "{used} / {max} Plätze belegt",
+    "paws": "Pfoten",
+    "body": "Rücken",
+    "addItem": "Gegenstand hinzufügen",
+    "emptySlotAria": "Leerer Platz, Gegenstand hinzufügen",
+    "filledSlotAria": "{name}, {slots} {slotWord}, Gegenstand bearbeiten",
+    "slotSingular": "Platz",
+    "slotPlural": "Plätze",
+    "chargesAria": "{current} von {max} Ladungen übrig",
+    "overburdenedTitle": "Überladen.",
+    "overburdenedMessage": "Eine Maus kann nicht mehr als 10 Plätze tragen — leg vor der nächsten Szene etwas ab.",
+    "form": {
+      "name": "Name",
+      "slots": "Plätze",
+      "charges": "Ladungen",
+      "notes": "Notizen",
+      "notesPlaceholder": "d6 Schaden, Rüstung 2, Andenken…",
+      "editingSlot": "Platz bearbeiten"
+    },
+    "removeItem": "Gegenstand entfernen"
   },
   "adventure": {
     "eyebrow": "Vorbereitung · Abenteuer",

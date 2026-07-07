@@ -36,7 +36,7 @@
       bind:value
       onfocus={() => (focused = true)}
       onblur={() => (focused = false)}
-      class="w-full min-w-0 resize-y border-none outline-none bg-transparent text-[length:var(--text-body)] text-[var(--text)] leading-[var(--lh-body)] font-[family-name:var(--font-body)]"
+      class="ww-no-native-ring w-full min-w-0 resize-y border-none outline-none bg-transparent text-[length:var(--text-body)] text-[var(--text)] leading-[var(--lh-body)] font-[family-name:var(--font-body)]"
       {...rest}
     ></textarea>
   </div>

@@ -41,7 +41,7 @@
     <header class="flex items-end justify-between gap-[var(--sp-4)] flex-wrap">
       <div>
         <div class="ww-label text-[var(--accent)]">{$_('dashboard.prepMode')}</div>
-        <h1 class="text-[length:var(--text-h1)] mt-1">Grey Meadow Campaign</h1>
+        <h1 class="text-[length:var(--text-h1)] mt-1">{$_('dashboard.title')}</h1>
         <p class="mt-1 text-[var(--text-muted)] text-[length:var(--text-body)]">
           {#if lastSession}
             {$_('dashboard.sessionSummary', { values: { session: nextSessionNumber, days: daysSince(lastSession.date) } })}
@@ -103,7 +103,7 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-[1.1fr_1fr] gap-[var(--sp-5)] items-start">
       <!-- Warband -->
-      <Card eyebrow={$_('dashboard.warbandCard.eyebrow')} title="Grey Meadow four">
+      <Card eyebrow={$_('dashboard.warbandCard.eyebrow')} title={$_('dashboard.warbandCard.title')}>
         {#snippet actions()}
           <Button variant="ghost" size="sm" onclick={() => onnavigate('warband')}>{$_('dashboard.warbandCard.manage')}</Button>
         {/snippet}

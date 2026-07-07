@@ -14,10 +14,13 @@ export function resetAllCampaignData(): void {
     'whiskerwatch:bestiary',
   ];
 
+  // Write an empty array rather than removing the key: if the key is
+  // absent, createPersistedList's readJSON falls back to each store's
+  // built-in seed/demo data, so a removed key silently un-resets itself.
   campaignKeys.forEach((key) => {
-    localStorage.removeItem(key);
+    localStorage.setItem(key, '[]');
   });
 
-  // Reload the page so all stores reinitialize with their default seed data
+  // Reload the page so all stores reinitialize from the now-empty state
   window.location.reload();
 }

@@ -7,8 +7,12 @@
   import Stepper from '../ui/Stepper.svelte';
   import DiceRoll from '../ui/DiceRoll.svelte';
   import Icon from '../ui/Icon.svelte';
+  import StatBlock from '../ui/StatBlock.svelte';
   import { rollDice, type DiceRollResult } from '../../lib/generators/roll';
-  import { ENCOUNTER_TABLE, ITEM_TABLE, generateFrom, generateNpc, type GeneratedNpc } from '../../lib/generators/tables';
+  import { ITEM_TABLE, generateFrom, generateNpc, type GeneratedNpc } from '../../lib/generators/tables';
+  import { generateEncounterFor } from '../../lib/generators/encounters';
+  import { getHexNodes } from '../../lib/stores/hexmap.svelte';
+  import { getBestiary, type BestiaryEntry } from '../../lib/stores/bestiary.svelte';
 
   interface Props {
     onnavigate: (screen: NavScreen) => void;
@@ -27,7 +31,25 @@
     diceResult = rollDice(count, sides, modifier);
   }
 
-  let encounter = $state<string | null>(null);
+  const bestiary = getBestiary();
+  const hexNodes = getHexNodes();
+  const encounterHexes = $derived(hexNodes.filter((h) => h.encounters.length > 0));
+
+  let selectedHexId = $state<string>('any');
+  let encounterResult = $state<BestiaryEntry | null>(null);
+  let resultSourceLabel = $state('');
+
+  function rollEncounter() {
+    encounterResult = generateEncounterFor(selectedHexId, hexNodes, bestiary);
+    if (selectedHexId === 'any') {
+      resultSourceLabel = $_('generators.encounter.rolledAny');
+    } else {
+      const hex = hexNodes.find((h) => h.id === selectedHexId);
+      const hexName = hex?.name || `Hex ${hex?.q},${hex?.r}`;
+      resultSourceLabel = $_('generators.encounter.rolledFor', { values: { hex: hexName } });
+    }
+  }
+
   let item = $state<string | null>(null);
   let npc = $state<GeneratedNpc | null>(null);
 </script>
@@ -87,16 +109,41 @@
       <!-- Encounter -->
       <Card eyebrow={$_('generators.encounter.eyebrow')} title={$_('generators.encounter.title')}>
         <div class="flex flex-col gap-[var(--sp-4)]">
-          <Button variant="secondary" onclick={() => (encounter = generateFrom(ENCOUNTER_TABLE))}>
-            {#snippet icon()}
-              <Icon icon={Swords} />
-            {/snippet}
-            {$_('generators.encounter.roll')}
-          </Button>
-          {#if encounter}
-            <p class="bg-[var(--surface-sunk)] rounded-[var(--radius-md)] p-[var(--sp-3)] text-[length:var(--text-body)] text-[var(--text-secondary)]">
-              {encounter}
-            </p>
+          <div class="flex flex-col gap-1.5">
+            <span class="ww-label">{$_('generators.encounter.hexLabel')}</span>
+            <select
+              bind:value={selectedHexId}
+              aria-label={$_('generators.encounter.hexLabel')}
+              class="h-[var(--tap)] w-full rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--surface-raised)] px-[var(--pad-control-x)] text-[length:var(--text-body)]"
+            >
+              <option value="any">{$_('generators.encounter.anyHex')}</option>
+              {#each encounterHexes as hex (hex.id)}
+                <option value={hex.id}>{hex.name || `Hex ${hex.q},${hex.r}`}</option>
+              {/each}
+            </select>
+          </div>
+
+          {#if bestiary.length === 0}
+            <Button variant="secondary" disabled>
+              {#snippet icon()}
+                <Icon icon={Swords} />
+              {/snippet}
+              {$_('generators.encounter.roll')}
+            </Button>
+            <p class="text-[length:var(--text-sm)] text-[var(--text-muted)]">{$_('generators.encounter.noBestiary')}</p>
+          {:else}
+            <Button variant="secondary" onclick={rollEncounter}>
+              {#snippet icon()}
+                <Icon icon={Swords} />
+              {/snippet}
+              {$_('generators.encounter.roll')}
+            </Button>
+            {#if encounterResult}
+              <div class="bg-[var(--surface-sunk)] rounded-[var(--radius-md)] p-[var(--sp-3)]">
+                <p class="text-[length:var(--text-caption)] text-[var(--text-muted)] mb-1">{resultSourceLabel}</p>
+                <StatBlock entry={encounterResult} statGap="var(--sp-3)" />
+              </div>
+            {/if}
           {/if}
         </div>
       </Card>

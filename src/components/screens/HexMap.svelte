@@ -18,6 +18,7 @@
     type HexNode,
   } from '../../lib/stores/hexmap.svelte';
   import { getBeats } from '../../lib/stores/beats.svelte';
+  import { getBestiary } from '../../lib/stores/bestiary.svelte';
 
   interface Props {
     onnavigate: (screen: NavScreen) => void;
@@ -28,6 +29,11 @@
 
   const hexes = getHexNodes();
   const beats = getBeats();
+  const bestiary = getBestiary();
+
+  function bestiaryName(bestiaryId: string): string {
+    return bestiary.find((b) => b.id === bestiaryId)?.name ?? '—';
+  }
 
   function beatsFor(hexNodeId: string) {
     return beats.filter((b) => b.hexNodeId === hexNodeId);
@@ -111,6 +117,16 @@
           {$_('hexMap.clear')}
         </Button>
       </div>
+      {#if node.encounters.length > 0}
+        <div class="flex flex-col gap-1.5 mb-[var(--sp-4)]">
+          <span class="ww-label">{$_('hexMap.encountersHere')}</span>
+          <div class="flex gap-1.5 flex-wrap">
+            {#each node.encounters as encounter (encounter.bestiaryId)}
+              <Tag size="sm">{bestiaryName(encounter.bestiaryId)} ×{encounter.weight}</Tag>
+            {/each}
+          </div>
+        </div>
+      {/if}
       {#if beatsFor(node.id).length > 0}
         <div class="flex flex-col gap-1.5 mb-[var(--sp-4)]">
           <span class="ww-label">{$_('hexMap.beatsTouching')}</span>
@@ -124,6 +140,7 @@
     {/if}
     <HexNodeForm
       initial={hexModal.mode === 'edit' ? hexModal.node : undefined}
+      bestiary={getBestiary()}
       onsave={saveHex}
       oncancel={() => (hexModal = null)}
     />

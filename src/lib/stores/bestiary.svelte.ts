@@ -1,4 +1,5 @@
 import { createPersistedList } from './persistedList.svelte';
+import { removeBestiaryEntryFromHexNodes } from './hexmap.svelte';
 
 export type BestiaryCategory = 'Vermin' | 'Beast' | 'Bird of Prey' | 'Humanoid' | 'Aberration';
 
@@ -93,8 +94,10 @@ export function updateBestiaryEntry(id: string, patch: Partial<Omit<BestiaryEntr
   list.update(id, patch);
 }
 
+/** Removes a bestiary entry and cascades to any hex encounter lists that referenced it. */
 export function removeBestiaryEntry(id: string): void {
   list.remove(id);
+  removeBestiaryEntryFromHexNodes(id);
 }
 
 export function replaceBestiary(entries: BestiaryEntry[]): void {

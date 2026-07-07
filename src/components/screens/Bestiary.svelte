@@ -4,8 +4,8 @@
   import AppSidebar, { type NavScreen } from '../layout/AppSidebar.svelte';
   import Button from '../ui/Button.svelte';
   import Card from '../ui/Card.svelte';
-  import Tag from '../ui/Tag.svelte';
   import Icon from '../ui/Icon.svelte';
+  import StatBlock from '../ui/StatBlock.svelte';
   import Modal from '../ui/Modal.svelte';
   import ConfirmDialog from '../ui/ConfirmDialog.svelte';
   import BestiaryForm from '../forms/BestiaryForm.svelte';
@@ -76,29 +76,7 @@
               </button>
             </div>
           {/snippet}
-          <div class="flex items-center gap-2 flex-wrap">
-            <div class="font-[family-name:var(--font-display)] font-bold text-[length:var(--text-title)]">{entry.name}</div>
-            <Tag tone="default">{$_(`bestiary.category.${entry.category}`)}</Tag>
-          </div>
-          <div class="ww-num flex gap-[var(--sp-4)] mt-2 text-[length:var(--text-sm)]">
-            <span><span class="ww-label">{$_('bestiary.form.hd')}</span> {entry.hd}</span>
-            <span><span class="ww-label">{$_('bestiary.form.hp')}</span> {entry.hp}</span>
-            <span><span class="ww-label">{$_('bestiary.form.armor')}</span> {entry.armor}</span>
-          </div>
-          {#if entry.attacks.length > 0}
-            <p class="mt-2 text-[length:var(--text-body)] text-[var(--text-secondary)]">
-              {#each entry.attacks as attack, i (attack.name + i)}<strong class="font-semibold">{attack.name}</strong> ({attack.damage}){i <
-                entry.attacks.length - 1
-                  ? ', '
-                  : ''}{/each}
-            </p>
-          {/if}
-          {#if entry.special}
-            <p class="mt-1 text-[length:var(--text-sm)] text-[var(--text-muted)]">{entry.special}</p>
-          {/if}
-          {#if entry.notes}
-            <p class="mt-1 text-[length:var(--text-sm)] text-[var(--text-faint)] italic">{entry.notes}</p>
-          {/if}
+          <StatBlock {entry} />
         </Card>
       {/each}
       {#if bestiary.length === 0}

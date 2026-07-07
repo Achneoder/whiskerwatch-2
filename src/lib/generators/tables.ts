@@ -1,14 +1,3 @@
-export const ENCOUNTER_TABLE: string[] = [
-  '2d4 Gnawing Court ratlings on patrol, arguing over a stolen ration.',
-  'A Rat Court Enforcer inspecting a tunnel junction with one ratling escort.',
-  "The Tunnel Widow's web blocks the passage — signs of a recent, larger kill.",
-  'A Sewer Owl swoops down demanding "toll" (a pip or shiny item) before letting the party pass.',
-  'Flash flood in the tunnels — DEX save or be swept back to the last junction.',
-  'A frightened, lost Seed-Keeper scout, separated from their patrol.',
-  'Fresh rat-court graffiti marking territory — a WIL save to learn something useful about it.',
-  'The Granary Rot has spread further than expected; the smell alone calls for a STR save vs Exhausted.',
-];
-
 export const ITEM_TABLE: string[] = [
   'A dented thimble, useful as a helmet (light armor, 1 slot).',
   "Three acorns' worth of pips knotted in a cloth.",

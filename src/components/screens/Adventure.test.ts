@@ -59,7 +59,7 @@ describe('Adventure', () => {
   });
 
   it('links a beat to a hex and a faction, and shows both as tags on the beat row', async () => {
-    replaceHexNodes([{ id: 'hex-1', q: 0, r: 0, terrain: 'settlement', name: 'Bramblewatch', notes: '', discovered: true }]);
+    replaceHexNodes([{ id: 'hex-1', q: 0, r: 0, terrain: 'settlement', name: 'Bramblewatch', notes: '', discovered: true, encounters: [] }]);
     replaceFactions([{ id: 'fac-1', name: 'The Gnawing Court', disposition: 'hostile', clock: 3, of: 6, note: '', tags: [] }]);
     render(Adventure, { props: { onnavigate: vi.fn() } });
 

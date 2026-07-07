@@ -3,6 +3,11 @@ import { clearHexNodeFromBeats } from './beats.svelte';
 
 export type HexTerrain = 'meadow' | 'hedgerow' | 'forest' | 'water' | 'hills' | 'ruins' | 'settlement';
 
+export interface HexEncounter {
+  bestiaryId: string;
+  weight: number;
+}
+
 export interface HexNode {
   id: string;
   q: number;
@@ -11,6 +16,8 @@ export interface HexNode {
   name: string;
   notes: string;
   discovered: boolean;
+  /** Bestiary entries (with roll weight) that can be encountered here — set from the Hex form, read by Generators. */
+  encounters: HexEncounter[];
 }
 
 export const TERRAINS: HexTerrain[] = ['meadow', 'hedgerow', 'forest', 'water', 'hills', 'ruins', 'settlement'];
@@ -37,6 +44,7 @@ const seedHexNodes: HexNode[] = [
     name: 'Bramblewatch',
     notes: "Home warren & market on stilts; the Reeve's Granary feeds the valley, but something gnaws the support beams at night.",
     discovered: true,
+    encounters: [],
   },
   {
     id: crypto.randomUUID(),
@@ -46,6 +54,7 @@ const seedHexNodes: HexNode[] = [
     name: 'The Gnawgate',
     notes: "A collapsed silo hides the Gnawing Court's tunnel entrance; bored Ratling sentries watch in shifts.",
     discovered: false,
+    encounters: [],
   },
   {
     id: crypto.randomUUID(),
@@ -55,6 +64,7 @@ const seedHexNodes: HexNode[] = [
     name: 'Owl Bridge',
     notes: 'A single-plank crossing over Millrace Creek; a barn owl roosts in the rafters and demands a toll pip.',
     discovered: true,
+    encounters: [],
   },
   {
     id: crypto.randomUUID(),
@@ -64,6 +74,7 @@ const seedHexNodes: HexNode[] = [
     name: 'Sunwarp Meadow',
     notes: "The Seed-Keepers' storage burrows hide beneath a fallen log at the meadow's heart.",
     discovered: false,
+    encounters: [],
   },
   {
     id: crypto.randomUUID(),
@@ -73,6 +84,7 @@ const seedHexNodes: HexNode[] = [
     name: '',
     notes: '',
     discovered: false,
+    encounters: [],
   },
   {
     id: crypto.randomUUID(),
@@ -82,6 +94,7 @@ const seedHexNodes: HexNode[] = [
     name: 'Thistlewood Edge',
     notes: 'A screened clearing where the Bramblewatch Militia drills, away from prying eyes.',
     discovered: false,
+    encounters: [],
   },
   {
     id: crypto.randomUUID(),
@@ -91,6 +104,7 @@ const seedHexNodes: HexNode[] = [
     name: '',
     notes: '',
     discovered: false,
+    encounters: [],
   },
   {
     id: crypto.randomUUID(),
@@ -100,10 +114,17 @@ const seedHexNodes: HexNode[] = [
     name: 'The Drowned Barrow',
     notes: "A half-sunk mouse-lord's barrow; legend says a cursed hoard still glitters inside — and something guards it.",
     discovered: false,
+    encounters: [],
   },
 ];
 
 const list = createPersistedList<HexNode>(STORAGE_KEY, seedHexNodes);
+
+// Backfill legacy records (saved before encounters existed) so downstream
+// code can rely on the field always being present.
+if (list.items.some((h) => !Array.isArray(h.encounters))) {
+  list.replaceAll(list.items.map((h) => ({ ...h, encounters: Array.isArray(h.encounters) ? h.encounters : [] })));
+}
 
 export function getHexNodes(): HexNode[] {
   return list.items;
@@ -129,4 +150,11 @@ export function removeHexNode(id: string): void {
 
 export function replaceHexNodes(nodes: HexNode[]): void {
   list.replaceAll(nodes);
+}
+
+/** Drops a bestiary id from every hex's `encounters` list — call when a bestiary entry is removed. */
+export function removeBestiaryEntryFromHexNodes(bestiaryId: string): void {
+  list.items
+    .filter((h) => h.encounters.some((e) => e.bestiaryId === bestiaryId))
+    .forEach((h) => list.update(h.id, { encounters: h.encounters.filter((e) => e.bestiaryId !== bestiaryId) }));
 }

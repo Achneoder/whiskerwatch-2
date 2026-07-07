@@ -6,7 +6,7 @@
     step?: number;
     label?: string;
     tone?: 'accent' | 'hp';
-    size?: 'md' | 'live';
+    size?: 'sm' | 'md' | 'live';
     onchange?: (value: number) => void;
   }
 
@@ -23,15 +23,16 @@
   }
 
   const color = $derived(tone === 'hp' ? 'var(--hp)' : 'var(--accent)');
-  const btnSz = $derived(size === 'live' ? 56 : 40);
-  const valSz = $derived(size === 'live' ? 'var(--stat-lg)' : 'var(--stat-md)');
+  const btnSz = $derived(size === 'live' ? 56 : size === 'sm' ? 28 : 40);
+  const valSz = $derived(size === 'live' ? 'var(--stat-lg)' : size === 'sm' ? 'var(--text-sm)' : 'var(--stat-md)');
+  const gapClass = $derived(size === 'sm' ? 'gap-1.5' : 'gap-[var(--sp-4)]');
 </script>
 
 <div class="flex flex-col gap-1.5 items-center">
   {#if label}
     <span class="ww-label">{label}</span>
   {/if}
-  <div class="flex items-center gap-[var(--sp-4)]">
+  <div class="flex items-center {gapClass}">
     <button
       type="button"
       onclick={() => bump(-1)}
@@ -49,7 +50,7 @@
     </button>
     <span
       class="ww-num text-center font-bold text-[var(--text)] leading-none"
-      style:min-width="{size === 'live' ? 64 : 44}px"
+      style:min-width="{size === 'live' ? 64 : size === 'sm' ? 22 : 44}px"
       style:font-size={valSz}
     >
       {value}

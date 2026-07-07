@@ -290,6 +290,7 @@
     "legend": "Legend",
     "clear": "Clear hex",
     "beatsTouching": "Beats touching this hex",
+    "encountersHere": "Encounters here",
     "terrain": {
       "meadow": "Meadow",
       "hedgerow": "Hedgerow",
@@ -304,7 +305,11 @@
       "name": "Name",
       "namePlaceholder": "Location name (optional)",
       "notes": "Notes",
-      "discovered": "Discovered by the party"
+      "discovered": "Discovered by the party",
+      "encounters": "Encounters",
+      "encountersNoBestiary": "Add entries to the Bestiary first to link encounters here.",
+      "encounterPlaceholder": "Choose a creature…",
+      "addEncounter": "Add"
     }
   },
   "generators": {
@@ -321,7 +326,12 @@
     "encounter": {
       "eyebrow": "Encounter",
       "title": "Random encounter",
-      "roll": "Roll an encounter"
+      "roll": "Roll an encounter",
+      "hexLabel": "Hex",
+      "anyHex": "Any hex (whole bestiary)",
+      "noBestiary": "No bestiary entries yet — add creatures in the Bestiary screen.",
+      "rolledFor": "Rolled for {hex}",
+      "rolledAny": "Rolled from the whole bestiary"
     },
     "item": {
       "eyebrow": "Item",

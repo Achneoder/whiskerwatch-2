@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/svelte';
 import HexMap from './HexMap.svelte';
 import { replaceHexNodes, type HexNode } from '../../lib/stores/hexmap.svelte';
 import { replaceBeats } from '../../lib/stores/beats.svelte';
+import { replaceBestiary, type BestiaryEntry } from '../../lib/stores/bestiary.svelte';
 
 const home: HexNode = {
   id: '1',
@@ -12,12 +13,14 @@ const home: HexNode = {
   name: 'Bramblewatch',
   notes: 'Home warren',
   discovered: true,
+  encounters: [],
 };
 
 describe('HexMap', () => {
   beforeEach(() => {
     replaceHexNodes([]);
     replaceBeats([]);
+    replaceBestiary([]);
   });
 
   it('renders a seeded content hex by its accessible label', () => {
@@ -63,5 +66,27 @@ describe('HexMap', () => {
 
     expect(screen.getByText('Beats touching this hex')).toBeInTheDocument();
     expect(screen.getByText('The granary raid')).toBeInTheDocument();
+  });
+
+  it('shows encounters linked to a hex in its detail modal', async () => {
+    const ratling: BestiaryEntry = {
+      id: 'r1',
+      name: 'Gnawing Court Ratling',
+      category: 'Vermin',
+      hd: 2,
+      hp: 4,
+      armor: 1,
+      attacks: [],
+      special: '',
+      notes: '',
+    };
+    replaceBestiary([ratling]);
+    replaceHexNodes([{ ...home, encounters: [{ bestiaryId: 'r1', weight: 3 }] }]);
+    render(HexMap, { props: { onnavigate: vi.fn() } });
+
+    await fireEvent.click(screen.getByRole('button', { name: /Bramblewatch/ }));
+
+    expect(screen.getByText('Encounters here')).toBeInTheDocument();
+    expect(screen.getByText('Gnawing Court Ratling ×3')).toBeInTheDocument();
   });
 });

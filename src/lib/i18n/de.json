@@ -290,6 +290,7 @@
     "legend": "Legende",
     "clear": "Feld löschen",
     "beatsTouching": "Beats, die dieses Feld betreffen",
+    "encountersHere": "Begegnungen hier",
     "terrain": {
       "meadow": "Wiese",
       "hedgerow": "Hecke",
@@ -304,7 +305,11 @@
       "name": "Name",
       "namePlaceholder": "Ortsname (optional)",
       "notes": "Notizen",
-      "discovered": "Von der Gruppe entdeckt"
+      "discovered": "Von der Gruppe entdeckt",
+      "encounters": "Begegnungen",
+      "encountersNoBestiary": "Füge zuerst Einträge im Bestiarium hinzu, um hier Begegnungen zu verknüpfen.",
+      "encounterPlaceholder": "Kreatur wählen…",
+      "addEncounter": "Hinzufügen"
     }
   },
   "generators": {
@@ -321,7 +326,12 @@
     "encounter": {
       "eyebrow": "Begegnung",
       "title": "Zufällige Begegnung",
-      "roll": "Begegnung würfeln"
+      "roll": "Begegnung würfeln",
+      "hexLabel": "Hexfeld",
+      "anyHex": "Beliebiges Hexfeld (ganzes Bestiarium)",
+      "noBestiary": "Noch keine Bestiarium-Einträge — füge Kreaturen im Bestiarium hinzu.",
+      "rolledFor": "Gewürfelt für {hex}",
+      "rolledAny": "Gewürfelt aus dem ganzen Bestiarium"
     },
     "item": {
       "eyebrow": "Gegenstand",

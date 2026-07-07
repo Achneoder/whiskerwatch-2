@@ -12,6 +12,7 @@ const hexNode: HexNode = {
   name: 'Bramblewatch',
   notes: '',
   discovered: true,
+  encounters: [],
 };
 
 const faction: Faction = {

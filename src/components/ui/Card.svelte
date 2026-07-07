@@ -5,7 +5,7 @@
     title?: string;
     eyebrow?: string;
     actions?: Snippet;
-    footer?: Snippet;
+    footer?: Snippet | undefined;
     interactive?: boolean;
     onclick?: (event: MouseEvent) => void;
     class?: string;

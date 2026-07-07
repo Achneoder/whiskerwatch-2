@@ -27,3 +27,9 @@ Feature: Settings
     When I navigate to the "Settings" screen
     And I choose an invalid file to import
     Then I should see "Replace campaign data?"
+
+  Scenario: A reset button is available to start over
+    Given I open Whiskerwatch
+    When I navigate to the "Settings" screen
+    Then I should see "Reset everything"
+    And I should see "Clear all campaign data and start fresh"

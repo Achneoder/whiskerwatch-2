@@ -318,11 +318,18 @@
       "importHint": "Aus einer zuvor exportierten Datei wiederherstellen. Dies ersetzt alles, was aktuell in der App ist.",
       "import": "Kampagne importieren",
       "importDone": "Kampagne wiederhergestellt.",
+      "resetHeading": "Zurücksetzen",
+      "resetHint": "Alle Kampagnendaten löschen und neu anfangen. Dies kann nicht rückgängig gemacht werden – exportiere alles, bevor du fortfährst.",
+      "reset": "Alles zurücksetzen",
       "footer": "Tipp: Exportiere nach jeder Sitzung, damit nichts verloren geht, falls der Speicher dieses Browsers geleert wird.",
       "confirmTitle": "Kampagnendaten ersetzen?",
       "confirmMessage": "Beim Importieren wird alles überschrieben, was aktuell in diesem Browser gespeichert ist. Das kann nur rückgängig gemacht werden, wenn du einen weiteren Export hast.",
       "confirmAction": "Importieren und ersetzen",
-      "cancel": "Abbrechen"
+      "cancel": "Abbrechen",
+      "resetConfirmTitle": "Alle Kampagnendaten zurücksetzen?",
+      "resetConfirmMessage": "Dies löscht dauerhaft alle deine Kampagnendaten (Gruppen, Abenteuer, Fraktionen usw.) und kann nicht rückgängig gemacht werden. Stelle sicher, dass du alles, was du behalten möchtest, vorher exportiert hast.",
+      "resetConfirmAction": "Zurücksetzen und neu anfangen",
+      "resetDone": "Kampagne zurückgesetzt. Neuer Anfang!"
     }
   }
 }

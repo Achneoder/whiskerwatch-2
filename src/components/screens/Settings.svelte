@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { HardDrive, Sun, Moon, Download, Upload } from 'lucide-svelte';
+  import { HardDrive, Sun, Moon, Download, Upload, RotateCcw } from 'lucide-svelte';
   import { _ } from 'svelte-i18n';
   import AppSidebar, { type NavScreen } from '../layout/AppSidebar.svelte';
   import Card from '../ui/Card.svelte';
@@ -9,6 +9,7 @@
   import { getTheme, setTheme, type Theme } from '../../lib/stores/theme.svelte';
   import { locale, setLocale, type SupportedLocale } from '../../lib/i18n';
   import { exportCampaign, importCampaign } from '../../lib/campaignExport';
+  import { resetAllCampaignData } from '../../lib/resetData';
 
   interface Props {
     onnavigate: (screen: NavScreen) => void;
@@ -22,6 +23,7 @@
   let importError = $state<string | null>(null);
   let pendingFile = $state<File | null>(null);
   let fileInput = $state<HTMLInputElement>();
+  let pendingReset = $state(false);
 
   const themeOptions: { value: Theme; icon: typeof Sun; key: string }[] = [
     { value: 'light', icon: Sun, key: 'settings.appearance.light' },
@@ -80,6 +82,19 @@
 
   function cancelImport() {
     pendingFile = null;
+  }
+
+  function initiateReset() {
+    pendingReset = true;
+  }
+
+  function confirmReset() {
+    pendingReset = false;
+    resetAllCampaignData();
+  }
+
+  function cancelReset() {
+    pendingReset = false;
   }
 
   const segmentBase =
@@ -154,7 +169,7 @@
         <p class="text-[length:var(--text-caption)] text-[var(--text-muted)]">{$_('settings.data.footer')}</p>
       {/snippet}
       <p class="text-[length:var(--text-sm)] text-[var(--text-secondary)]">{$_('settings.data.intro')}</p>
-      <div class="mt-[var(--sp-4)] grid grid-cols-1 sm:grid-cols-2 gap-[var(--sp-4)]">
+      <div class="mt-[var(--sp-4)] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[var(--sp-4)]">
         <div class="border border-[var(--border)] rounded-[var(--radius-md)] p-[var(--sp-4)] flex flex-col gap-[var(--sp-2)]">
           <div class="font-bold flex items-center gap-1.5"><Icon icon={Download} />{$_('settings.data.exportHeading')}</div>
           <p class="text-[length:var(--text-sm)] text-[var(--text-muted)] flex-1">{$_('settings.data.exportHint')}</p>
@@ -194,6 +209,17 @@
             <p class="text-[length:var(--text-sm)] text-[var(--success)]" role="status">{$_('settings.data.importDone')}</p>
           {/if}
         </div>
+
+        <div class="border border-[var(--border)] rounded-[var(--radius-md)] p-[var(--sp-4)] flex flex-col gap-[var(--sp-2)]">
+          <div class="font-bold flex items-center gap-1.5"><Icon icon={RotateCcw} />{$_('settings.data.resetHeading')}</div>
+          <p class="text-[length:var(--text-sm)] text-[var(--text-muted)] flex-1">{$_('settings.data.resetHint')}</p>
+          <Button variant="secondary" block onclick={initiateReset}>
+            {#snippet icon()}
+              <Icon icon={RotateCcw} />
+            {/snippet}
+            {$_('settings.data.reset')}
+          </Button>
+        </div>
       </div>
     </Card>
   </main>
@@ -208,4 +234,15 @@
   danger
   onconfirm={confirmImport}
   oncancel={cancelImport}
+/>
+
+<ConfirmDialog
+  open={pendingReset}
+  title={$_('settings.data.resetConfirmTitle')}
+  message={$_('settings.data.resetConfirmMessage')}
+  confirmLabel={$_('settings.data.resetConfirmAction')}
+  cancelLabel={$_('settings.data.cancel')}
+  danger
+  onconfirm={confirmReset}
+  oncancel={cancelReset}
 />

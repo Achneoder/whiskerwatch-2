@@ -49,6 +49,15 @@ export function hexPolygonPoints(cx: number, cy: number, size = HEX_SIZE): strin
   }).join(' ');
 }
 
+/**
+ * Hex outline scaled down around its own centre — used to draw the
+ * controlled/contested-territory rings inset from the outer terrain
+ * polygon and selection stroke so they read as concentric bands.
+ */
+export function insetHexPoints(cx: number, cy: number, scale: number, size = HEX_SIZE): string {
+  return hexPolygonPoints(cx, cy, size * scale);
+}
+
 /** Stable string key for a coordinate, for Map lookups and `{#each}` keys. */
 export function hexKey(q: number, r: number): string {
   return `${q},${r}`;

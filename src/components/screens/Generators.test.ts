@@ -37,6 +37,8 @@ const bramblewatch: HexNode = {
   notes: '',
   discovered: true,
   encounters: [{ bestiaryId: 'b1', weight: 1 }],
+  controlledBy: null,
+  contestedBy: [],
 };
 
 describe('Generators', () => {

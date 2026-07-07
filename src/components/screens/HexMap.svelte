@@ -19,6 +19,7 @@
   } from '../../lib/stores/hexmap.svelte';
   import { getBeats } from '../../lib/stores/beats.svelte';
   import { getBestiary } from '../../lib/stores/bestiary.svelte';
+  import { getFactions, dispositionTagTone } from '../../lib/stores/factions.svelte';
 
   interface Props {
     onnavigate: (screen: NavScreen) => void;
@@ -30,9 +31,14 @@
   const hexes = getHexNodes();
   const beats = getBeats();
   const bestiary = getBestiary();
+  const factions = getFactions();
 
   function bestiaryName(bestiaryId: string): string {
     return bestiary.find((b) => b.id === bestiaryId)?.name ?? '—';
+  }
+
+  function factionFor(factionId: string) {
+    return factions.find((f) => f.id === factionId);
   }
 
   function beatsFor(hexNodeId: string) {
@@ -93,7 +99,7 @@
       <p class="text-[var(--text-muted)] text-[length:var(--text-body)]">{$_('hexMap.empty')}</p>
     {/if}
 
-    <HexCanvas {hexes} {selected} onselect={selectHex} />
+    <HexCanvas {hexes} {selected} {factions} onselect={selectHex} />
   </main>
 </div>
 
@@ -117,6 +123,30 @@
           {$_('hexMap.clear')}
         </Button>
       </div>
+      {#if node.controlledBy || node.contestedBy.length > 0}
+        <div class="flex flex-col gap-[var(--sp-2)] mb-[var(--sp-4)]">
+          {#if node.controlledBy && factionFor(node.controlledBy)}
+            {@const controller = factionFor(node.controlledBy)!}
+            <div class="flex flex-col gap-1.5">
+              <span class="ww-label">{$_('hexMap.controlledBy')}</span>
+              <Tag size="sm" tone={dispositionTagTone[controller.disposition]}>{controller.name}</Tag>
+            </div>
+          {/if}
+          {#if node.contestedBy.length > 0}
+            <div class="flex flex-col gap-1.5">
+              <span class="ww-label">{$_('hexMap.contestedBy')}</span>
+              <div class="flex gap-1.5 flex-wrap">
+                {#each node.contestedBy as factionId (factionId)}
+                  {@const faction = factionFor(factionId)}
+                  {#if faction}
+                    <Tag size="sm" tone={dispositionTagTone[faction.disposition]}>{faction.name}</Tag>
+                  {/if}
+                {/each}
+              </div>
+            </div>
+          {/if}
+        </div>
+      {/if}
       {#if node.encounters.length > 0}
         <div class="flex flex-col gap-1.5 mb-[var(--sp-4)]">
           <span class="ww-label">{$_('hexMap.encountersHere')}</span>
@@ -141,6 +171,7 @@
     <HexNodeForm
       initial={hexModal.mode === 'edit' ? hexModal.node : undefined}
       bestiary={getBestiary()}
+      {factions}
       onsave={saveHex}
       oncancel={() => (hexModal = null)}
     />

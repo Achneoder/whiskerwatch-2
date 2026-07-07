@@ -291,6 +291,8 @@
     "clear": "Clear hex",
     "beatsTouching": "Beats touching this hex",
     "encountersHere": "Encounters here",
+    "controlledBy": "Controlled by",
+    "contestedBy": "Contested by",
     "terrain": {
       "meadow": "Meadow",
       "hedgerow": "Hedgerow",
@@ -309,7 +311,14 @@
       "encounters": "Encounters",
       "encountersNoBestiary": "Add entries to the Bestiary first to link encounters here.",
       "encounterPlaceholder": "Choose a creature…",
-      "addEncounter": "Add"
+      "addEncounter": "Add",
+      "territory": "Territory",
+      "controlledBy": "Controlled by",
+      "contestedBy": "Contested by",
+      "contestingFaction": "Contesting faction",
+      "contestedByPlaceholder": "Choose a faction…",
+      "addContested": "Add",
+      "controlledByNone": "None"
     }
   },
   "generators": {

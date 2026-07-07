@@ -291,6 +291,8 @@
     "clear": "Feld löschen",
     "beatsTouching": "Beats, die dieses Feld betreffen",
     "encountersHere": "Begegnungen hier",
+    "controlledBy": "Kontrolliert von",
+    "contestedBy": "Umkämpft von",
     "terrain": {
       "meadow": "Wiese",
       "hedgerow": "Hecke",
@@ -309,7 +311,14 @@
       "encounters": "Begegnungen",
       "encountersNoBestiary": "Füge zuerst Einträge im Bestiarium hinzu, um hier Begegnungen zu verknüpfen.",
       "encounterPlaceholder": "Kreatur wählen…",
-      "addEncounter": "Hinzufügen"
+      "addEncounter": "Hinzufügen",
+      "territory": "Territorium",
+      "controlledBy": "Kontrolliert von",
+      "contestedBy": "Umkämpft von",
+      "contestingFaction": "Umkämpfende Fraktion",
+      "contestedByPlaceholder": "Fraktion wählen…",
+      "addContested": "Hinzufügen",
+      "controlledByNone": "Keine"
     }
   },
   "generators": {

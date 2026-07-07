@@ -1,6 +1,7 @@
 import { createPersistedList } from './persistedList.svelte';
 import { removeEdgesForFaction } from './factionEdges.svelte';
 import { removeFactionFromBeats } from './beats.svelte';
+import { removeFactionFromHexNodes } from './hexmap.svelte';
 import { seedFactions } from './factionSeed';
 
 export type FactionDisposition = 'hostile' | 'neutral' | 'ally';
@@ -58,6 +59,7 @@ export function removeFaction(id: string): void {
   list.remove(id);
   removeEdgesForFaction(id);
   removeFactionFromBeats(id);
+  removeFactionFromHexNodes(id);
 }
 
 export function replaceFactions(factions: Faction[]): void {

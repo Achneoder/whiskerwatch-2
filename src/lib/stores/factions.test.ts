@@ -9,6 +9,7 @@ import {
 } from './factions.svelte';
 import { getFactionEdges, addFactionEdge, replaceFactionEdges } from './factionEdges.svelte';
 import { getBeats, addBeat, replaceBeats } from './beats.svelte';
+import { getHexNodes, addHexNode, replaceHexNodes } from './hexmap.svelte';
 
 function seedOne(name = 'The Court') {
   addFaction({ name, disposition: 'hostile', clock: 3, of: 6, note: '', tags: ['Hostile'] });
@@ -93,5 +94,26 @@ describe('factions store', () => {
     removeFaction(a);
 
     expect(getBeats()[0]?.factionIds).toEqual(['other']);
+  });
+
+  it('cascades to hex territory when a faction is removed', () => {
+    replaceHexNodes([]);
+    const a = seedOne('A');
+    addHexNode({
+      q: 0,
+      r: 0,
+      terrain: 'meadow',
+      name: 'Home',
+      notes: '',
+      discovered: false,
+      encounters: [],
+      controlledBy: a,
+      contestedBy: [a, 'other'],
+    });
+
+    removeFaction(a);
+
+    expect(getHexNodes()[0]?.controlledBy).toBeNull();
+    expect(getHexNodes()[0]?.contestedBy).toEqual(['other']);
   });
 });

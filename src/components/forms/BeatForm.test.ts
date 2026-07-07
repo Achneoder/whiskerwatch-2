@@ -13,6 +13,8 @@ const hexNode: HexNode = {
   notes: '',
   discovered: true,
   encounters: [],
+  controlledBy: null,
+  contestedBy: [],
 };
 
 const faction: Faction = {

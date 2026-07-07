@@ -12,12 +12,16 @@ When(
   'the GM links the {string} creature to this hex with weight {int}',
   async function (this: WhiskerwatchWorld, creatureName: string, weight: number) {
     const dialog = this.page.getByRole('dialog');
-    await dialog.getByLabel('Bestiary entry').selectOption({ label: creatureName });
-    const increase = dialog.getByRole('button', { name: 'Increase' });
+    // Scoped to the Encounters section's own fieldset-like wrapper: the Hex
+    // form also has a Territory "Add" button (for contesting factions), so a
+    // dialog-wide `getByRole('button', { name: 'Add' })` would be ambiguous.
+    const section = dialog.getByLabel('Bestiary entry').locator('xpath=ancestor::div[2]');
+    await section.getByLabel('Bestiary entry').selectOption({ label: creatureName });
+    const increase = section.getByRole('button', { name: 'Increase' });
     for (let i = 1; i < weight; i++) {
       await increase.click();
     }
-    await dialog.getByRole('button', { name: 'Add' }).click();
+    await section.getByRole('button', { name: 'Add' }).click();
   },
 );
 

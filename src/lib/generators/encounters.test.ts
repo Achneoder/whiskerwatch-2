@@ -17,6 +17,8 @@ function hex(overrides: Partial<HexNode> = {}): HexNode {
     notes: '',
     discovered: true,
     encounters: [],
+    controlledBy: null,
+    contestedBy: [],
     ...overrides,
   };
 }

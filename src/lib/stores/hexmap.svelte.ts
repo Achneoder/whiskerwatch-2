@@ -18,6 +18,10 @@ export interface HexNode {
   discovered: boolean;
   /** Bestiary entries (with roll weight) that can be encountered here — set from the Hex form, read by Generators. */
   encounters: HexEncounter[];
+  /** Faction that controls this hex, if any — set from the Hex form, drawn as a ring on the canvas. */
+  controlledBy: string | null;
+  /** Factions contesting this hex, if any — set from the Hex form, drawn as rings on the canvas. */
+  contestedBy: string[];
 }
 
 export const TERRAINS: HexTerrain[] = ['meadow', 'hedgerow', 'forest', 'water', 'hills', 'ruins', 'settlement'];
@@ -45,6 +49,8 @@ const seedHexNodes: HexNode[] = [
     notes: "Home warren & market on stilts; the Reeve's Granary feeds the valley, but something gnaws the support beams at night.",
     discovered: true,
     encounters: [],
+    controlledBy: null,
+    contestedBy: [],
   },
   {
     id: crypto.randomUUID(),
@@ -55,6 +61,8 @@ const seedHexNodes: HexNode[] = [
     notes: "A collapsed silo hides the Gnawing Court's tunnel entrance; bored Ratling sentries watch in shifts.",
     discovered: false,
     encounters: [],
+    controlledBy: null,
+    contestedBy: [],
   },
   {
     id: crypto.randomUUID(),
@@ -65,6 +73,8 @@ const seedHexNodes: HexNode[] = [
     notes: 'A single-plank crossing over Millrace Creek; a barn owl roosts in the rafters and demands a toll pip.',
     discovered: true,
     encounters: [],
+    controlledBy: null,
+    contestedBy: [],
   },
   {
     id: crypto.randomUUID(),
@@ -75,6 +85,8 @@ const seedHexNodes: HexNode[] = [
     notes: "The Seed-Keepers' storage burrows hide beneath a fallen log at the meadow's heart.",
     discovered: false,
     encounters: [],
+    controlledBy: null,
+    contestedBy: [],
   },
   {
     id: crypto.randomUUID(),
@@ -85,6 +97,8 @@ const seedHexNodes: HexNode[] = [
     notes: '',
     discovered: false,
     encounters: [],
+    controlledBy: null,
+    contestedBy: [],
   },
   {
     id: crypto.randomUUID(),
@@ -95,6 +109,8 @@ const seedHexNodes: HexNode[] = [
     notes: 'A screened clearing where the Bramblewatch Militia drills, away from prying eyes.',
     discovered: false,
     encounters: [],
+    controlledBy: null,
+    contestedBy: [],
   },
   {
     id: crypto.randomUUID(),
@@ -105,6 +121,8 @@ const seedHexNodes: HexNode[] = [
     notes: '',
     discovered: false,
     encounters: [],
+    controlledBy: null,
+    contestedBy: [],
   },
   {
     id: crypto.randomUUID(),
@@ -115,6 +133,8 @@ const seedHexNodes: HexNode[] = [
     notes: "A half-sunk mouse-lord's barrow; legend says a cursed hoard still glitters inside — and something guards it.",
     discovered: false,
     encounters: [],
+    controlledBy: null,
+    contestedBy: [],
   },
 ];
 
@@ -124,6 +144,18 @@ const list = createPersistedList<HexNode>(STORAGE_KEY, seedHexNodes);
 // code can rely on the field always being present.
 if (list.items.some((h) => !Array.isArray(h.encounters))) {
   list.replaceAll(list.items.map((h) => ({ ...h, encounters: Array.isArray(h.encounters) ? h.encounters : [] })));
+}
+
+// Backfill legacy records (saved before controlledBy/contestedBy existed) so
+// downstream code can rely on both fields always being present.
+if (list.items.some((h) => h.controlledBy === undefined || !Array.isArray(h.contestedBy))) {
+  list.replaceAll(
+    list.items.map((h) => ({
+      ...h,
+      controlledBy: h.controlledBy ?? null,
+      contestedBy: Array.isArray(h.contestedBy) ? h.contestedBy : [],
+    }))
+  );
 }
 
 export function getHexNodes(): HexNode[] {
@@ -157,4 +189,16 @@ export function removeBestiaryEntryFromHexNodes(bestiaryId: string): void {
   list.items
     .filter((h) => h.encounters.some((e) => e.bestiaryId === bestiaryId))
     .forEach((h) => list.update(h.id, { encounters: h.encounters.filter((e) => e.bestiaryId !== bestiaryId) }));
+}
+
+/** Clears a faction id from every hex's `controlledBy`/`contestedBy` — call when a faction is removed. */
+export function removeFactionFromHexNodes(factionId: string): void {
+  list.items
+    .filter((h) => h.controlledBy === factionId || h.contestedBy.includes(factionId))
+    .forEach((h) =>
+      list.update(h.id, {
+        controlledBy: h.controlledBy === factionId ? null : h.controlledBy,
+        contestedBy: h.contestedBy.filter((id) => id !== factionId),
+      })
+    );
 }

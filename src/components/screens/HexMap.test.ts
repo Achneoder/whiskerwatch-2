@@ -4,6 +4,7 @@ import HexMap from './HexMap.svelte';
 import { replaceHexNodes, type HexNode } from '../../lib/stores/hexmap.svelte';
 import { replaceBeats } from '../../lib/stores/beats.svelte';
 import { replaceBestiary, type BestiaryEntry } from '../../lib/stores/bestiary.svelte';
+import { replaceFactions, type Faction } from '../../lib/stores/factions.svelte';
 
 const home: HexNode = {
   id: '1',
@@ -14,6 +15,8 @@ const home: HexNode = {
   notes: 'Home warren',
   discovered: true,
   encounters: [],
+  controlledBy: null,
+  contestedBy: [],
 };
 
 describe('HexMap', () => {
@@ -21,6 +24,7 @@ describe('HexMap', () => {
     replaceHexNodes([]);
     replaceBeats([]);
     replaceBestiary([]);
+    replaceFactions([]);
   });
 
   it('renders a seeded content hex by its accessible label', () => {
@@ -88,5 +92,39 @@ describe('HexMap', () => {
 
     expect(screen.getByText('Encounters here')).toBeInTheDocument();
     expect(screen.getByText('Gnawing Court Ratling ×3')).toBeInTheDocument();
+  });
+
+  it('shows territory tags for a controlled and contested hex in its detail modal', async () => {
+    const gnawingCourt: Faction = {
+      id: 'f1',
+      name: 'The Gnawing Court',
+      disposition: 'hostile',
+      clock: 3,
+      of: 6,
+      note: '',
+      tags: [],
+    };
+    const seedKeepers: Faction = {
+      id: 'f2',
+      name: 'The Seed-Keepers',
+      disposition: 'ally',
+      clock: 1,
+      of: 6,
+      note: '',
+      tags: [],
+    };
+    replaceFactions([gnawingCourt, seedKeepers]);
+    replaceHexNodes([{ ...home, controlledBy: 'f1', contestedBy: ['f2'] }]);
+    render(HexMap, { props: { onnavigate: vi.fn() } });
+
+    await fireEvent.click(screen.getByRole('button', { name: /Bramblewatch/ }));
+
+    // "Controlled by"/"Contested by" and faction names also appear in the Territory
+    // form fields below the read-only block, so scope to `span` (the Tag/label
+    // elements) rather than the `<option>`s inside the form's `<select>`s.
+    expect(screen.getAllByText('Controlled by', { selector: 'span' }).length).toBeGreaterThan(0);
+    expect(screen.getAllByText('The Gnawing Court', { selector: 'span' }).length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Contested by', { selector: 'span' }).length).toBeGreaterThan(0);
+    expect(screen.getAllByText('The Seed-Keepers', { selector: 'span' }).length).toBeGreaterThan(0);
   });
 });

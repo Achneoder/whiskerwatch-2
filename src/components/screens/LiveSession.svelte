@@ -9,6 +9,7 @@
   import DiceRoll from '../ui/DiceRoll.svelte';
   import Icon from '../ui/Icon.svelte';
   import { getParty, setHp } from '../../lib/stores/party.svelte';
+  import { CONDITIONS } from '../../lib/conditions';
 
   interface Props {
     onexit?: () => void;
@@ -68,9 +69,9 @@
             <div class="font-[family-name:var(--font-display)] font-extrabold text-[length:var(--text-h3)]">
               {member.name}
             </div>
-            {#each member.conditions as cond (cond.label)}
+            {#each member.conditions as cond (cond)}
               <div class="mt-2">
-                <StatusPill tone="danger" size="live">{cond.label}</StatusPill>
+                <StatusPill tone={CONDITIONS[cond].tone} size="live">{CONDITIONS[cond].label}</StatusPill>
               </div>
             {/each}
           </div>

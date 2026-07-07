@@ -29,7 +29,22 @@ describe('HirelingForm', () => {
   it('pre-fills fields from an initial hireling', () => {
     render(HirelingForm, {
       props: {
-        initial: { id: '1', name: 'Oat', role: 'Porter', hp: 3, max: 3, loyalty: 4, notes: 'Reliable.' },
+        initial: {
+          id: '1',
+          name: 'Oat',
+          role: 'Porter',
+          hp: 3,
+          max: 3,
+          str: 10,
+          maxStr: 10,
+          dex: 10,
+          wil: 10,
+          loyalty: 4,
+          notes: 'Reliable.',
+          status: 'active',
+          conditions: [],
+          scars: [],
+        },
         onsave: vi.fn(),
         oncancel: vi.fn(),
       },

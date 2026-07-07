@@ -3,6 +3,7 @@
   import Input from '../ui/Input.svelte';
   import Stepper from '../ui/Stepper.svelte';
   import Button from '../ui/Button.svelte';
+  import { CONDITIONS, type ConditionName } from '../../lib/conditions';
   import type { Hireling } from '../../lib/stores/hirelings.svelte';
 
   interface Props {
@@ -19,15 +20,30 @@
   let max = $state(initial?.max ?? 3);
   let loyalty = $state(initial?.loyalty ?? 4);
   let notes = $state(initial?.notes ?? '');
+  let conditions = $state<ConditionName[]>(initial ? [...initial.conditions] : []);
+
+  // STR/DEX/WIL and status/scars aren't editable from this form yet (that's
+  // a follow-up pass) — an edit carries the hireling's existing values
+  // forward unchanged, and a new hireling starts with placeholder scores.
+  const conditionNames = Object.keys(CONDITIONS) as ConditionName[];
 
   $effect(() => {
     if (hp > max) hp = max;
   });
 
+  function toggleCondition(condition: ConditionName) {
+    conditions = conditions.includes(condition)
+      ? conditions.filter((c) => c !== condition)
+      : [...conditions, condition];
+  }
+
   function handleSubmit(event: SubmitEvent) {
     event.preventDefault();
     if (!name.trim()) return;
-    onsave({ name: name.trim(), role: role.trim(), hp, max, loyalty, notes: notes.trim() });
+    const attributes = initial
+      ? { str: initial.str, maxStr: initial.maxStr, dex: initial.dex, wil: initial.wil, status: initial.status, scars: initial.scars }
+      : { str: 10, maxStr: 10, dex: 10, wil: 10, status: 'active' as const, scars: [] };
+    onsave({ name: name.trim(), role: role.trim(), hp, max, loyalty, notes: notes.trim(), conditions, ...attributes });
   }
 </script>
 
@@ -49,6 +65,22 @@
   </div>
 
   <Input label={$_('roster.form.notes')} bind:value={notes} placeholder={$_('roster.form.notesPlaceholder')} />
+
+  <div class="flex flex-col gap-2">
+    <span class="ww-label">{$_('roster.form.conditions')}</span>
+    <div class="flex gap-x-4 gap-y-2 flex-wrap">
+      {#each conditionNames as condition (condition)}
+        <label class="inline-flex items-center gap-1.5 text-[length:var(--text-sm)] cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={conditions.includes(condition)}
+            onchange={() => toggleCondition(condition)}
+          />
+          {CONDITIONS[condition].label}
+        </label>
+      {/each}
+    </div>
+  </div>
 
   <div class="flex justify-end gap-[var(--gap-inline)] pt-[var(--sp-2)]">
     <Button type="button" variant="ghost" onclick={oncancel}>{$_('roster.form.cancel')}</Button>

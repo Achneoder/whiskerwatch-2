@@ -21,7 +21,25 @@ describe('Roster', () => {
   });
 
   it('deletes a party member after confirming', async () => {
-    replaceParty([{ id: '1', name: 'Pip', role: 'Scout', hp: 4, max: 6, pips: 0, conditions: [] }]);
+    replaceParty([
+      {
+        id: '1',
+        name: 'Pip',
+        role: 'Scout',
+        hp: 4,
+        max: 6,
+        str: 10,
+        maxStr: 10,
+        dex: 10,
+        wil: 10,
+        pips: 0,
+        xp: 0,
+        level: 1,
+        status: 'active',
+        conditions: [],
+        scars: [],
+      },
+    ]);
     render(Roster, { props: { onnavigate: vi.fn() } });
 
     await fireEvent.click(screen.getByRole('button', { name: 'Delete' }));

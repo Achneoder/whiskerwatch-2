@@ -91,10 +91,7 @@
       "notes": "Notizen",
       "notesPlaceholder": "Lohn, mitgeführte Ausrüstung, Eigenheiten…",
       "conditions": "Zustände",
-      "conditionPlaceholder": "Name des Zustands",
       "addCondition": "Hinzufügen",
-      "toneDanger": "Gefahr",
-      "toneWarning": "Warnung",
       "cancel": "Abbrechen",
       "save": "Speichern"
     }

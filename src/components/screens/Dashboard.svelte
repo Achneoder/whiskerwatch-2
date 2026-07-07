@@ -11,6 +11,7 @@
   import { getParty } from '../../lib/stores/party.svelte';
   import { getLastSession, getNextSessionNumber } from '../../lib/stores/sessions.svelte';
   import { getFactions, dispositionTagTone } from '../../lib/stores/factions.svelte';
+  import { CONDITIONS } from '../../lib/conditions';
   import { daysSince } from '../../lib/date';
 
   interface Props {
@@ -119,8 +120,8 @@
                 <HpBar value={member.hp} max={member.max} label={$_('dashboard.warbandCard.hp')} size="sm" />
               </div>
               <div class="flex gap-1.5 shrink-0">
-                {#each member.conditions as cond (cond.label)}
-                  <StatusPill tone={cond.tone} size="sm">{cond.label}</StatusPill>
+                {#each member.conditions as cond (cond)}
+                  <StatusPill tone={CONDITIONS[cond].tone} size="sm">{CONDITIONS[cond].label}</StatusPill>
                 {/each}
               </div>
             </div>

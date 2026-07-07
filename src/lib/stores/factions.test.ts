@@ -1,5 +1,12 @@
 import { describe, expect, it, beforeEach } from 'vitest';
-import { getFactions, addFaction, updateFaction, removeFaction, replaceFactions } from './factions.svelte';
+import {
+  getFactions,
+  addFaction,
+  updateFaction,
+  removeFaction,
+  replaceFactions,
+  bumpFactionClock,
+} from './factions.svelte';
 import { getFactionEdges, addFactionEdge, replaceFactionEdges } from './factionEdges.svelte';
 
 function seedOne(name = 'The Court') {
@@ -30,6 +37,38 @@ describe('factions store', () => {
     const id = seedOne();
     removeFaction(id);
     expect(getFactions()).toHaveLength(0);
+  });
+
+  describe('bumpFactionClock', () => {
+    it('increments the clock', () => {
+      const id = seedOne();
+      bumpFactionClock(id, 1);
+      expect(getFactions()[0]?.clock).toBe(4);
+    });
+
+    it('decrements the clock', () => {
+      const id = seedOne();
+      bumpFactionClock(id, -2);
+      expect(getFactions()[0]?.clock).toBe(1);
+    });
+
+    it('clamps at the "of" ceiling', () => {
+      const id = seedOne();
+      bumpFactionClock(id, 10);
+      expect(getFactions()[0]?.clock).toBe(6);
+    });
+
+    it('clamps at 0', () => {
+      const id = seedOne();
+      bumpFactionClock(id, -10);
+      expect(getFactions()[0]?.clock).toBe(0);
+    });
+
+    it('does nothing for an unknown id', () => {
+      seedOne();
+      bumpFactionClock('missing', 1);
+      expect(getFactions()[0]?.clock).toBe(3);
+    });
   });
 
   it('cascades to relationships when a faction is removed', () => {

@@ -91,10 +91,7 @@
       "notes": "Notes",
       "notesPlaceholder": "Wage, gear carried, quirks…",
       "conditions": "Conditions",
-      "conditionPlaceholder": "Condition name",
       "addCondition": "Add",
-      "toneDanger": "Danger",
-      "toneWarning": "Warning",
       "cancel": "Cancel",
       "save": "Save"
     }

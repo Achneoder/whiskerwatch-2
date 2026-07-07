@@ -12,6 +12,8 @@ export class WhiskerwatchWorld extends World {
   browser!: Browser;
   context!: BrowserContext;
   page!: Page;
+  /** Remembers the name of the most recently rolled Generators NPC across steps, so a later step can look it up on the Roster/Bestiary screen. */
+  lastRolledNpcName?: string;
 
   constructor(options: IWorldOptions) {
     super(options);

@@ -105,8 +105,11 @@ export function getHirelings(): Hireling[] {
   return list.items;
 }
 
-export function addHireling(input: Omit<Hireling, 'id'>): void {
-  list.add({ ...input, id: crypto.randomUUID() });
+/** Returns the generated id so callers (e.g. "save generated NPC") can offer an undo. */
+export function addHireling(input: Omit<Hireling, 'id'>): string {
+  const id = crypto.randomUUID();
+  list.add({ ...input, id });
+  return id;
 }
 
 export function updateHireling(id: string, patch: Partial<Omit<Hireling, 'id'>>): void {

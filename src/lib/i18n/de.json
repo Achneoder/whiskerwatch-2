@@ -352,7 +352,17 @@
       "title": "Zufälliger NSC",
       "roll": "NSC würfeln",
       "quirk": "Eigenheit:",
-      "want": "Will:"
+      "want": "Will:",
+      "saveToRoster": "Zum Kader hinzufügen",
+      "saveToBestiary": "Zum Bestiarium hinzufügen",
+      "savedToRoster": "Im Kader gespeichert",
+      "savedToBestiary": "Im Bestiarium gespeichert",
+      "rosterModalTitle": "{name} zum Kader hinzufügen",
+      "rosterModalEyebrow": "Neuer Söldner",
+      "bestiaryModalTitle": "{name} zum Bestiarium hinzufügen",
+      "bestiaryModalEyebrow": "Neuer Bestiarium-Eintrag",
+      "noticeSavedToRoster": "{name} im Kader gespeichert.",
+      "noticeSavedToBestiary": "{name} im Bestiarium gespeichert."
     }
   },
   "settings": {

@@ -86,8 +86,11 @@ export function getBestiary(): BestiaryEntry[] {
   return list.items;
 }
 
-export function addBestiaryEntry(input: Omit<BestiaryEntry, 'id'>): void {
-  list.add({ ...input, id: crypto.randomUUID() });
+/** Returns the generated id so callers (e.g. "save generated NPC") can offer an undo. */
+export function addBestiaryEntry(input: Omit<BestiaryEntry, 'id'>): string {
+  const id = crypto.randomUUID();
+  list.add({ ...input, id });
+  return id;
 }
 
 export function updateBestiaryEntry(id: string, patch: Partial<Omit<BestiaryEntry, 'id'>>): void {

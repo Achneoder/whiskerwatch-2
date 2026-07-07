@@ -1,8 +1,9 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/svelte';
+import { render, screen, fireEvent, within } from '@testing-library/svelte';
 import Generators from './Generators.svelte';
-import { replaceBestiary, type BestiaryEntry } from '../../lib/stores/bestiary.svelte';
+import { replaceBestiary, getBestiary, type BestiaryEntry } from '../../lib/stores/bestiary.svelte';
 import { replaceHexNodes, type HexNode } from '../../lib/stores/hexmap.svelte';
+import { replaceHirelings, getHirelings } from '../../lib/stores/hirelings.svelte';
 
 const ratling: BestiaryEntry = {
   id: 'b1',
@@ -45,6 +46,7 @@ describe('Generators', () => {
   beforeEach(() => {
     replaceBestiary([ratling, owl]);
     replaceHexNodes([bramblewatch]);
+    replaceHirelings([]);
   });
 
   it('rolls dice and shows a result', async () => {
@@ -98,5 +100,74 @@ describe('Generators', () => {
 
     expect(screen.getByText('Quirk:')).toBeInTheDocument();
     expect(screen.getByText('Wants:')).toBeInTheDocument();
+  });
+
+  it('shows both save buttons once an NPC is rolled', async () => {
+    render(Generators, { props: { onnavigate: vi.fn() } });
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Roll an NPC' }));
+
+    expect(screen.getByRole('button', { name: 'Save to Roster' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Save to Bestiary' })).toBeInTheDocument();
+  });
+
+  it('saves the rolled NPC to the roster and disables that button, with the bestiary button still active', async () => {
+    render(Generators, { props: { onnavigate: vi.fn() } });
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Roll an NPC' }));
+    await fireEvent.click(screen.getByRole('button', { name: 'Save to Roster' }));
+
+    const dialog = screen.getByRole('dialog');
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Save' }));
+
+    expect(getHirelings().length).toBe(1);
+    expect(screen.getByRole('button', { name: 'Saved to Roster' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Save to Bestiary' })).toBeEnabled();
+  });
+
+  it('saves the rolled NPC to the bestiary as a Humanoid entry', async () => {
+    render(Generators, { props: { onnavigate: vi.fn() } });
+
+    const bestiaryCountBefore = getBestiary().length;
+    await fireEvent.click(screen.getByRole('button', { name: 'Roll an NPC' }));
+    await fireEvent.click(screen.getByRole('button', { name: 'Save to Bestiary' }));
+
+    const dialog = screen.getByRole('dialog');
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Save' }));
+
+    const updatedBestiary = getBestiary();
+    expect(updatedBestiary.length).toBe(bestiaryCountBefore + 1);
+    expect(updatedBestiary[updatedBestiary.length - 1]?.category).toBe('Humanoid');
+    expect(screen.getByRole('button', { name: 'Saved to Bestiary' })).toBeDisabled();
+  });
+
+  it('undoing a roster save removes the created hireling and re-enables the button', async () => {
+    render(Generators, { props: { onnavigate: vi.fn() } });
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Roll an NPC' }));
+    await fireEvent.click(screen.getByRole('button', { name: 'Save to Roster' }));
+    await fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Save' }));
+
+    expect(getHirelings().length).toBe(1);
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Undo' }));
+
+    expect(getHirelings().length).toBe(0);
+    expect(screen.getByRole('button', { name: 'Save to Roster' })).toBeEnabled();
+  });
+
+  it('rolling again resets both saved-states back to active', async () => {
+    render(Generators, { props: { onnavigate: vi.fn() } });
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Roll an NPC' }));
+    await fireEvent.click(screen.getByRole('button', { name: 'Save to Roster' }));
+    await fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Save' }));
+
+    expect(screen.getByRole('button', { name: 'Saved to Roster' })).toBeInTheDocument();
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Roll an NPC' }));
+
+    expect(screen.getByRole('button', { name: 'Save to Roster' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Save to Bestiary' })).toBeEnabled();
   });
 });

@@ -352,7 +352,17 @@
       "title": "Random NPC",
       "roll": "Roll an NPC",
       "quirk": "Quirk:",
-      "want": "Wants:"
+      "want": "Wants:",
+      "saveToRoster": "Save to Roster",
+      "saveToBestiary": "Save to Bestiary",
+      "savedToRoster": "Saved to Roster",
+      "savedToBestiary": "Saved to Bestiary",
+      "rosterModalTitle": "Add {name} to the Roster",
+      "rosterModalEyebrow": "New Hireling",
+      "bestiaryModalTitle": "Add {name} to the Bestiary",
+      "bestiaryModalEyebrow": "New Bestiary Entry",
+      "noticeSavedToRoster": "{name} saved to the Roster.",
+      "noticeSavedToBestiary": "{name} saved to the Bestiary."
     }
   },
   "settings": {

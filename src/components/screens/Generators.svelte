@@ -8,11 +8,15 @@
   import DiceRoll from '../ui/DiceRoll.svelte';
   import Icon from '../ui/Icon.svelte';
   import StatBlock from '../ui/StatBlock.svelte';
+  import Modal from '../ui/Modal.svelte';
+  import HirelingForm from '../forms/HirelingForm.svelte';
+  import BestiaryForm from '../forms/BestiaryForm.svelte';
   import { rollDice, type DiceRollResult } from '../../lib/generators/roll';
   import { ITEM_TABLE, generateFrom, generateNpc, type GeneratedNpc } from '../../lib/generators/tables';
   import { generateEncounterFor } from '../../lib/generators/encounters';
   import { getHexNodes } from '../../lib/stores/hexmap.svelte';
-  import { getBestiary, type BestiaryEntry } from '../../lib/stores/bestiary.svelte';
+  import { getBestiary, addBestiaryEntry, removeBestiaryEntry, type BestiaryEntry } from '../../lib/stores/bestiary.svelte';
+  import { addHireling, removeHireling, type Hireling } from '../../lib/stores/hirelings.svelte';
 
   interface Props {
     onnavigate: (screen: NavScreen) => void;
@@ -52,6 +56,120 @@
 
   let item = $state<string | null>(null);
   let npc = $state<GeneratedNpc | null>(null);
+
+  // Which of the two "save" destinations this rolled NPC has already been
+  // committed to — a fresh roll (see rollNpc below) resets both back to
+  // 'idle' since it's a different NPC. Saving to one destination doesn't
+  // disable the other: a GM might reasonably want the same rolled NPC as
+  // both a hireling and a bestiary stat block.
+  let npcSaveState = $state<{ roster: 'idle' | 'saved'; bestiary: 'idle' | 'saved' }>({
+    roster: 'idle',
+    bestiary: 'idle',
+  });
+  let npcRosterId = $state<string | null>(null);
+  let npcBestiaryId = $state<string | null>(null);
+  let npcModal = $state<'roster' | 'bestiary' | null>(null);
+
+  const npcRosterInitial = $derived<Hireling | undefined>(
+    npc
+      ? {
+          id: '',
+          name: npc.name,
+          role: npc.role,
+          hp: 3,
+          max: 3,
+          str: 10,
+          maxStr: 10,
+          dex: 10,
+          wil: 10,
+          loyalty: 7,
+          wage: 0,
+          status: 'active',
+          conditions: [],
+          scars: [],
+          items: [],
+          notes: `Quirk: ${npc.quirk}\nWants: ${npc.want}`,
+        }
+      : undefined,
+  );
+
+  const npcBestiaryInitial = $derived<BestiaryEntry | undefined>(
+    npc
+      ? {
+          id: '',
+          name: npc.name,
+          category: 'Humanoid',
+          hd: 1,
+          hp: 3,
+          armor: 0,
+          attacks: [],
+          special: '',
+          notes: `Role: ${npc.role}\nQuirk: ${npc.quirk}\nWants: ${npc.want}`,
+        }
+      : undefined,
+  );
+
+  // Same local "last action" notice pattern as LiveSession.svelte — a single
+  // GM acting on a single rolled NPC at a time doesn't need per-card timers.
+  interface Notice {
+    id: string;
+    text: string;
+    undo?: (() => void) | undefined;
+  }
+  let notice = $state<Notice | null>(null);
+  let noticeTimer: ReturnType<typeof setTimeout> | undefined;
+
+  function announce(id: string, text: string, undo?: () => void) {
+    clearTimeout(noticeTimer);
+    notice = { id, text, undo };
+    noticeTimer = setTimeout(() => {
+      notice = null;
+    }, 6000);
+  }
+
+  function dismissNotice() {
+    clearTimeout(noticeTimer);
+    notice = null;
+  }
+
+  function undoNotice() {
+    notice?.undo?.();
+    dismissNotice();
+  }
+
+  function rollNpc() {
+    npc = generateNpc();
+    npcSaveState = { roster: 'idle', bestiary: 'idle' };
+    npcRosterId = null;
+    npcBestiaryId = null;
+    dismissNotice();
+  }
+
+  function saveNpcToRoster(data: Omit<Hireling, 'id'>) {
+    if (!npc) return;
+    const id = addHireling(data);
+    npcRosterId = id;
+    npcSaveState = { ...npcSaveState, roster: 'saved' };
+    npcModal = null;
+    announce('npc-card', $_('generators.npc.noticeSavedToRoster', { values: { name: npc.name } }), () => {
+      removeHireling(id);
+      npcRosterId = null;
+      npcSaveState = { ...npcSaveState, roster: 'idle' };
+    });
+  }
+
+  function saveNpcToBestiary(data: Omit<BestiaryEntry, 'id'>) {
+    if (!npc) return;
+    const id = addBestiaryEntry(data);
+    npcBestiaryId = id;
+    npcSaveState = { ...npcSaveState, bestiary: 'saved' };
+    npcModal = null;
+    announce('npc-card', $_('generators.npc.noticeSavedToBestiary', { values: { name: npc.name } }), () => {
+      removeBestiaryEntry(id);
+      npcBestiaryId = null;
+      npcSaveState = { ...npcSaveState, bestiary: 'idle' };
+    });
+  }
 </script>
 
 <div class="flex flex-col md:flex-row min-h-screen bg-[var(--bg)] text-[var(--text)]">
@@ -168,7 +286,7 @@
       <!-- NPC -->
       <Card eyebrow={$_('generators.npc.eyebrow')} title={$_('generators.npc.title')}>
         <div class="flex flex-col gap-[var(--sp-4)]">
-          <Button variant="secondary" onclick={() => (npc = generateNpc())}>
+          <Button variant="secondary" onclick={rollNpc}>
             {#snippet icon()}
               <Icon icon={UserRound} />
             {/snippet}
@@ -176,7 +294,12 @@
           </Button>
           {#if npc}
             <div class="bg-[var(--surface-sunk)] rounded-[var(--radius-md)] p-[var(--sp-3)] flex flex-col gap-1">
-              <div class="font-[family-name:var(--font-display)] font-bold text-[length:var(--text-title)]">{npc.name}</div>
+              <div
+                data-testid="npc-name"
+                class="font-[family-name:var(--font-display)] font-bold text-[length:var(--text-title)]"
+              >
+                {npc.name}
+              </div>
               <div class="text-[length:var(--text-sm)] text-[var(--text-muted)]">{npc.role}</div>
               <div class="text-[length:var(--text-body)] text-[var(--text-secondary)] mt-1">
                 <span class="ww-label">{$_('generators.npc.quirk')}</span>
@@ -186,6 +309,44 @@
                 <span class="ww-label">{$_('generators.npc.want')}</span>
                 {npc.want}
               </div>
+
+              <div class="flex flex-col gap-2 sm:flex-row sm:gap-3 mt-[var(--sp-3)]">
+                <Button
+                  variant={npcSaveState.roster === 'saved' ? 'ghost' : 'secondary'}
+                  size="md"
+                  block
+                  disabled={npcSaveState.roster === 'saved'}
+                  onclick={() => (npcModal = 'roster')}
+                >
+                  {npcSaveState.roster === 'saved' ? $_('generators.npc.savedToRoster') : $_('generators.npc.saveToRoster')}
+                </Button>
+                <Button
+                  variant={npcSaveState.bestiary === 'saved' ? 'ghost' : 'secondary'}
+                  size="md"
+                  block
+                  disabled={npcSaveState.bestiary === 'saved'}
+                  onclick={() => (npcModal = 'bestiary')}
+                >
+                  {npcSaveState.bestiary === 'saved'
+                    ? $_('generators.npc.savedToBestiary')
+                    : $_('generators.npc.saveToBestiary')}
+                </Button>
+              </div>
+
+              {#if notice && notice.id === 'npc-card'}
+                <div class="flex items-center justify-between gap-2 mt-1">
+                  <span class="text-[length:var(--text-sm)] text-[var(--text-secondary)]">{notice.text}</span>
+                  {#if notice.undo}
+                    <button
+                      type="button"
+                      onclick={undoNotice}
+                      class="font-bold text-[var(--accent)] text-[length:var(--text-sm)] cursor-pointer bg-none border-none"
+                    >
+                      {$_('liveSession.undo')}
+                    </button>
+                  {/if}
+                </div>
+              {/if}
             </div>
           {/if}
         </div>
@@ -193,3 +354,25 @@
     </div>
   </main>
 </div>
+
+<Modal
+  open={npcModal === 'roster'}
+  eyebrow={$_('generators.npc.rosterModalEyebrow')}
+  title={npc ? $_('generators.npc.rosterModalTitle', { values: { name: npc.name } }) : undefined}
+  onclose={() => (npcModal = null)}
+>
+  {#if npcModal === 'roster' && npc}
+    <HirelingForm initial={npcRosterInitial} onsave={saveNpcToRoster} oncancel={() => (npcModal = null)} />
+  {/if}
+</Modal>
+
+<Modal
+  open={npcModal === 'bestiary'}
+  eyebrow={$_('generators.npc.bestiaryModalEyebrow')}
+  title={npc ? $_('generators.npc.bestiaryModalTitle', { values: { name: npc.name } }) : undefined}
+  onclose={() => (npcModal = null)}
+>
+  {#if npcModal === 'bestiary' && npc}
+    <BestiaryForm initial={npcBestiaryInitial} onsave={saveNpcToBestiary} oncancel={() => (npcModal = null)} />
+  {/if}
+</Modal>

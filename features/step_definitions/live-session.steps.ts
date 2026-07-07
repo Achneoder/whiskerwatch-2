@@ -74,3 +74,33 @@ Then('{string} should appear in the Fallen list', async function (this: Whiskerw
   await this.page.getByText(/^Fallen \(/).click();
   await this.page.getByText(name, { exact: true }).first().waitFor({ state: 'visible' });
 });
+
+When("the GM opens {string}'s bag", async function (this: WhiskerwatchWorld, name: string) {
+  await mouseCard(this.page, name)
+    .getByRole('button', { name: /^Open .*'s bag/ })
+    .click();
+});
+
+/** The Live Session inventory modal opened via a mouse's Bag pill. */
+function inventoryModal(page: Page) {
+  return page.getByRole('dialog');
+}
+
+Then(
+  'the bag should show {string} with {int} of {int} charges',
+  async function (this: WhiskerwatchWorld, itemName: string, current: number, max: number) {
+    await inventoryModal(this.page)
+      .getByRole('button', { name: new RegExp(`^${itemName}, ${current} of ${max} charges`) })
+      .waitFor({ state: 'visible' });
+  },
+);
+
+When('the GM taps {string} in the bag', async function (this: WhiskerwatchWorld, itemName: string) {
+  await inventoryModal(this.page)
+    .getByRole('button', { name: new RegExp(`^${itemName}, `) })
+    .click();
+});
+
+When('the GM undoes the charge', async function (this: WhiskerwatchWorld) {
+  await inventoryModal(this.page).getByRole('button', { name: 'Undo' }).click();
+});

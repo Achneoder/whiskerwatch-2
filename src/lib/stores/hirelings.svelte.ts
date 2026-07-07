@@ -1,7 +1,7 @@
 import { createPersistedList } from './persistedList.svelte';
 import { migrateConditions, type ConditionName, type Scar } from '../conditions';
 import { applyDamage, type DamageOutcome } from '../combat';
-import { addItem, removeItem, updateItem, type Item } from '../items';
+import { addItem, removeItem, updateItem, tickCharge, type Item } from '../items';
 
 export interface Hireling {
   id: string;
@@ -17,6 +17,8 @@ export interface Hireling {
   /** Static WIL score — no "current vs max" distinction. */
   wil: number;
   loyalty: number;
+  /** Plain GM-entered pips/day — no formula/auto-population from role. */
+  wage: number;
   notes: string;
   status: 'active' | 'deceased';
   conditions: ConditionName[];
@@ -40,6 +42,7 @@ const seedHirelings: Hireling[] = [
     dex: 10,
     wil: 10,
     loyalty: 4,
+    wage: 5,
     notes: 'Carries the spare rope and two rations. Paid 5p/day.',
     status: 'active',
     conditions: [],
@@ -87,6 +90,7 @@ function normalizeHireling(raw: unknown): Hireling {
     dex: typeof r.dex === 'number' ? r.dex : 10,
     wil: typeof r.wil === 'number' ? r.wil : 10,
     loyalty: typeof r.loyalty === 'number' ? r.loyalty : 4,
+    wage: typeof r.wage === 'number' ? r.wage : 0,
     notes: typeof r.notes === 'string' ? r.notes : '',
     status: r.status === 'deceased' ? 'deceased' : 'active',
     conditions: migrateConditions(r.conditions),
@@ -182,4 +186,10 @@ export function updateHirelingItem(id: string, itemId: string, patch: Partial<Om
   const hireling = list.items.find((h) => h.id === id);
   if (!hireling) return;
   list.update(id, { items: updateItem(hireling.items, itemId, patch) });
+}
+
+export function tickHirelingItemCharge(id: string, itemId: string): void {
+  const hireling = list.items.find((h) => h.id === id);
+  if (!hireling) return;
+  list.update(id, { items: tickCharge(hireling.items, itemId) });
 }

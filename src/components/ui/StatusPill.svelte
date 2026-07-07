@@ -8,6 +8,8 @@
     dot?: boolean;
     size?: 'sm' | 'md' | 'live';
     onclick?: (event: MouseEvent) => void;
+    /** Overrides the accessible name — use when the visible text alone doesn't describe the action (e.g. "Bag 3/10" vs. "Open Pip's bag, 3 of 10 slots used"). */
+    ariaLabel?: string | undefined;
     children: Snippet;
   }
 
@@ -18,6 +20,7 @@
     dot = true,
     size = 'md',
     onclick,
+    ariaLabel,
     children,
   }: Props = $props();
 
@@ -59,6 +62,7 @@
   onkeydown={onclick ? handleKeydown : undefined}
   role={onclick ? 'button' : undefined}
   tabindex={onclick ? 0 : undefined}
+  aria-label={ariaLabel}
   class="inline-flex items-center gap-1.5 rounded-[var(--radius-pill)] font-bold leading-none whitespace-nowrap {onclick
     ? 'cursor-pointer'
     : ''} {t.text} {t.bg} {s.pad} {s.font}"

@@ -40,6 +40,7 @@ describe('HirelingForm', () => {
           dex: 10,
           wil: 10,
           loyalty: 4,
+          wage: 5,
           notes: 'Reliable.',
           status: 'active',
           conditions: [],
@@ -53,6 +54,30 @@ describe('HirelingForm', () => {
 
     expect(screen.getByDisplayValue('Oat')).toBeInTheDocument();
     expect(screen.getByDisplayValue('Reliable.')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('5')).toBeInTheDocument();
+  });
+
+  it('defaults loyalty to 7 (2d6 average) and wage to 0 for a new hireling', async () => {
+    const onsave = vi.fn();
+    render(HirelingForm, { props: { onsave, oncancel: vi.fn() } });
+
+    await fireEvent.input(screen.getByLabelText('Name'), { target: { value: 'Clover' } });
+    await fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    const saved = onsave.mock.calls[0]![0];
+    expect(saved.loyalty).toBe(7);
+    expect(saved.wage).toBe(0);
+  });
+
+  it('saves a GM-entered wage as a plain number', async () => {
+    const onsave = vi.fn();
+    render(HirelingForm, { props: { onsave, oncancel: vi.fn() } });
+
+    await fireEvent.input(screen.getByLabelText('Name'), { target: { value: 'Clover' } });
+    await fireEvent.input(screen.getByLabelText('Wage'), { target: { value: '8' } });
+    await fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(onsave.mock.calls[0]![0].wage).toBe(8);
   });
 
   it('calls oncancel when Cancel is clicked', async () => {

@@ -1,7 +1,7 @@
 import { createPersistedList } from './persistedList.svelte';
 import { migrateConditions, type ConditionName, type Scar } from '../conditions';
 import { applyDamage, type DamageOutcome } from '../combat';
-import { addItem, removeItem, updateItem, type Item } from '../items';
+import { addItem, removeItem, updateItem, tickCharge, type Item } from '../items';
 
 export interface PartyMember {
   id: string;
@@ -270,6 +270,12 @@ export function updateMemberItem(id: string, itemId: string, patch: Partial<Omit
   const member = list.items.find((m) => m.id === id);
   if (!member) return;
   list.update(id, { items: updateItem(member.items, itemId, patch) });
+}
+
+export function tickMemberItemCharge(id: string, itemId: string): void {
+  const member = list.items.find((m) => m.id === id);
+  if (!member) return;
+  list.update(id, { items: tickCharge(member.items, itemId) });
 }
 
 export interface DowntimeResult {

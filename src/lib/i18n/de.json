@@ -82,7 +82,21 @@
     "pickMouse": "Maus",
     "rollSave": "Rettungswurf würfeln",
     "saveResultLabel": "{attribute}-Rettungswurf von {name}",
-    "noSaveable": "Füge eine Maus oder einen Söldner hinzu, um einen Rettungswurf zu würfeln."
+    "noSaveable": "Füge eine Maus oder einen Söldner hinzu, um einen Rettungswurf zu würfeln.",
+    "bag": "Beutel",
+    "bagAria": "Beutel von {name} öffnen, {used} von {max} Plätzen belegt",
+    "chargeBurned": "{name} hat eine Ladung verbraucht ({current}/{max} übrig)",
+    "chargeEmpty": "{name} ist leer.",
+    "chargeUsedUp": "{name} ist aufgebraucht.",
+    "chargeCellAria": "{name}, {current} von {max} Ladungen, antippen um eine zu verbrauchen",
+    "loyaltySaveAria": "Loyalitäts-Rettungswurf für {name} würfeln, Loyalität {loyalty}",
+    "loyaltySavePassed": "Loyalitäts-Rettungswurf: {roll} von {score} — Bestanden",
+    "loyaltySaveFailed": "Loyalitäts-Rettungswurf: {roll} von {score} — Fehlgeschlagen",
+    "payDay": "Zahltag",
+    "payDayTitle": "Zahltag",
+    "payDayPaid": "Bezahlt",
+    "payDayUnpaid": "Unbezahlt",
+    "rollLoyaltySave": "Loyalitäts-Rettungswurf würfeln"
   },
   "roster": {
     "eyebrow": "Vorbereitung · Übersicht",
@@ -114,6 +128,7 @@
     "form": {
       "name": "Name",
       "role": "Rolle",
+      "wage": "Lohn",
       "hp": "TP",
       "maxHp": "Max. TP",
       "pips": "Pips",

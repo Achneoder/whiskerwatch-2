@@ -26,6 +26,7 @@ function hireling(overrides: Partial<Hireling> = {}): Omit<Hireling, 'id'> {
     dex: 10,
     wil: 10,
     loyalty: 4,
+    wage: 5,
     notes: '',
     status: 'active' as const,
     conditions: [],
@@ -154,6 +155,7 @@ describe('hirelings store', () => {
       expect(migrated.status).toBe('active');
       expect(migrated.scars).toEqual([]);
       expect(migrated.conditions).toEqual([]);
+      expect(migrated.wage).toBe(0);
     });
 
     it('maps recognizable legacy free-text conditions to the fixed vocabulary', () => {

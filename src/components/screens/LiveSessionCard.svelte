@@ -7,6 +7,7 @@
   import Button from '../ui/Button.svelte';
   import Stepper from '../ui/Stepper.svelte';
   import { CONDITIONS, type ConditionName } from '../../lib/conditions';
+  import { MAX_SLOTS, usedSlots, type Item } from '../../lib/items';
 
   export interface LiveSessionCardMember {
     id: string;
@@ -17,6 +18,9 @@
     str: number;
     maxStr: number;
     conditions: ConditionName[];
+    items: Item[];
+    /** Only set for hirelings — party mice have no Loyalty score, so this pill doesn't render for them. */
+    loyalty?: number;
   }
 
   interface Notice {
@@ -37,6 +41,8 @@
     onresolvestrsave: () => void;
     onrequestdeath: () => void;
     ondismissnotice: () => void;
+    oninventoryopen: () => void;
+    onrollloyaltysave?: () => void;
   }
 
   let {
@@ -51,11 +57,20 @@
     onresolvestrsave,
     onrequestdeath,
     ondismissnotice,
+    oninventoryopen,
+    onrollloyaltysave,
   }: Props = $props();
 
   const fatal = $derived(member.str === 0);
   const showStrBar = $derived(member.hp === 0 || member.str < member.maxStr);
   const chips = [1, 2, 3, 4, 5, 6];
+  const usedItemSlots = $derived(usedSlots(member.items));
+  const bagAria = $derived($_('liveSession.bagAria', { values: { name: member.name, used: usedItemSlots, max: MAX_SLOTS } }));
+  const loyaltyAria = $derived(
+    member.loyalty != null
+      ? $_('liveSession.loyaltySaveAria', { values: { name: member.name, loyalty: member.loyalty } })
+      : undefined,
+  );
 
   let mode = $state<'hurt' | 'heal'>('hurt');
   let customOpen = $state(false);
@@ -107,6 +122,24 @@
       {member.name}
     </div>
     <Tag size="sm">{member.role}</Tag>
+    <div class="min-h-[var(--tap)] flex items-center">
+      <StatusPill size="sm" count={usedItemSlots} of={MAX_SLOTS} onclick={oninventoryopen} ariaLabel={bagAria}>
+        {$_('liveSession.bag')}
+      </StatusPill>
+    </div>
+    {#if member.loyalty != null}
+      <div class="min-h-[var(--tap)] flex items-center">
+        <StatusPill
+          tone="accent"
+          size="sm"
+          count={member.loyalty}
+          onclick={() => onrollloyaltysave?.()}
+          ariaLabel={loyaltyAria}
+        >
+          {$_('roster.form.loyalty')}
+        </StatusPill>
+      </div>
+    {/if}
   </div>
 
   <div class="flex flex-wrap items-center gap-1.5 mt-2">

@@ -6,6 +6,7 @@
   import Card from '../ui/Card.svelte';
   import HpBar from '../ui/HpBar.svelte';
   import StatusPill from '../ui/StatusPill.svelte';
+  import Tag from '../ui/Tag.svelte';
   import Modal from '../ui/Modal.svelte';
   import ConfirmDialog from '../ui/ConfirmDialog.svelte';
   import Icon from '../ui/Icon.svelte';
@@ -185,11 +186,16 @@
                 <div class="font-[family-name:var(--font-display)] font-bold text-[length:var(--text-title)]">
                   {hireling.name}
                 </div>
-                <div class="text-[length:var(--text-sm)] text-[var(--text-muted)]">{hireling.role}</div>
+                <div class="flex items-center gap-1.5 text-[length:var(--text-sm)] text-[var(--text-muted)]">
+                  <span>{hireling.role}</span>
+                  {#if hireling.wage > 0}
+                    <Tag size="sm">{hireling.wage}p/day</Tag>
+                  {/if}
+                </div>
               </div>
               <div class="flex-1 min-w-35"><HpBar value={hireling.hp} max={hireling.max} label={$_('roster.form.hp')} size="sm" /></div>
-              <div class="w-24 shrink-0">
-                <HpBar value={hireling.loyalty} max={6} label={$_('roster.form.loyalty')} tone="accent" size="sm" />
+              <div class="shrink-0">
+                <StatusPill tone="accent" size="sm" count={hireling.loyalty}>{$_('roster.form.loyalty')}</StatusPill>
               </div>
               <div class="flex gap-1 shrink-0">
                 <button

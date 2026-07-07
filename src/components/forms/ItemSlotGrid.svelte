@@ -3,7 +3,15 @@
   import Input from '../ui/Input.svelte';
   import Stepper from '../ui/Stepper.svelte';
   import Button from '../ui/Button.svelte';
-  import { MAX_SLOTS, usedSlots, isOverCapacity, type Item } from '../../lib/items';
+  import {
+    MAX_SLOTS,
+    PAWS_SLOTS,
+    BODY_SLOTS,
+    usedSlots,
+    isOverCapacity,
+    splitSections,
+    type Item,
+  } from '../../lib/items';
 
   interface Props {
     items: Item[];
@@ -14,9 +22,6 @@
 
   let { items, onadd, onremove, onupdate }: Props = $props();
 
-  /** Fixed split of the one shared `MAX_SLOTS` cap — 4 quick-access "paws" slots, 6 "body" slots. */
-  const PAWS_SLOTS = 4;
-  const BODY_SLOTS = MAX_SLOTS - PAWS_SLOTS;
   const slotChoices: (1 | 2)[] = [1, 2];
 
   type CellEntry = { type: 'item'; item: Item } | { type: 'empty'; key: string };
@@ -31,30 +36,6 @@
   let draftSlots = $state<1 | 2>(1);
   let draftChargeTrack = $state(0);
   let draftNotes = $state('');
-
-  /**
-   * Splits the one flat `items` array into the two visual sections. This is
-   * purely a rendering split, not a second storage array: items are walked
-   * in order and packed into "paws" (4-slot budget) until they no longer
-   * fit, then everything else renders in "body" (6-slot budget). A 2-slot
-   * item is never split across sections. If the mouse is overburdened,
-   * the overflow just renders as extra filled body cells beyond its
-   * nominal 6 — nothing is ever hidden or dropped.
-   */
-  function splitSections(list: Item[]): { paws: Item[]; body: Item[] } {
-    const paws: Item[] = [];
-    const body: Item[] = [];
-    let runningPawsSlots = 0;
-    for (const item of list) {
-      if (runningPawsSlots + item.slots <= PAWS_SLOTS) {
-        paws.push(item);
-        runningPawsSlots += item.slots;
-      } else {
-        body.push(item);
-      }
-    }
-    return { paws, body };
-  }
 
   function buildCells(sectionItems: Item[], sectionSlots: number, prefix: string): CellEntry[] {
     const cells: CellEntry[] = sectionItems.map((item) => ({ type: 'item', item }));

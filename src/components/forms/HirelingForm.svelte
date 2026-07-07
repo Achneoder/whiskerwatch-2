@@ -20,7 +20,13 @@
   let role = $state(initial?.role ?? '');
   let hp = $state(initial?.hp ?? 3);
   let max = $state(initial?.max ?? 3);
-  let loyalty = $state(initial?.loyalty ?? 4);
+  // 2d6 average — new hirelings start at a plausible mid-band Loyalty
+  // instead of an arbitrary low number now that the real 2–12 scale is used.
+  let loyalty = $state(initial?.loyalty ?? 7);
+  // Plain GM-entered number, kept as text while editing (converted on
+  // submit) so the field behaves like a normal text input rather than a
+  // Stepper — wage isn't bumped mid-encounter the way HP/loyalty are.
+  let wageInput = $state(String(initial?.wage ?? 0));
   let notes = $state(initial?.notes ?? '');
   let conditions = $state<ConditionName[]>(initial ? [...initial.conditions] : []);
   let items = $state<Item[]>(initial ? [...initial.items] : []);
@@ -46,13 +52,19 @@
     const attributes = initial
       ? { str: initial.str, maxStr: initial.maxStr, dex: initial.dex, wil: initial.wil, status: initial.status, scars: initial.scars }
       : { str: 10, maxStr: 10, dex: 10, wil: 10, status: 'active' as const, scars: [] };
-    onsave({ name: name.trim(), role: role.trim(), hp, max, loyalty, notes: notes.trim(), conditions, items, ...attributes });
+    const wage = Math.max(0, Number(wageInput) || 0);
+    onsave({ name: name.trim(), role: role.trim(), hp, max, loyalty, wage, notes: notes.trim(), conditions, items, ...attributes });
   }
 </script>
 
 <form onsubmit={handleSubmit} class="flex flex-col gap-[var(--sp-4)]">
   <Input label={$_('roster.form.name')} bind:value={name} required />
-  <Input label={$_('roster.form.role')} bind:value={role} />
+  <div class="flex gap-[var(--sp-4)] flex-wrap">
+    <div class="flex-1 min-w-40"><Input label={$_('roster.form.role')} bind:value={role} /></div>
+    <div class="flex-1 min-w-32">
+      <Input label={$_('roster.form.wage')} type="number" min="0" bind:value={wageInput} />
+    </div>
+  </div>
 
   <div class="flex gap-[var(--sp-5)] flex-wrap">
     <Stepper label={$_('roster.form.hp')} value={hp} min={0} max={max} size="md" onchange={(v) => (hp = v)} />
@@ -60,8 +72,8 @@
     <Stepper
       label={$_('roster.form.loyalty')}
       value={loyalty}
-      min={0}
-      max={6}
+      min={2}
+      max={18}
       size="md"
       onchange={(v) => (loyalty = v)}
     />

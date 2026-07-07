@@ -3,9 +3,12 @@
   import LiveSessionHeader from './LiveSessionHeader.svelte';
   import FactionClockStrip from './FactionClockStrip.svelte';
   import LiveSessionCard from './LiveSessionCard.svelte';
+  import LiveSessionInventoryModal from './LiveSessionInventoryModal.svelte';
   import SaveDock from './SaveDock.svelte';
   import ConfirmDialog from '../ui/ConfirmDialog.svelte';
   import Tag from '../ui/Tag.svelte';
+  import Button from '../ui/Button.svelte';
+  import Modal from '../ui/Modal.svelte';
   import {
     getParty,
     dealDamage,
@@ -14,6 +17,7 @@
     addCondition,
     removeCondition,
     updateMember,
+    tickMemberItemCharge,
     type PartyMember,
   } from '../../lib/stores/party.svelte';
   import {
@@ -24,12 +28,13 @@
     addHirelingCondition,
     removeHirelingCondition,
     updateHireling,
+    tickHirelingItemCharge,
     type Hireling,
   } from '../../lib/stores/hirelings.svelte';
   import { getFactions, bumpFactionClock, updateFaction } from '../../lib/stores/factions.svelte';
   import { getBeats } from '../../lib/stores/beats.svelte';
   import { getLastSession } from '../../lib/stores/sessions.svelte';
-  import { rollSave } from '../../lib/generators/save';
+  import { rollSave, rollLoyaltySave } from '../../lib/generators/save';
   import type { ConditionName } from '../../lib/conditions';
 
   interface Props {
@@ -65,7 +70,7 @@
 
   const saveableMembers = $derived([
     ...activeParty.map((m) => ({ id: m.id, name: m.name, str: m.str, dex: m.dex, wil: m.wil })),
-    ...activeHirelings.map((h) => ({ id: h.id, name: h.name, str: h.str, dex: h.dex, wil: h.wil })),
+    ...activeHirelings.map((h) => ({ id: h.id, name: h.name, str: h.str, dex: h.dex, wil: h.wil, loyalty: h.loyalty })),
   ]);
 
   type Source = 'party' | 'hireling';
@@ -75,6 +80,42 @@
   let openDrawer = $state<{ id: string; kind: 'damage' | 'condition' } | null>(null);
   let pendingStrSave = $state<{ id: string; source: Source; str: number } | null>(null);
   let deathConfirm = $state<{ id: string; source: Source; name: string } | null>(null);
+  // Independent of `openDrawer` — the inventory modal overlays the card
+  // rather than expanding it, so there's no coordination needed between
+  // "which drawer is open" and "whose bag is open". IDs are `crypto.
+  // randomUUID()`-generated for both party members and hirelings, so a bare
+  // id is enough to find the right one across both lists (see
+  // `memberOfEitherSource` below).
+  let openInventoryId = $state<string | null>(null);
+
+  // Pay Day's paid/unpaid state is deliberately local and NOT persisted —
+  // it resets every time the modal reopens. Non-payment has no automatic
+  // mechanical penalty; this is purely a GM bookkeeping aid for the current
+  // sitting, not a ledger.
+  let payDayOpen = $state(false);
+  let paidThisSession = $state<Set<string>>(new Set());
+  let payDayLoyaltyResults = $state<Record<string, { roll: number; score: number; passed: boolean }>>({});
+
+  function openPayDay() {
+    paidThisSession = new Set();
+    payDayLoyaltyResults = {};
+    payDayOpen = true;
+  }
+
+  function togglePaid(id: string) {
+    const next = new Set(paidThisSession);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    paidThisSession = next;
+  }
+
+  function rollPayDayLoyaltySave(hireling: Hireling) {
+    const outcome = rollLoyaltySave(hireling.loyalty);
+    payDayLoyaltyResults = {
+      ...payDayLoyaltyResults,
+      [hireling.id]: { roll: outcome.roll, score: outcome.score, passed: outcome.passed },
+    };
+  }
 
   interface Notice {
     id: string;
@@ -110,6 +151,53 @@
 
   function memberOf(source: Source, id: string): PartyMember | Hireling | undefined {
     return source === 'party' ? party.find((m) => m.id === id) : hirelings.find((h) => h.id === id);
+  }
+
+  /**
+   * The inventory modal (`openInventoryId`) is keyed on a bare id shared
+   * across both the party and hireling stores, so this figures out which
+   * source/list it belongs to on demand rather than the modal state
+   * carrying that around itself.
+   */
+  function sourceAndMemberFor(id: string): { source: Source; member: PartyMember | Hireling } | null {
+    const member = party.find((m) => m.id === id);
+    if (member) return { source: 'party', member };
+    const hireling = hirelings.find((h) => h.id === id);
+    if (hireling) return { source: 'hireling', member: hireling };
+    return null;
+  }
+
+  function handleBurnCharge(id: string, itemId: string) {
+    const found = sourceAndMemberFor(id);
+    if (!found) return;
+    const { source, member } = found;
+    const before = member.items;
+    const item = member.items.find((i) => i.id === itemId);
+    if (!item) return;
+
+    if (item.charges === 0 || item.charges === null) {
+      // Nothing to burn — already empty (or not chargeable at all, which
+      // shouldn't be reachable from the modal's tap target). No mutation,
+      // so no undo.
+      announce('item:' + item.id, $_('liveSession.chargeEmpty', { values: { name: item.name } }));
+      return;
+    }
+
+    if (source === 'party') tickMemberItemCharge(id, itemId);
+    else tickHirelingItemCharge(id, itemId);
+
+    const restore = () => {
+      if (source === 'party') updateMember(id, { items: before });
+      else updateHireling(id, { items: before });
+    };
+
+    const newCharges = item.charges - 1;
+    const key = newCharges === 0 ? 'liveSession.chargeUsedUp' : 'liveSession.chargeBurned';
+    announce(
+      'item:' + item.id,
+      $_(key, { values: { name: item.name, current: newCharges, max: item.maxCharges ?? 0 } }),
+      restore,
+    );
   }
 
   function handleDamage(source: Source, id: string, amount: number) {
@@ -178,6 +266,18 @@
     pendingStrSave = null;
   }
 
+  /**
+   * Loyalty saves never mutate the hireling — the app only reports
+   * pass/fail per the rules; the GM narrates any consequence of a failed
+   * save (loyalty is not auto-decremented). So there's no `before` state to
+   * capture and no undo, unlike `handleDamage`/`handleHeal`.
+   */
+  function rollLoyaltySaveFor(hireling: Hireling) {
+    const result = rollLoyaltySave(hireling.loyalty);
+    const key = result.passed ? 'liveSession.loyaltySavePassed' : 'liveSession.loyaltySaveFailed';
+    announce('loyalty:' + hireling.id, $_(key, { values: { roll: result.roll, score: result.score } }));
+  }
+
   function requestDeath(source: Source, id: string) {
     const member = memberOf(source, id);
     if (!member) return;
@@ -190,6 +290,8 @@
     else killHireling(deathConfirm.id);
     deathConfirm = null;
   }
+
+  const openInventoryMember = $derived(openInventoryId ? sourceAndMemberFor(openInventoryId)?.member ?? null : null);
 
   function bumpClock(id: string) {
     const faction = factions.find((f) => f.id === id);
@@ -231,6 +333,7 @@
             str: member.str,
             maxStr: member.maxStr,
             conditions: member.conditions,
+            items: member.items,
           }}
           drawer={drawerFor(member.id)}
           notice={notice && notice.id === member.id ? { text: notice.text, undo: notice.undo } : null}
@@ -242,6 +345,7 @@
           onresolvestrsave={resolveStrSave}
           onrequestdeath={() => requestDeath('party', member.id)}
           ondismissnotice={dismissNotice}
+          oninventoryopen={() => (openInventoryId = member.id)}
         />
       {/each}
       {#if activeParty.length === 0}
@@ -263,7 +367,12 @@
     </section>
 
     <section class="flex flex-col gap-[var(--sp-3)]">
-      <div class="ww-label">{$_('liveSession.hirelings')}</div>
+      <div class="flex items-center justify-between gap-2">
+        <div class="ww-label">{$_('liveSession.hirelings')}</div>
+        {#if activeHirelings.length > 0}
+          <Button variant="ghost" size="sm" onclick={openPayDay}>{$_('liveSession.payDay')}</Button>
+        {/if}
+      </div>
       {#each activeHirelings as hireling (hireling.id)}
         <LiveSessionCard
           member={{
@@ -275,9 +384,13 @@
             str: hireling.str,
             maxStr: hireling.maxStr,
             conditions: hireling.conditions,
+            items: hireling.items,
+            loyalty: hireling.loyalty,
           }}
           drawer={drawerFor(hireling.id)}
-          notice={notice && notice.id === hireling.id ? { text: notice.text, undo: notice.undo } : null}
+          notice={notice && (notice.id === hireling.id || notice.id === 'loyalty:' + hireling.id)
+            ? { text: notice.text, undo: notice.undo }
+            : null}
           pendingStrSave={pendingStrSave?.id === hireling.id ? pendingStrSave.str : null}
           ondamage={(amount) => handleDamage('hireling', hireling.id, amount)}
           onheal={(amount) => handleHeal('hireling', hireling.id, amount)}
@@ -286,6 +399,8 @@
           onresolvestrsave={resolveStrSave}
           onrequestdeath={() => requestDeath('hireling', hireling.id)}
           ondismissnotice={dismissNotice}
+          oninventoryopen={() => (openInventoryId = hireling.id)}
+          onrollloyaltysave={() => rollLoyaltySaveFor(hireling)}
         />
       {/each}
       {#if activeHirelings.length === 0}
@@ -322,3 +437,53 @@
   onconfirm={confirmDeath}
   oncancel={() => (deathConfirm = null)}
 />
+
+<LiveSessionInventoryModal
+  open={openInventoryMember !== null}
+  name={openInventoryMember?.name ?? ''}
+  items={openInventoryMember?.items ?? []}
+  notice={notice && notice.id.startsWith('item:') ? { text: notice.text, undo: notice.undo } : null}
+  onburn={(itemId) => openInventoryId && handleBurnCharge(openInventoryId, itemId)}
+  onclose={() => (openInventoryId = null)}
+  ondismissnotice={dismissNotice}
+/>
+
+<Modal open={payDayOpen} title={$_('liveSession.payDayTitle')} onclose={() => (payDayOpen = false)}>
+  <div class="flex flex-col gap-[var(--sp-3)] pb-[var(--sp-4)]">
+    {#each activeHirelings as hireling (hireling.id)}
+      {@const paid = paidThisSession.has(hireling.id)}
+      {@const loyaltyResult = payDayLoyaltyResults[hireling.id]}
+      <div class="flex flex-col gap-1.5 py-2 border-b border-[var(--border)] last:border-b-0">
+        <div class="flex items-center gap-x-[var(--sp-3)] gap-y-1.5 flex-wrap">
+          <span class="font-[family-name:var(--font-display)] font-bold text-[length:var(--text-title)] min-w-20">
+            {hireling.name}
+          </span>
+          <span class="ww-num text-[length:var(--text-sm)] text-[var(--text-muted)]">{hireling.wage}p</span>
+          <div class="min-h-[var(--tap)] flex items-center">
+            <Tag tone={paid ? 'success' : 'default'} solid={paid} onclick={() => togglePaid(hireling.id)}>
+              {paid ? $_('liveSession.payDayPaid') : $_('liveSession.payDayUnpaid')}
+            </Tag>
+          </div>
+          {#if !paid}
+            <Button variant="secondary" size="sm" onclick={() => rollPayDayLoyaltySave(hireling)}>
+              {$_('liveSession.rollLoyaltySave')}
+            </Button>
+          {/if}
+        </div>
+        {#if !paid && loyaltyResult}
+          <span
+            class="text-[length:var(--text-sm)] font-bold"
+            style:color={loyaltyResult.passed ? 'var(--success)' : 'var(--danger-hover)'}
+          >
+            {$_(loyaltyResult.passed ? 'liveSession.loyaltySavePassed' : 'liveSession.loyaltySaveFailed', {
+              values: { roll: loyaltyResult.roll, score: loyaltyResult.score },
+            })}
+          </span>
+        {/if}
+      </div>
+    {/each}
+    {#if activeHirelings.length === 0}
+      <p class="text-[var(--text-muted)] text-[length:var(--text-body)]">{$_('liveSession.noHirelings')}</p>
+    {/if}
+  </div>
+</Modal>

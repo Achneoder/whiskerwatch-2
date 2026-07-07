@@ -52,3 +52,47 @@ export function removeItem(items: Item[], itemId: string): Item[] {
 export function updateItem(items: Item[], itemId: string, patch: Partial<Omit<Item, 'id'>>): Item[] {
   return items.map((item) => (item.id === itemId ? { ...item, ...patch } : item));
 }
+
+/**
+ * Ticks one charge off a chargeable item's wear track, floored at 0. A
+ * no-op (returns the same `charges` value) if the item isn't found, isn't
+ * chargeable (`charges`/`maxCharges` is `null`), or is already at 0 — the
+ * caller (Live Session) is responsible for telling the GM "already empty"
+ * in that last case rather than this function signaling it.
+ */
+export function tickCharge(items: Item[], itemId: string): Item[] {
+  return items.map((item) => {
+    if (item.id !== itemId) return item;
+    if (item.charges === null || item.maxCharges === null) return item;
+    return { ...item, charges: Math.max(0, item.charges - 1) };
+  });
+}
+
+/** Fixed split of the one shared `MAX_SLOTS` cap — 4 quick-access "paws" slots, 6 "body" slots. */
+export const PAWS_SLOTS = 4;
+export const BODY_SLOTS = MAX_SLOTS - PAWS_SLOTS;
+
+/**
+ * Splits the one flat `items` array into the two visual sections shared by
+ * `ItemSlotGrid` (roster prep editor) and `LiveSessionInventoryModal` (live
+ * table view) — one source of truth for the packing rule so both stay in
+ * sync. Items are walked in order and packed into "paws" (4-slot budget)
+ * until they no longer fit, then everything else renders in "body" (6-slot
+ * budget). A 2-slot item is never split across sections. If the mouse is
+ * overburdened, the overflow just renders as extra filled body cells beyond
+ * its nominal 6 — nothing is ever hidden or dropped.
+ */
+export function splitSections(items: Item[]): { paws: Item[]; body: Item[] } {
+  const paws: Item[] = [];
+  const body: Item[] = [];
+  let runningPawsSlots = 0;
+  for (const item of items) {
+    if (runningPawsSlots + item.slots <= PAWS_SLOTS) {
+      paws.push(item);
+      runningPawsSlots += item.slots;
+    } else {
+      body.push(item);
+    }
+  }
+  return { paws, body };
+}

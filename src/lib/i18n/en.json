@@ -82,7 +82,21 @@
     "pickMouse": "Mouse",
     "rollSave": "Roll save",
     "saveResultLabel": "{name}'s {attribute} save",
-    "noSaveable": "Add a mouse or hireling to roll a save."
+    "noSaveable": "Add a mouse or hireling to roll a save.",
+    "bag": "Bag",
+    "bagAria": "Open {name}'s bag, {used} of {max} slots used",
+    "chargeBurned": "{name} used a charge ({current}/{max} left)",
+    "chargeEmpty": "{name} is empty.",
+    "chargeUsedUp": "{name} burned out.",
+    "chargeCellAria": "{name}, {current} of {max} charges, tap to use one",
+    "loyaltySaveAria": "Roll a loyalty save for {name}, loyalty {loyalty}",
+    "loyaltySavePassed": "Loyalty save: {roll} vs {score} — Passed",
+    "loyaltySaveFailed": "Loyalty save: {roll} vs {score} — Failed",
+    "payDay": "Pay day",
+    "payDayTitle": "Pay day",
+    "payDayPaid": "Paid",
+    "payDayUnpaid": "Unpaid",
+    "rollLoyaltySave": "Roll loyalty save"
   },
   "roster": {
     "eyebrow": "Prep mode · roster",
@@ -114,6 +128,7 @@
     "form": {
       "name": "Name",
       "role": "Role",
+      "wage": "Wage",
       "hp": "HP",
       "maxHp": "Max HP",
       "pips": "Pips",

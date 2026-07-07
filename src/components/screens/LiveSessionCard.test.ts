@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/svelte';
 import LiveSessionCard, { type LiveSessionCardMember } from './LiveSessionCard.svelte';
 import type { ConditionName } from '../../lib/conditions';
+import type { Item } from '../../lib/items';
 
 function member(overrides: Partial<LiveSessionCardMember> = {}): LiveSessionCardMember {
   return {
@@ -13,6 +14,19 @@ function member(overrides: Partial<LiveSessionCardMember> = {}): LiveSessionCard
     str: 10,
     maxStr: 10,
     conditions: [],
+    items: [],
+    ...overrides,
+  };
+}
+
+function item(overrides: Partial<Item> = {}): Item {
+  return {
+    id: 'i1',
+    name: 'Torch',
+    slots: 1,
+    charges: null,
+    maxCharges: null,
+    notes: '',
     ...overrides,
   };
 }
@@ -34,6 +48,8 @@ interface TestProps {
   onresolvestrsave: () => void;
   onrequestdeath: () => void;
   ondismissnotice: () => void;
+  oninventoryopen: () => void;
+  onrollloyaltysave?: () => void;
 }
 
 function baseProps(overrides: Partial<TestProps> = {}): TestProps {
@@ -49,6 +65,8 @@ function baseProps(overrides: Partial<TestProps> = {}): TestProps {
     onresolvestrsave: vi.fn(),
     onrequestdeath: vi.fn(),
     ondismissnotice: vi.fn(),
+    oninventoryopen: vi.fn(),
+    onrollloyaltysave: vi.fn(),
     ...overrides,
   };
 }
@@ -176,5 +194,43 @@ describe('LiveSessionCard', () => {
 
     expect(undo).toHaveBeenCalledOnce();
     expect(ondismissnotice).toHaveBeenCalledOnce();
+  });
+
+  it('shows a Bag pill with the used/max slot count and opens the inventory modal on tap', async () => {
+    const oninventoryopen = vi.fn();
+    render(LiveSessionCard, {
+      props: baseProps({
+        member: member({ items: [item({ id: 'a', slots: 1 }), item({ id: 'b', slots: 2 })] }),
+        oninventoryopen,
+      }),
+    });
+
+    const bagButton = screen.getByRole('button', { name: /open pip's bag, 3 of 10 slots used/i });
+    expect(bagButton).toHaveTextContent('3');
+    expect(bagButton).toHaveTextContent('10');
+
+    await fireEvent.click(bagButton);
+
+    expect(oninventoryopen).toHaveBeenCalledOnce();
+  });
+
+  it('shows a loyalty pill and rolls a loyalty save on tap when the member has a loyalty score', async () => {
+    const onrollloyaltysave = vi.fn();
+    render(LiveSessionCard, {
+      props: baseProps({ member: member({ loyalty: 9 }), onrollloyaltysave }),
+    });
+
+    const loyaltyButton = screen.getByRole('button', { name: /roll a loyalty save for pip, loyalty 9/i });
+    expect(loyaltyButton).toHaveTextContent('9');
+
+    await fireEvent.click(loyaltyButton);
+
+    expect(onrollloyaltysave).toHaveBeenCalledOnce();
+  });
+
+  it('does not show a loyalty pill for a member with no loyalty score (e.g. party mice)', () => {
+    render(LiveSessionCard, { props: baseProps() });
+
+    expect(screen.queryByText('Loyalty')).not.toBeInTheDocument();
   });
 });

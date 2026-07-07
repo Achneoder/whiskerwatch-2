@@ -27,6 +27,23 @@ When('the GM adds {string} to an empty inventory slot', async function (this: Wh
   await saveItemDraft(this.page, itemName);
 });
 
+When(
+  'the GM adds {string} with {int} charges to an empty inventory slot',
+  async function (this: WhiskerwatchWorld, itemName: string, charges: number) {
+    await this.page.getByRole('button', { name: 'Empty slot, add item' }).first().click();
+    const editor = itemEditor(this.page);
+    await editor.getByLabel('Name').fill(itemName);
+    // The Charges stepper starts at 0 and has no direct-entry field, so
+    // charges are set by clicking Increase the requested number of times —
+    // same idiom `live-session.steps.ts` uses for the damage Stepper.
+    const increase = editor.getByRole('button', { name: 'Increase' });
+    for (let i = 0; i < charges; i += 1) {
+      await increase.click();
+    }
+    await editor.getByRole('button', { name: 'Save' }).click();
+  },
+);
+
 When('the GM adds {int} items to the inventory', async function (this: WhiskerwatchWorld, count: number) {
   for (let i = 1; i <= count; i += 1) {
     await this.page.getByRole('button', { name: 'Empty slot, add item' }).first().click();

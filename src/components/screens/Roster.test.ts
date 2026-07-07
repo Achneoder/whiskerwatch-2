@@ -60,6 +60,60 @@ describe('Roster', () => {
     expect(screen.getByText('Oat')).toBeInTheDocument();
   });
 
+  it('shows a hireling\'s loyalty as a pill and their wage as a tag when set', () => {
+    replaceHirelings([
+      {
+        id: '1',
+        name: 'Oat',
+        role: 'Porter',
+        hp: 3,
+        max: 3,
+        str: 10,
+        maxStr: 10,
+        dex: 10,
+        wil: 10,
+        loyalty: 9,
+        wage: 5,
+        notes: '',
+        status: 'active',
+        conditions: [],
+        scars: [],
+        items: [],
+      },
+    ]);
+    render(Roster, { props: { onnavigate: vi.fn() } });
+
+    expect(screen.getByText('Loyalty')).toBeInTheDocument();
+    expect(screen.getByText('9')).toBeInTheDocument();
+    expect(screen.getByText('5p/day')).toBeInTheDocument();
+  });
+
+  it('hides the wage tag when a hireling has no wage set', () => {
+    replaceHirelings([
+      {
+        id: '1',
+        name: 'Oat',
+        role: 'Porter',
+        hp: 3,
+        max: 3,
+        str: 10,
+        maxStr: 10,
+        dex: 10,
+        wil: 10,
+        loyalty: 9,
+        wage: 0,
+        notes: '',
+        status: 'active',
+        conditions: [],
+        scars: [],
+        items: [],
+      },
+    ]);
+    render(Roster, { props: { onnavigate: vi.fn() } });
+
+    expect(screen.queryByText(/p\/day/)).not.toBeInTheDocument();
+  });
+
   it('imports a campaign file and replaces the roster', async () => {
     render(Roster, { props: { onnavigate: vi.fn() } });
 

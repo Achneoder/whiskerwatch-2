@@ -27,14 +27,27 @@ export interface PartyMember {
 const STORAGE_KEY = 'whiskerwatch:party';
 
 /**
- * PLACEHOLDER — Mausritter awards XP for *spending* pips during downtime
- * (carousing, gear, keepsakes), not for kills, but the exact pips-per-XP
- * rate and level-up thresholds below have NOT been verified against the
- * core rulebook. Flagging explicitly: check these two constants against the
- * real Mausritter downtime rules before relying on them for actual play.
+ * Mausritter awards XP for *spending* pips during downtime (carousing,
+ * gear, keepsakes), not for kills: 1 XP per 10 pips spent.
  */
-export const DOWNTIME_XP_PER_PIP = 0.1; // placeholder: 1 XP per 10 pips spent
-export const XP_PER_LEVEL = 1000; // placeholder: level = 1 + floor(xp / this)
+export const DOWNTIME_XP_PER_PIP = 0.1;
+
+/**
+ * Level-up XP thresholds (SRD "Advancement" table). Irregular through
+ * level 6 (1000, +2000, +3000, +5000, +5000), then +5000/level uncapped.
+ * Index = level - 1, so XP_THRESHOLDS[n] is the XP required to reach
+ * level n + 1.
+ */
+export const XP_THRESHOLDS = [0, 1000, 3000, 6000, 11000, 16000];
+
+function levelForXp(xp: number): number {
+  let level = 1;
+  while (true) {
+    const threshold = level < XP_THRESHOLDS.length ? (XP_THRESHOLDS[level] ?? 0) : 16000 + (level - 5) * 5000;
+    if (xp < threshold) return level;
+    level += 1;
+  }
+}
 
 const seedParty: PartyMember[] = [
   {
@@ -229,9 +242,7 @@ export interface DowntimeResult {
 
 /**
  * Mausritter awards XP for pips *spent* in downtime (carousing/gear/
- * keepsakes), not kills. See the `DOWNTIME_XP_PER_PIP`/`XP_PER_LEVEL`
- * placeholder comment above — verify the formula before trusting the
- * numbers this returns for real advancement.
+ * keepsakes), not kills.
  */
 export function spendDowntime(id: string, pipsSpent: number): DowntimeResult | null {
   const member = list.items.find((m) => m.id === id);
@@ -242,7 +253,7 @@ export function spendDowntime(id: string, pipsSpent: number): DowntimeResult | n
   const previousLevel = member.level;
   const xpGained = Math.round(Math.max(0, pipsSpent) * DOWNTIME_XP_PER_PIP);
   const totalXp = member.xp + xpGained;
-  const newLevel = Math.max(previousLevel, 1 + Math.floor(totalXp / XP_PER_LEVEL));
+  const newLevel = Math.max(previousLevel, levelForXp(totalXp));
   list.update(id, { xp: totalXp, level: newLevel });
   return { xpGained, totalXp, leveledUp: newLevel > previousLevel, newLevel };
 }

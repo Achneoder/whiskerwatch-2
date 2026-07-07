@@ -194,6 +194,28 @@ describe('party store', () => {
       expect(result?.leveledUp).toBe(false);
       expect(getParty()[0]?.level).toBe(1);
     });
+
+    it.each<[number, number]>([
+      [0, 1],
+      [999, 1],
+      [1000, 2],
+      [2999, 2],
+      [3000, 3],
+      [5999, 3],
+      [6000, 4],
+      [10999, 4],
+      [11000, 5],
+      [15999, 5],
+      [16000, 6],
+      [20999, 6],
+      [21000, 7],
+      [25999, 7],
+      [26000, 8],
+    ])('follows the SRD advancement table at %i xp (level %i)', (xp, expectedLevel) => {
+      const id = seedOne({ xp, level: 1 });
+      spendDowntime(id, 0);
+      expect(getParty()[0]?.level).toBe(expectedLevel);
+    });
   });
 
   describe('migration of legacy records', () => {

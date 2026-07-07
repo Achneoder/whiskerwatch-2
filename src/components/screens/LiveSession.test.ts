@@ -95,7 +95,7 @@ describe('LiveSession', () => {
     const onexit = vi.fn();
     render(LiveSession, { props: { onexit } });
 
-    await fireEvent.click(screen.getByRole('button', { name: /end session/i }));
+    await fireEvent.click(screen.getByRole('button', { name: /back to prep/i }));
 
     expect(onexit).toHaveBeenCalledOnce();
   });

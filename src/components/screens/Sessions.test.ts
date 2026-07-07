@@ -40,4 +40,18 @@ describe('Sessions', () => {
 
     expect(screen.queryByText('First')).not.toBeInTheDocument();
   });
+
+  it('opens the add-session modal pre-filled when handed a recap draft', () => {
+    const onconsumeddraft = vi.fn();
+    render(Sessions, {
+      props: {
+        onnavigate: vi.fn(),
+        draftRecap: { number: 6, date: '2026-07-07', title: '', summary: "• Resolved: 'The raid'\n" },
+        onconsumeddraft,
+      },
+    });
+
+    expect(screen.getByDisplayValue(/Resolved: 'The raid'/)).toBeInTheDocument();
+    expect(onconsumeddraft).toHaveBeenCalledOnce();
+  });
 });

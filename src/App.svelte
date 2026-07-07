@@ -10,6 +10,14 @@
   import Settings from './components/screens/Settings.svelte';
   import LiveSession from './components/screens/LiveSession.svelte';
   import type { NavScreen } from './components/layout/AppSidebar.svelte';
+  import type { Session } from './lib/stores/sessions.svelte';
+
+  let pendingRecapDraft = $state<Omit<Session, 'id'> | null>(null);
+
+  function draftRecap(draft: Omit<Session, 'id'>) {
+    pendingRecapDraft = draft;
+    screen = 'sessions';
+  }
 
   let screen = $state<
     | 'dashboard'
@@ -38,7 +46,7 @@
 </script>
 
 {#if screen === 'live'}
-  <LiveSession onexit={() => (screen = 'dashboard')} />
+  <LiveSession onexit={() => (screen = 'dashboard')} ondraftrecap={draftRecap} />
 {:else if screen === 'roster'}
   <Roster onnavigate={navigate} onstartsession={() => (screen = 'live')} />
 {:else if screen === 'adventure'}
@@ -52,7 +60,12 @@
 {:else if screen === 'generators'}
   <Generators onnavigate={navigate} onstartsession={() => (screen = 'live')} />
 {:else if screen === 'sessions'}
-  <Sessions onnavigate={navigate} onstartsession={() => (screen = 'live')} />
+  <Sessions
+    onnavigate={navigate}
+    onstartsession={() => (screen = 'live')}
+    draftRecap={pendingRecapDraft}
+    onconsumeddraft={() => (pendingRecapDraft = null)}
+  />
 {:else if screen === 'settings'}
   <Settings onnavigate={navigate} onstartsession={() => (screen = 'live')} />
 {:else}

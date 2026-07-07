@@ -26,8 +26,19 @@ describe('LiveSessionHeader', () => {
       props: { sessionNumber: 1, sessionTitle: 'A', beatTitle: 'B', onexit },
     });
 
-    await fireEvent.click(screen.getByRole('button', { name: /end session/i }));
+    await fireEvent.click(screen.getByRole('button', { name: /back to prep/i }));
 
     expect(onexit).toHaveBeenCalledOnce();
+  });
+
+  it('calls onendsession when the End Session button is clicked', async () => {
+    const onendsession = vi.fn();
+    render(LiveSessionHeader, {
+      props: { sessionNumber: 1, sessionTitle: 'A', beatTitle: 'B', onendsession },
+    });
+
+    await fireEvent.click(screen.getByRole('button', { name: /end session/i }));
+
+    expect(onendsession).toHaveBeenCalledOnce();
   });
 });

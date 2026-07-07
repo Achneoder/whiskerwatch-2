@@ -33,20 +33,48 @@
   } from '../../lib/stores/hirelings.svelte';
   import { getFactions, bumpFactionClock, updateFaction } from '../../lib/stores/factions.svelte';
   import { getBeats } from '../../lib/stores/beats.svelte';
-  import { getLastSession } from '../../lib/stores/sessions.svelte';
+  import { getLastSession, getNextSessionNumber, type Session } from '../../lib/stores/sessions.svelte';
   import { rollSave, rollLoyaltySave } from '../../lib/generators/save';
-  import type { ConditionName } from '../../lib/conditions';
+  import { CONDITIONS, type ConditionName } from '../../lib/conditions';
+  import { getLiveSessionEvents, logEvent, clearLog } from '../../lib/stores/liveSessionLog.svelte';
+  import { today } from '../../lib/date';
+  import SessionRecapReview from './SessionRecapReview.svelte';
 
   interface Props {
     onexit?: () => void;
+    /** Bubbles the drafted recap up so the app shell can open Sessions with SessionForm pre-filled. */
+    ondraftrecap?: (draft: Omit<Session, 'id'>) => void;
   }
 
-  let { onexit }: Props = $props();
+  let { onexit, ondraftrecap }: Props = $props();
 
   $effect(() => {
     document.documentElement.setAttribute('data-density', 'live');
     return () => document.documentElement.removeAttribute('data-density');
   });
+
+  // Live Session's event log is session-scoped, not persisted — starting a
+  // fresh sitting should never carry over facts from a previous one.
+  //
+  // Three event kinds from the spec (`beatStatusChanged`, `advancement`,
+  // `scarGained`) are defined in `liveSessionLog.svelte.ts` but never
+  // logged here: none of beat status, downtime XP/level-up, or scars has a
+  // mutation point reachable from Live Session today (beat status only
+  // changes from the Adventure screen's `BeatTree`; `spendDowntime` in
+  // `party.svelte.ts` and `addScar`/`addHirelingScar` in
+  // `party.svelte.ts`/`hirelings.svelte.ts` all have no UI at all yet).
+  // Per the brief, that's a reason to skip wiring, not to invent new Live
+  // Session surfaces for any of them — all three are natural follow-ups
+  // once those actions exist somewhere reachable.
+  clearLog();
+  const sessionEvents = getLiveSessionEvents();
+  let endSessionOpen = $state(false);
+
+  function draftRecap(draft: Omit<Session, 'id'>) {
+    clearLog();
+    endSessionOpen = false;
+    ondraftrecap?.(draft);
+  }
 
   const party = getParty();
   const hirelings = getHirelings();
@@ -115,6 +143,9 @@
       ...payDayLoyaltyResults,
       [hireling.id]: { roll: outcome.roll, score: outcome.score, passed: outcome.passed },
     };
+    if (!outcome.passed) {
+      logEvent({ kind: 'loyaltyFailed', name: hireling.name });
+    }
   }
 
   interface Notice {
@@ -214,10 +245,13 @@
     announce(id, $_('liveSession.damageApplied', { values: { amount } }), restore);
 
     if (outcome.died) {
-      // STR hit exactly 0 — immediate death per the rules, no save.
+      // STR hit exactly 0 — immediate death per the rules, no save. Death
+      // itself is logged from `confirmDeath` once the GM actually confirms
+      // it, not here.
       deathConfirm = { id, source, name: member.name };
     } else if (outcome.strSaveRequired) {
       pendingStrSave = { id, source, str: outcome.newStr };
+      logEvent({ kind: 'strDrained', name: member.name, role: source, newStr: outcome.newStr });
     }
   }
 
@@ -246,11 +280,17 @@
       if (has) removeHirelingCondition(id, condition);
       else addHirelingCondition(id, condition);
     }
+    // Only conditions *gained* are recap-worthy — a condition being cleared
+    // isn't a notable "thing that happened" the same way.
+    if (!has) {
+      logEvent({ kind: 'conditionGained', name: member.name, role: source, condition: CONDITIONS[condition].label });
+    }
   }
 
   function resolveStrSave() {
     if (!pendingStrSave) return;
     const { id, source, str } = pendingStrSave;
+    const member = memberOf(source, id);
     const result = rollSave(str);
     if (!result.passed) {
       if (source === 'party') {
@@ -259,6 +299,10 @@
       } else {
         addHirelingCondition(id, 'injured');
         addHirelingCondition(id, 'incapacitated');
+      }
+      if (member) {
+        logEvent({ kind: 'conditionGained', name: member.name, role: source, condition: CONDITIONS.injured.label });
+        logEvent({ kind: 'conditionGained', name: member.name, role: source, condition: CONDITIONS.incapacitated.label });
       }
     }
     const key = result.passed ? 'liveSession.strSavePassed' : 'liveSession.strSaveFailed';
@@ -276,6 +320,10 @@
     const result = rollLoyaltySave(hireling.loyalty);
     const key = result.passed ? 'liveSession.loyaltySavePassed' : 'liveSession.loyaltySaveFailed';
     announce('loyalty:' + hireling.id, $_(key, { values: { roll: result.roll, score: result.score } }));
+    // Only failures are recap-worthy — a passed loyalty save is a non-event.
+    if (!result.passed) {
+      logEvent({ kind: 'loyaltyFailed', name: hireling.name });
+    }
   }
 
   function requestDeath(source: Source, id: string) {
@@ -288,6 +336,7 @@
     if (!deathConfirm) return;
     if (deathConfirm.source === 'party') killMember(deathConfirm.id);
     else killHireling(deathConfirm.id);
+    logEvent({ kind: 'death', name: deathConfirm.name, role: deathConfirm.source });
     deathConfirm = null;
   }
 
@@ -301,15 +350,32 @@
     announce(`faction:${id}`, $_('liveSession.clockAdvanced', { values: { name: faction.name } }), () =>
       updateFaction(id, { clock: before }),
     );
+    logEvent({
+      kind: 'factionClockChanged',
+      factionId: id,
+      name: faction.name,
+      from: before,
+      to: before + 1,
+      max: faction.of,
+    });
   }
 </script>
 
+{#if endSessionOpen}
+  <SessionRecapReview
+    events={sessionEvents}
+    defaultNumber={getNextSessionNumber()}
+    onback={() => (endSessionOpen = false)}
+    ondraft={draftRecap}
+  />
+{:else}
 <div class="min-h-screen bg-[var(--bg)] text-[var(--text)] flex flex-col">
   <LiveSessionHeader
     sessionNumber={lastSession?.number ?? null}
     sessionTitle={lastSession?.title ?? null}
     beatTitle={activeBeat?.title ?? null}
     {onexit}
+    onendsession={() => (endSessionOpen = true)}
   />
 
   <main class="flex-1 w-full max-w-160 mx-auto p-[var(--sp-5)] flex flex-col gap-[var(--sp-5)]">
@@ -487,3 +553,4 @@
     {/if}
   </div>
 </Modal>
+{/if}

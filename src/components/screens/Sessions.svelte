@@ -21,15 +21,31 @@
   interface Props {
     onnavigate: (screen: NavScreen) => void;
     onstartsession?: () => void;
+    /**
+     * A recap draft handed off from Live Session's "End Session" flow —
+     * when set, the add-session modal opens automatically, prefilled via
+     * `SessionForm`'s `draft` prop. Consumed once: `App.svelte` clears its
+     * own state after handing it off, but we also guard against reopening
+     * on an unrelated re-render by tracking whether we've already opened it.
+     */
+    draftRecap?: Omit<Session, 'id'> | null;
+    /** Tells the parent the recap draft has been handed to the modal, so it can clear its own state and not reopen this on a later visit to Sessions. */
+    onconsumeddraft?: () => void;
   }
 
-  let { onnavigate, onstartsession }: Props = $props();
+  let { onnavigate, onstartsession, draftRecap = null, onconsumeddraft }: Props = $props();
 
   const sessions = getSessions();
   const sorted = $derived([...sessions].sort((a, b) => b.number - a.number));
 
-  let sessionModal = $state<{ mode: 'add' } | { mode: 'edit'; session: Session } | null>(null);
+  let sessionModal = $state<{ mode: 'add'; draft?: Omit<Session, 'id'> } | { mode: 'edit'; session: Session } | null>(
+    draftRecap ? { mode: 'add', draft: draftRecap } : null,
+  );
   let deleteTarget = $state<Session | null>(null);
+
+  $effect(() => {
+    if (draftRecap) onconsumeddraft?.();
+  });
 
   function saveSession(data: Omit<Session, 'id'>) {
     if (sessionModal?.mode === 'edit') updateSession(sessionModal.session.id, data);
@@ -111,6 +127,7 @@
   {#if sessionModal}
     <SessionForm
       initial={sessionModal.mode === 'edit' ? sessionModal.session : undefined}
+      draft={sessionModal.mode === 'add' ? sessionModal.draft : undefined}
       defaultNumber={getNextSessionNumber()}
       onsave={saveSession}
       oncancel={() => (sessionModal = null)}

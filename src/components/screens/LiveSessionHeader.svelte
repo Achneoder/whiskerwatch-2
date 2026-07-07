@@ -8,18 +8,20 @@
     sessionTitle: string | null;
     beatTitle: string | null;
     onexit?: (() => void) | undefined;
+    /** Opens the end-of-session recap review (`SessionRecapReview`) — a separate step from `onexit`, which just backs out to Prep with no recap. */
+    onendsession?: (() => void) | undefined;
   }
 
-  let { sessionNumber, sessionTitle, beatTitle, onexit }: Props = $props();
+  let { sessionNumber, sessionTitle, beatTitle, onexit, onendsession }: Props = $props();
 </script>
 
 <header
-  class="sticky top-0 z-5 flex items-center justify-between gap-[var(--sp-4)] py-[var(--sp-4)] px-[var(--sp-5)] bg-[var(--surface)] border-b border-[var(--border)]"
+  class="sticky top-0 z-5 flex items-center justify-between gap-[var(--sp-3)] py-[var(--sp-4)] px-[var(--sp-5)] bg-[var(--surface)] border-b border-[var(--border)]"
 >
   <button
     onclick={onexit}
     aria-label={$_('liveSession.exitAriaLabel')}
-    class="inline-flex items-center gap-2 bg-none border-none text-[var(--text-muted)] cursor-pointer text-[length:var(--text-body)] font-[family-name:var(--font-body)]"
+    class="inline-flex items-center gap-2 min-h-[var(--tap)] shrink-0 bg-none border-none text-[var(--text-muted)] cursor-pointer text-[length:var(--text-body)] font-[family-name:var(--font-body)]"
   >
     <Icon icon={ChevronLeft} size="live" />{$_('liveSession.exit')}
   </button>
@@ -34,6 +36,11 @@
       {beatTitle ?? $_('liveSession.noActiveBeat')}
     </div>
   </div>
-  <!-- Balances the exit button so the title block stays visually centered. -->
-  <span class="w-[var(--tap)] shrink-0" aria-hidden="true"></span>
+  <button
+    onclick={onendsession}
+    aria-label={$_('liveSession.endSessionAriaLabel')}
+    class="inline-flex items-center justify-center min-h-[var(--tap)] shrink-0 px-[var(--sp-3)] rounded-[var(--radius-md)] bg-[var(--danger-tint)] border border-[var(--danger)] text-[var(--danger-hover)] cursor-pointer text-[length:var(--text-sm)] font-[family-name:var(--font-display)] font-bold whitespace-nowrap"
+  >
+    {$_('liveSession.endSession')}
+  </button>
 </header>

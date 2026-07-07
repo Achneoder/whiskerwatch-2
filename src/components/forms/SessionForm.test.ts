@@ -47,4 +47,51 @@ describe('SessionForm', () => {
 
     expect(oncancel).toHaveBeenCalledOnce();
   });
+
+  describe('auto-generated recap draft pill', () => {
+    const draft = { number: 6, date: '2026-07-07', title: '', summary: "• Resolved: 'The raid'\n" };
+
+    it('prefills the summary and shows the pill when opened with a draft', () => {
+      render(SessionForm, { props: { defaultNumber: 6, draft, onsave: vi.fn(), oncancel: vi.fn() } });
+
+      expect(screen.getByDisplayValue(/Resolved: 'The raid'/)).toBeInTheDocument();
+      expect(screen.getByText(/auto-generated draft/i)).toBeInTheDocument();
+    });
+
+    it('does not show the pill for a normal manual-entry form', () => {
+      render(SessionForm, { props: { defaultNumber: 6, onsave: vi.fn(), oncancel: vi.fn() } });
+
+      expect(screen.queryByText(/auto-generated draft/i)).not.toBeInTheDocument();
+    });
+
+    it('does not show the pill when editing an existing session', () => {
+      render(SessionForm, {
+        props: {
+          initial: { id: '1', number: 3, date: '2026-01-01', title: 'Old title', summary: 'What happened' },
+          defaultNumber: 4,
+          onsave: vi.fn(),
+          oncancel: vi.fn(),
+        },
+      });
+
+      expect(screen.queryByText(/auto-generated draft/i)).not.toBeInTheDocument();
+    });
+
+    it('hides the pill the moment the GM edits the summary', async () => {
+      render(SessionForm, { props: { defaultNumber: 6, draft, onsave: vi.fn(), oncancel: vi.fn() } });
+
+      await fireEvent.input(screen.getByLabelText('Summary'), { target: { value: `${draft.summary}One more thing.` } });
+
+      expect(screen.queryByText(/auto-generated draft/i)).not.toBeInTheDocument();
+    });
+
+    it('hides the pill when dismissed, even if the summary is untouched', async () => {
+      render(SessionForm, { props: { defaultNumber: 6, draft, onsave: vi.fn(), oncancel: vi.fn() } });
+
+      await fireEvent.click(screen.getByRole('button', { name: /dismiss/i }));
+
+      expect(screen.queryByText(/auto-generated draft/i)).not.toBeInTheDocument();
+      expect(screen.getByDisplayValue(/Resolved: 'The raid'/)).toBeInTheDocument();
+    });
+  });
 });

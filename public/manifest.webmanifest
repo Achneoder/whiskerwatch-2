@@ -1,0 +1,27 @@
+{
+  "name": "Whiskerwatch",
+  "short_name": "Whiskerwatch",
+  "description": "A campaign-management app for game masters running Mausritter — prep adventures, track factions and hexes, run live sessions, all offline in your browser.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#F1E7CF",
+  "theme_color": "#2E6A5E",
+  "categories": ["games", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

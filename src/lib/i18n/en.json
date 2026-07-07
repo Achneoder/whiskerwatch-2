@@ -8,6 +8,7 @@
     "hexMap": "Hex map",
     "generators": "Generators",
     "sessions": "Sessions",
+    "settings": "Settings",
     "comingSoon": "Coming soon"
   },
   "theme": {
@@ -260,6 +261,43 @@
       "roll": "Roll an NPC",
       "quirk": "Quirk:",
       "want": "Wants:"
+    }
+  },
+  "settings": {
+    "eyebrow": "Prep mode · settings",
+    "title": "Settings",
+    "notice": {
+      "title": "Your campaign lives only in this browser.",
+      "body": "There's no account and no server — everything you enter is saved locally on this device. Clearing browser data, using private or incognito mode, or switching devices or browsers will lose it. Export your campaign regularly (below) to keep a backup."
+    },
+    "appearance": {
+      "title": "Appearance",
+      "hint": "Applies immediately across the app.",
+      "light": "Light burrow",
+      "dark": "Dark burrow"
+    },
+    "language": {
+      "title": "Language",
+      "hint": "Changes labels and text throughout the app immediately.",
+      "en": "English",
+      "de": "Deutsch"
+    },
+    "data": {
+      "title": "Campaign data",
+      "intro": "Export everything — parties, hirelings, adventures, bestiary, factions, hex map, and session logs — into one file you can back up or move to another device.",
+      "exportHeading": "Export",
+      "exportHint": "Download a single JSON file with your full campaign.",
+      "export": "Export campaign",
+      "exportDone": "Saved to your downloads.",
+      "importHeading": "Import",
+      "importHint": "Restore from a previously exported file. This replaces everything currently in the app.",
+      "import": "Import campaign",
+      "importDone": "Campaign restored.",
+      "footer": "Tip: export after every session so nothing is lost if this browser's storage is cleared.",
+      "confirmTitle": "Replace campaign data?",
+      "confirmMessage": "Importing will overwrite everything currently saved in this browser. This can't be undone unless you have another export.",
+      "confirmAction": "Import and replace",
+      "cancel": "Cancel"
     }
   }
 }

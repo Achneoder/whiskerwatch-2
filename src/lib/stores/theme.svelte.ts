@@ -15,7 +15,11 @@ export function getTheme(): Theme {
 }
 
 export function toggleTheme(): void {
-  state.theme = state.theme === 'light' ? 'dark' : 'light';
+  setTheme(state.theme === 'light' ? 'dark' : 'light');
+}
+
+export function setTheme(theme: Theme): void {
+  state.theme = theme;
   writeJSON(STORAGE_KEY, state);
   apply();
 }

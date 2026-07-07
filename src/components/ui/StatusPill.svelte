@@ -48,6 +48,12 @@
   }
 </script>
 
+<!--
+  When an onclick is passed, this span becomes a button (role, keyboard handler,
+  focusable tabindex all applied together). svelte-check can't see through the
+  conditional role to know the tabindex is on an interactive element.
+-->
+<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 <span
   {onclick}
   onkeydown={onclick ? handleKeydown : undefined}

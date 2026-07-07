@@ -318,11 +318,18 @@
       "importHint": "Restore from a previously exported file. This replaces everything currently in the app.",
       "import": "Import campaign",
       "importDone": "Campaign restored.",
+      "resetHeading": "Reset",
+      "resetHint": "Clear all campaign data and start fresh. This can't be undone — export first if you want to keep your work.",
+      "reset": "Reset everything",
       "footer": "Tip: export after every session so nothing is lost if this browser's storage is cleared.",
       "confirmTitle": "Replace campaign data?",
       "confirmMessage": "Importing will overwrite everything currently saved in this browser. This can't be undone unless you have another export.",
       "confirmAction": "Import and replace",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "resetConfirmTitle": "Reset all campaign data?",
+      "resetConfirmMessage": "This will permanently delete all your campaign data (parties, adventures, factions, etc.) and can't be undone. Make sure you've exported everything you want to keep.",
+      "resetConfirmAction": "Reset and start over",
+      "resetDone": "Campaign reset. Start fresh!"
     }
   }
 }

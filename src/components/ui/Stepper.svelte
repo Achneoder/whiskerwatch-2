@@ -33,6 +33,7 @@
   {/if}
   <div class="flex items-center gap-[var(--sp-4)]">
     <button
+      type="button"
       onclick={() => bump(-1)}
       disabled={value <= min}
       aria-label="Decrease"
@@ -54,6 +55,7 @@
       {value}
     </span>
     <button
+      type="button"
       onclick={() => bump(1)}
       disabled={value >= max}
       aria-label="Increase"

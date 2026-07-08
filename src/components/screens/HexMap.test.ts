@@ -62,7 +62,7 @@ describe('HexMap', () => {
   it('shows beats touching a hex in its detail modal', async () => {
     replaceHexNodes([home]);
     replaceBeats([
-      { id: 'b1', parentId: null, title: 'The granary raid', notes: '', status: 'active', hexNodeId: '1', factionIds: [] },
+      { id: 'b1', parentId: null, title: 'The granary raid', notes: '', status: 'active', hexNodeId: '1', factionIds: [], adventureId: 'adv-1' },
     ]);
     render(HexMap, { props: { onnavigate: vi.fn() } });
 

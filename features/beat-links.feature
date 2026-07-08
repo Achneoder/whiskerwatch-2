@@ -8,13 +8,13 @@ Feature: Linking beats to hexes and factions
     And I navigate to the "Adventure" screen
 
   Scenario: Linking a beat to a hex and a faction surfaces the link on Hex Map and Factions
-    Given the GM opens "The granary raid" beat to edit
+    Given the GM starts a new beat titled "Find the tunnel entrance" under "The granary raid"
     When the GM links the beat to the "Bramblewatch" hex
     And the GM links the beat to the "The Gnawing Court" faction
     And the GM saves the beat
     And I navigate to the "Hex map" screen
     And the GM opens the "Bramblewatch" hex
-    Then the GM should see "The granary raid" listed as a beat touching this hex
+    Then the GM should see "Find the tunnel entrance" listed as a beat touching this hex
     When the GM closes the hex detail
     And I navigate to the "Factions" screen
-    Then the GM should see "The granary raid" listed as a beat touching "The Gnawing Court"
+    Then the GM should see "Find the tunnel entrance" listed as a beat touching "The Gnawing Court"

@@ -230,6 +230,13 @@
   "adventure": {
     "eyebrow": "Vorbereitung · Abenteuer",
     "title": "Abenteuer",
+    "addAdventure": "Abenteuer hinzufügen",
+    "addAdventureTitle": "Abenteuer hinzufügen",
+    "editAdventureTitle": "Abenteuer bearbeiten",
+    "deleteAdventureTitle": "Abenteuer löschen?",
+    "deleteAdventureMessage": "Dadurch werden „{title}“ und sein gesamter Beat-Abriss entfernt. Das kann nicht rückgängig gemacht werden — aber sonst ändert sich nichts an der Kampagne.",
+    "emptyAdventures": "Noch keine Abenteuer — starte dein erstes.",
+    "beatOutline": "Beat-Abriss",
     "addBeat": "Beat hinzufügen",
     "addSubBeat": "Unter-Beat hinzufügen",
     "empty": "Noch keine Beats — skizziere deinen ersten Handlungsstrang.",
@@ -243,8 +250,14 @@
       "active": "Aktiv",
       "done": "Erledigt"
     },
+    "adventureStatus": {
+      "planned": "Geplant",
+      "active": "Aktiv",
+      "completed": "Abgeschlossen"
+    },
     "form": {
       "title": "Titel",
+      "description": "Beschreibung",
       "notes": "Notizen",
       "status": "Status",
       "hexLink": "Verknüpftes Feld",

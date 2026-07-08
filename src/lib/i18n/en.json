@@ -230,6 +230,13 @@
   "adventure": {
     "eyebrow": "Prep mode · adventure",
     "title": "Adventure",
+    "addAdventure": "Add adventure",
+    "addAdventureTitle": "Add an adventure",
+    "editAdventureTitle": "Edit adventure",
+    "deleteAdventureTitle": "Delete adventure?",
+    "deleteAdventureMessage": "This removes \"{title}\" and its whole beat outline. This can't be undone — but nothing else in the campaign changes.",
+    "emptyAdventures": "No adventures yet — start your first one.",
+    "beatOutline": "Beat outline",
     "addBeat": "Add beat",
     "addSubBeat": "Add sub-beat",
     "empty": "No beats yet — outline your first plot thread.",
@@ -243,8 +250,14 @@
       "active": "Active",
       "done": "Done"
     },
+    "adventureStatus": {
+      "planned": "Planned",
+      "active": "Active",
+      "completed": "Completed"
+    },
     "form": {
       "title": "Title",
+      "description": "Description",
       "notes": "Notes",
       "status": "Status",
       "hexLink": "Linked hex",

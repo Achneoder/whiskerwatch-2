@@ -115,7 +115,7 @@ describe('factions store', () => {
   it('cascades to beats referencing a removed faction', () => {
     replaceBeats([]);
     const a = seedOne('A');
-    addBeat({ parentId: null, title: 'Raid', notes: '', status: 'planned', factionIds: [a, 'other'] });
+    addBeat({ parentId: null, title: 'Raid', notes: '', status: 'planned', factionIds: [a, 'other'], adventureId: 'adv-1' });
 
     removeFaction(a);
 

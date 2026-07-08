@@ -1,6 +1,12 @@
 import { getParty, replaceParty, flush as flushParty, type PartyMember } from './stores/party.svelte';
 import { getHirelings, replaceHirelings, flush as flushHirelings, type Hireling } from './stores/hirelings.svelte';
-import { getBeats, replaceBeats, flush as flushBeats, type Beat } from './stores/beats.svelte';
+import {
+  getAdventures,
+  replaceAdventures,
+  flush as flushAdventures,
+  type Adventure,
+} from './stores/adventures.svelte';
+import { getBeats, replaceBeats, flush as flushBeats, migrateLegacyBeatsToAdventures, type Beat } from './stores/beats.svelte';
 import { getSessions, replaceSessions, flush as flushSessions, type Session } from './stores/sessions.svelte';
 import { getBestiary, replaceBestiary, flush as flushBestiary, type BestiaryEntry } from './stores/bestiary.svelte';
 import { getFactions, replaceFactions, flush as flushFactions, type Faction } from './stores/factions.svelte';
@@ -19,6 +25,7 @@ export interface CampaignExport {
   exportedAt: string;
   party: PartyMember[];
   hirelings: Hireling[];
+  adventures: Adventure[];
   beats: Beat[];
   sessions: Session[];
   bestiary: BestiaryEntry[];
@@ -33,6 +40,7 @@ export function buildCampaignExport(): CampaignExport {
     exportedAt: new Date().toISOString(),
     party: getParty(),
     hirelings: getHirelings(),
+    adventures: getAdventures(),
     beats: getBeats(),
     sessions: getSessions(),
     bestiary: getBestiary(),
@@ -65,7 +73,22 @@ function isBeat(value: unknown): value is Beat {
     typeof v.title === 'string' &&
     typeof v.status === 'string' &&
     (v.hexNodeId === undefined || v.hexNodeId === null || typeof v.hexNodeId === 'string') &&
-    (v.factionIds === undefined || (Array.isArray(v.factionIds) && v.factionIds.every((id) => typeof id === 'string')))
+    (v.factionIds === undefined || (Array.isArray(v.factionIds) && v.factionIds.every((id) => typeof id === 'string'))) &&
+    // Optional for backward compatibility — exports made before the
+    // Adventures feature existed have no `adventureId` on their beats;
+    // `importCampaign` runs those through `migrateLegacyBeatsToAdventures`.
+    (v.adventureId === undefined || typeof v.adventureId === 'string')
+  );
+}
+
+function isAdventure(value: unknown): value is Adventure {
+  if (!value || typeof value !== 'object') return false;
+  const v = value as Record<string, unknown>;
+  return (
+    typeof v.id === 'string' &&
+    typeof v.title === 'string' &&
+    typeof v.description === 'string' &&
+    typeof v.status === 'string'
   );
 }
 
@@ -145,6 +168,12 @@ export function parseCampaignExport(text: string): CampaignExport {
   if (!Array.isArray(candidate.hirelings) || !candidate.hirelings.every(isHireling)) {
     throw new Error('That file does not look like a Whiskerwatch campaign export.');
   }
+  if (
+    candidate.adventures !== undefined &&
+    (!Array.isArray(candidate.adventures) || !candidate.adventures.every(isAdventure))
+  ) {
+    throw new Error('That file does not look like a Whiskerwatch campaign export.');
+  }
   if (candidate.beats !== undefined && (!Array.isArray(candidate.beats) || !candidate.beats.every(isBeat))) {
     throw new Error('That file does not look like a Whiskerwatch campaign export.');
   }
@@ -172,6 +201,7 @@ export function parseCampaignExport(text: string): CampaignExport {
     exportedAt: typeof candidate.exportedAt === 'string' ? candidate.exportedAt : new Date().toISOString(),
     party: candidate.party,
     hirelings: candidate.hirelings,
+    adventures: Array.isArray(candidate.adventures) ? candidate.adventures : [],
     beats: Array.isArray(candidate.beats) ? candidate.beats : [],
     sessions: Array.isArray(candidate.sessions) ? candidate.sessions : [],
     bestiary: Array.isArray(candidate.bestiary) ? candidate.bestiary : [],
@@ -197,7 +227,18 @@ export async function importCampaign(file: File): Promise<void> {
   const data = parseCampaignExport(text);
   replaceParty(data.party);
   replaceHirelings(data.hirelings);
-  replaceBeats(data.beats);
+
+  // A legacy export (made before the Adventures feature existed) has no
+  // `adventures` and no `adventureId` on its beats — running its beats
+  // through the same migration used for pre-existing local data (see
+  // `beats.svelte.ts`) turns any such legacy root beat into a real
+  // Adventure instead of crashing or losing the beat tree. This is a no-op
+  // for a modern export, since every beat there already carries a real
+  // `adventureId`.
+  const { beats: migratedBeats, adventures: migratedAdventures } = migrateLegacyBeatsToAdventures(data.beats);
+  replaceAdventures([...data.adventures, ...migratedAdventures]);
+  replaceBeats(migratedBeats);
+
   replaceSessions(data.sessions);
   replaceBestiary(data.bestiary);
   replaceFactions(data.factions);
@@ -212,6 +253,7 @@ export async function importCampaign(file: File): Promise<void> {
   await Promise.all([
     flushParty(),
     flushHirelings(),
+    flushAdventures(),
     flushBeats(),
     flushSessions(),
     flushBestiary(),

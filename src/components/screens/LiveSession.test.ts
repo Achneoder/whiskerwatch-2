@@ -128,7 +128,7 @@ describe('LiveSession', () => {
       { id: 'f2', name: 'The Keepers', disposition: 'ally', clock: 1, of: 6, note: '', tags: [] },
     ]);
     replaceBeats([
-      { id: 'b1', parentId: null, title: 'The granary raid', notes: '', status: 'active', hexNodeId: null, factionIds: [] },
+      { id: 'b1', parentId: null, title: 'The granary raid', notes: '', status: 'active', hexNodeId: null, factionIds: [], adventureId: 'adv-1' },
     ]);
     replaceSessions([{ id: 's1', number: 5, date: '2026-01-01', title: 'Into the tunnels', summary: '' }]);
   }
@@ -432,6 +432,7 @@ describe('LiveSession', () => {
         status: 'active',
         hexNodeId: 'deleted-hex',
         factionIds: [],
+        adventureId: 'adv-1',
       },
     ]);
     replaceSessions([]);
@@ -456,6 +457,7 @@ describe('LiveSession', () => {
         status: 'active',
         hexNodeId: 'hex1',
         factionIds: [],
+        adventureId: 'adv-1',
       },
     ]);
     replaceSessions([]);
@@ -489,6 +491,7 @@ describe('LiveSession', () => {
         status: 'active',
         hexNodeId: 'hex1',
         factionIds: [],
+        adventureId: 'adv-1',
       },
     ]);
     replaceSessions([]);

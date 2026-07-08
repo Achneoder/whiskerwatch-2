@@ -16,6 +16,7 @@ function makeBeat(overrides: Partial<Beat> = {}): Beat {
     status: 'planned',
     hexNodeId: null,
     factionIds: [],
+    adventureId: 'adv-1',
     ...overrides,
   };
 }

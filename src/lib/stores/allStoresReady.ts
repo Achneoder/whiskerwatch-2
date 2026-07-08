@@ -1,5 +1,6 @@
 import { ready as partyReady } from './party.svelte';
 import { ready as hirelingsReady } from './hirelings.svelte';
+import { ready as adventuresReady } from './adventures.svelte';
 import { ready as beatsReady } from './beats.svelte';
 import { ready as sessionsReady } from './sessions.svelte';
 import { ready as bestiaryReady } from './bestiary.svelte';
@@ -22,6 +23,7 @@ import { ready as campaignHistoryReady } from './campaignHistory.svelte';
 export const allStoresReady: Promise<void> = Promise.all([
   partyReady,
   hirelingsReady,
+  adventuresReady,
   beatsReady,
   sessionsReady,
   bestiaryReady,

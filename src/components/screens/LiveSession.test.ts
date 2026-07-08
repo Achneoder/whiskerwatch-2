@@ -7,6 +7,8 @@ import { replaceFactions, getFactions } from '../../lib/stores/factions.svelte';
 import { replaceBeats } from '../../lib/stores/beats.svelte';
 import { replaceSessions } from '../../lib/stores/sessions.svelte';
 import { getCampaignHistory, replaceCampaignHistory } from '../../lib/stores/campaignHistory.svelte';
+import { replaceHexNodes, type HexNode } from '../../lib/stores/hexmap.svelte';
+import { replaceBestiary, type BestiaryEntry } from '../../lib/stores/bestiary.svelte';
 
 function member(overrides: Partial<PartyMember> = {}): PartyMember {
   return {
@@ -62,9 +64,56 @@ function mockD6Pair(d1: number, d2: number) {
   spy.mockReturnValueOnce((d2 - 1) / 6 + 0.0001);
 }
 
+/**
+ * Rolling a hex encounter with a single-candidate encounter table still
+ * consumes one `Math.random()` call internally (`weightedPick`'s weighted
+ * roll), even though the pick itself is deterministic with only one entry.
+ * That call has to be queued ahead of the reaction roll's own 2d6 pair, or
+ * the dice mocks land on the wrong calls.
+ */
+function mockEncounterPickThenReaction(d1: number, d2: number) {
+  const spy = vi.spyOn(Math, 'random');
+  spy.mockReturnValueOnce(0.0001); // weightedPick's single-candidate roll
+  spy.mockReturnValueOnce((d1 - 1) / 6 + 0.0001);
+  spy.mockReturnValueOnce((d2 - 1) / 6 + 0.0001);
+}
+
+function hexNode(overrides: Partial<HexNode> = {}): HexNode {
+  return {
+    id: 'hex1',
+    q: 0,
+    r: 0,
+    terrain: 'forest',
+    name: 'The Gnawgate',
+    notes: '',
+    discovered: true,
+    encounters: [],
+    controlledBy: null,
+    contestedBy: [],
+    ...overrides,
+  };
+}
+
+function bestiaryEntry(overrides: Partial<BestiaryEntry> = {}): BestiaryEntry {
+  return {
+    id: 'b1',
+    name: 'Barn Cat',
+    category: 'Beast',
+    hd: 3,
+    hp: 12,
+    armor: 1,
+    attacks: [],
+    special: '',
+    notes: '',
+    ...overrides,
+  };
+}
+
 describe('LiveSession', () => {
   beforeEach(() => {
     replaceCampaignHistory([]);
+    replaceHexNodes([]);
+    replaceBestiary([]);
   });
 
   afterEach(() => {
@@ -349,6 +398,83 @@ describe('LiveSession', () => {
     const [entry] = getCampaignHistory();
     expect(entry).toMatchObject({ type: 'death', name: 'Pip' });
     expect((entry as { cause?: string }).cause).toBeUndefined();
+  });
+
+  it('does not show a hex encounter card when the active beat has no linked hex', () => {
+    seed();
+    render(LiveSession, { props: {} });
+
+    expect(screen.queryByRole('button', { name: 'Roll an encounter' })).not.toBeInTheDocument();
+  });
+
+  it('rolls a hex encounter then a reaction for it, tied to that active hex', async () => {
+    replaceParty([member()]);
+    replaceHirelings([hireling()]);
+    replaceFactions([]);
+    replaceBeats([
+      {
+        id: 'b1',
+        parentId: null,
+        title: 'The granary raid',
+        notes: '',
+        status: 'active',
+        hexNodeId: 'hex1',
+        factionIds: [],
+      },
+    ]);
+    replaceSessions([]);
+    replaceHexNodes([hexNode({ encounters: [{ bestiaryId: 'b1', weight: 1 }] })]);
+    replaceBestiary([bestiaryEntry()]);
+    mockEncounterPickThenReaction(3, 4); // reaction total 7 — neutral
+    render(LiveSession, { props: {} });
+
+    expect(screen.getByText('The Gnawgate')).toBeInTheDocument();
+    await fireEvent.click(screen.getByRole('button', { name: 'Roll an encounter' }));
+
+    expect(screen.getByText('Barn Cat')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Roll Reaction' })).toBeInTheDocument();
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Roll Reaction' }));
+
+    expect(screen.getByText('Neutral')).toBeInTheDocument();
+    expect(screen.getByText('Uncertain, will act to preserve itself.')).toBeInTheDocument();
+  });
+
+  it('clears a previous reaction roll when a new encounter is rolled', async () => {
+    replaceParty([member()]);
+    replaceHirelings([]);
+    replaceFactions([]);
+    replaceBeats([
+      {
+        id: 'b1',
+        parentId: null,
+        title: 'The granary raid',
+        notes: '',
+        status: 'active',
+        hexNodeId: 'hex1',
+        factionIds: [],
+      },
+    ]);
+    replaceSessions([]);
+    replaceHexNodes([hexNode({ encounters: [{ bestiaryId: 'b1', weight: 1 }] })]);
+    replaceBestiary([bestiaryEntry()]);
+    const spy = vi.spyOn(Math, 'random');
+    spy.mockReturnValueOnce(0.0001); // first encounter roll's weightedPick draw
+    spy.mockReturnValueOnce((6 - 1) / 6 + 0.0001); // reaction d1 = 6
+    spy.mockReturnValueOnce((6 - 1) / 6 + 0.0001); // reaction d2 = 6 — total 12, helpful
+    spy.mockReturnValueOnce(0.0001); // second encounter roll's weightedPick draw
+    render(LiveSession, { props: {} });
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Roll an encounter' }));
+    await fireEvent.click(screen.getByRole('button', { name: 'Roll Reaction' }));
+    expect(screen.getByText('Helpful')).toBeInTheDocument();
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Roll an encounter' }));
+
+    // The reaction result is gone, but the "Roll Reaction" trigger is back —
+    // it's tied to *this* encounter instance, not gone for good.
+    expect(screen.queryByText('Helpful')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Roll Reaction' })).toBeInTheDocument();
   });
 
   it('resets Pay Day\'s paid state every time the modal reopens', async () => {

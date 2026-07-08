@@ -4,6 +4,7 @@
   import FactionClockStrip from './FactionClockStrip.svelte';
   import LiveSessionCard from './LiveSessionCard.svelte';
   import LiveSessionInventoryModal from './LiveSessionInventoryModal.svelte';
+  import LiveSessionEncounterCard from './LiveSessionEncounterCard.svelte';
   import SaveDock from './SaveDock.svelte';
   import ConfirmDialog from '../ui/ConfirmDialog.svelte';
   import Tag from '../ui/Tag.svelte';
@@ -34,8 +35,12 @@
   } from '../../lib/stores/hirelings.svelte';
   import { getFactions, bumpFactionClock, updateFaction } from '../../lib/stores/factions.svelte';
   import { getBeats } from '../../lib/stores/beats.svelte';
+  import { getHexNodes } from '../../lib/stores/hexmap.svelte';
+  import { getBestiary, type BestiaryEntry } from '../../lib/stores/bestiary.svelte';
   import { getLastSession, getNextSessionNumber, type Session } from '../../lib/stores/sessions.svelte';
   import { rollSave, rollLoyaltySave } from '../../lib/generators/save';
+  import { generateEncounterFor } from '../../lib/generators/encounters';
+  import { rollReaction, type ReactionRollResult } from '../../lib/generators/reaction';
   import { CONDITIONS, type ConditionName } from '../../lib/conditions';
   import { getLiveSessionEvents, logEvent, clearLog } from '../../lib/stores/liveSessionLog.svelte';
   import { logDeath } from '../../lib/stores/campaignHistory.svelte';
@@ -84,6 +89,37 @@
 
   const lastSession = $derived(getLastSession());
   const activeBeat = $derived(getBeats().find((b) => b.status === 'active') ?? null);
+
+  // The hex-encounter surface only appears once the active beat is actually
+  // linked to a hex (see Phase 9's beat↔hex linking) — Live Session isn't
+  // the place to pick a hex from scratch, that's what Generators' "any hex"
+  // picker is for.
+  const hexNodes = getHexNodes();
+  const bestiary = getBestiary();
+  const activeHex = $derived(activeBeat?.hexNodeId ? (hexNodes.find((h) => h.id === activeBeat.hexNodeId) ?? null) : null);
+  let encounterResult = $state<BestiaryEntry | null>(null);
+  // Tied to a specific encounter instance — rolling a new encounter always
+  // clears whatever reaction was rolled for the previous one.
+  let reactionResult = $state<ReactionRollResult | null>(null);
+
+  function rollHexEncounter() {
+    if (!activeHex) return;
+    encounterResult = generateEncounterFor(activeHex.id, hexNodes, bestiary);
+    reactionResult = null;
+  }
+
+  function rollHexEncounterReaction() {
+    reactionResult = rollReaction();
+  }
+
+  // A different active hex (new beat, or the same beat re-linked to a
+  // different hex) means any previously-rolled encounter/reaction no longer
+  // applies to what's on screen.
+  $effect(() => {
+    void activeHex?.id;
+    encounterResult = null;
+    reactionResult = null;
+  });
 
   const activeParty = $derived(party.filter((m) => m.status === 'active'));
   const fallenParty = $derived(party.filter((m) => m.status === 'deceased'));
@@ -414,6 +450,17 @@
       onbump={bumpClock}
       ondismissnotice={dismissNotice}
     />
+
+    {#if activeHex}
+      <LiveSessionEncounterCard
+        hexName={activeHex.name || `Hex ${activeHex.q},${activeHex.r}`}
+        hasBestiary={bestiary.length > 0}
+        {encounterResult}
+        {reactionResult}
+        onrollencounter={rollHexEncounter}
+        onrollreaction={rollHexEncounterReaction}
+      />
+    {/if}
 
     <section class="flex flex-col gap-[var(--sp-3)]">
       <div class="ww-label">{$_('liveSession.party')}</div>

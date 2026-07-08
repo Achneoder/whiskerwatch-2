@@ -84,6 +84,43 @@ describe('Generators', () => {
     expect(screen.getByText(/No bestiary entries yet/)).toBeInTheDocument();
   });
 
+  it('rolls a reaction for the current encounter and shows the band and SRD guidance', async () => {
+    const spy = vi.spyOn(Math, 'random');
+    spy.mockReturnValueOnce(0.0001); // Bramblewatch has one candidate — weightedPick's draw doesn't matter
+    spy.mockReturnValueOnce((6 - 1) / 6 + 0.0001); // reaction d1 = 6
+    spy.mockReturnValueOnce((6 - 1) / 6 + 0.0001); // reaction d2 = 6 — total 12, helpful
+    render(Generators, { props: { onnavigate: vi.fn() } });
+
+    await fireEvent.change(screen.getByRole('combobox', { name: 'Hex' }), { target: { value: 'h1' } });
+    await fireEvent.click(screen.getByRole('button', { name: 'Roll an encounter' }));
+    await fireEvent.click(screen.getByRole('button', { name: 'Roll Reaction' }));
+
+    expect(screen.getByText('Helpful')).toBeInTheDocument();
+    expect(screen.getByText('Actively helps, and offers a service.')).toBeInTheDocument();
+
+    spy.mockRestore();
+  });
+
+  it('clears a previous reaction roll when a new encounter is rolled', async () => {
+    const spy = vi.spyOn(Math, 'random');
+    spy.mockReturnValueOnce(0.0001); // first encounter roll's weightedPick draw
+    spy.mockReturnValueOnce((1 - 1) / 6 + 0.0001); // reaction d1 = 1
+    spy.mockReturnValueOnce((1 - 1) / 6 + 0.0001); // reaction d2 = 1 — total 2, hostile
+    spy.mockReturnValueOnce(0.0001); // second encounter roll's weightedPick draw
+    render(Generators, { props: { onnavigate: vi.fn() } });
+
+    await fireEvent.change(screen.getByRole('combobox', { name: 'Hex' }), { target: { value: 'h1' } });
+    await fireEvent.click(screen.getByRole('button', { name: 'Roll an encounter' }));
+    await fireEvent.click(screen.getByRole('button', { name: 'Roll Reaction' }));
+    expect(screen.getByText('Hostile')).toBeInTheDocument();
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Roll an encounter' }));
+
+    expect(screen.queryByText('Hostile')).not.toBeInTheDocument();
+
+    spy.mockRestore();
+  });
+
   it('rolls an item and shows a result from the table', async () => {
     render(Generators, { props: { onnavigate: vi.fn() } });
 

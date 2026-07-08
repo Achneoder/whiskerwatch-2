@@ -41,6 +41,14 @@
   const activeHirelings = $derived(hirelings.filter((h) => h.status === 'active'));
   const fallenHirelings = $derived(hirelings.filter((h) => h.status === 'deceased'));
 
+  // Retainer limit (Mausritter core): each mouse's WIL score is how many
+  // hirelings it can individually command, but this is tracked as a single
+  // collective capacity across the whole party rather than assigning specific
+  // hirelings to specific mice — there's no UI for that assignment, just a
+  // live "are we over capacity" fact that recomputes as the roster changes.
+  const partyWilCapacity = $derived(activeParty.reduce((sum, m) => sum + m.wil, 0));
+  const overHirelingLimit = $derived(activeHirelings.length > partyWilCapacity);
+
   let memberModal = $state<{ mode: 'add' } | { mode: 'edit'; member: PartyMember } | null>(null);
   let hirelingModal = $state<{ mode: 'add' } | { mode: 'edit'; hireling: Hireling } | null>(null);
   let deleteMemberTarget = $state<PartyMember | null>(null);
@@ -152,7 +160,11 @@
         {/snippet}
         <div class="flex flex-col gap-[var(--sp-3)]">
           {#each activeParty as member (member.id)}
-            <div class="flex flex-wrap items-center gap-x-[var(--sp-4)] gap-y-2 py-2 border-b border-[var(--border)]">
+            <!-- data-testid: same minimal Playwright concession as LiveSessionCard — a stable hook to scope "delete Pip's row, not Wren's" without fragile DOM traversal. -->
+            <div
+              data-testid={`party-row-${member.name}`}
+              class="flex flex-wrap items-center gap-x-[var(--sp-4)] gap-y-2 py-2 border-b border-[var(--border)]"
+            >
               <div class="min-w-23 flex flex-col gap-1">
                 <div class="font-[family-name:var(--font-display)] font-bold text-[length:var(--text-title)]">
                   {member.name}
@@ -240,6 +252,13 @@
           </Button>
         {/snippet}
         <div class="flex flex-col gap-[var(--sp-3)]">
+          {#if overHirelingLimit}
+            <div
+              class="rounded-[var(--radius-md)] border border-[var(--warning)] bg-[var(--warning-tint)] text-[var(--warning-hover)] px-[var(--sp-4)] py-[var(--sp-3)] text-[length:var(--text-body)]"
+            >
+              {$_('roster.hirelings.hirelingLimitWarning')}
+            </div>
+          {/if}
           {#each activeHirelings as hireling (hireling.id)}
             <div class="flex flex-wrap items-center gap-x-[var(--sp-4)] gap-y-2 py-2 border-b border-[var(--border)]">
               <div class="min-w-23 flex flex-col gap-1">

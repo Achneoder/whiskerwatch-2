@@ -101,7 +101,14 @@
     "payDayTitle": "Pay day",
     "payDayPaid": "Paid",
     "payDayUnpaid": "Unpaid",
-    "rollLoyaltySave": "Roll loyalty save"
+    "rollLoyaltySave": "Roll loyalty save",
+    "encounter": {
+      "eyebrow": "Encounter",
+      "roll": "Roll an encounter"
+    },
+    "reaction": {
+      "roll": "Roll Reaction"
+    }
   },
   "recap": {
     "eyebrow": "Live · End of session",
@@ -140,7 +147,8 @@
       "addTitle": "Add a hireling",
       "editTitle": "Edit hireling",
       "deleteTitle": "Delete hireling?",
-      "deleteMessage": "This removes {name} from the roster. This can't be undone — but nothing else in the campaign changes."
+      "deleteMessage": "This removes {name} from the roster. This can't be undone — but nothing else in the campaign changes.",
+      "hirelingLimitWarning": "This party has more hirelings than its mice can command (WIL limit) — still fine to play, but Loyalty checks may get messy."
     },
     "form": {
       "name": "Name",
@@ -375,7 +383,10 @@
       "anyHex": "Any hex (whole bestiary)",
       "noBestiary": "No bestiary entries yet — add creatures in the Bestiary screen.",
       "rolledFor": "Rolled for {hex}",
-      "rolledAny": "Rolled from the whole bestiary"
+      "rolledAny": "Rolled from the whole bestiary",
+      "reaction": {
+        "roll": "Roll Reaction"
+      }
     },
     "item": {
       "eyebrow": "Item",
@@ -459,5 +470,21 @@
     "clockChanged": "{name} clock: {from} — {to}",
     "died": "{name} died",
     "diedWithCause": "{name} died — {cause}"
+  },
+  "reaction": {
+    "band": {
+      "hostile": "Hostile",
+      "unfriendly": "Unfriendly",
+      "neutral": "Neutral",
+      "friendly": "Friendly",
+      "helpful": "Helpful"
+    },
+    "guidance": {
+      "hostile": "Attacks or otherwise acts against the party.",
+      "unfriendly": "Does the opposite of what's asked, may attack.",
+      "neutral": "Uncertain, will act to preserve itself.",
+      "friendly": "Does as asked, if not put in danger.",
+      "helpful": "Actively helps, and offers a service."
+    }
   }
 }

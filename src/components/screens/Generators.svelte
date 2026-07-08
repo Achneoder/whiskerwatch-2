@@ -6,6 +6,7 @@
   import Card from '../ui/Card.svelte';
   import Stepper from '../ui/Stepper.svelte';
   import DiceRoll from '../ui/DiceRoll.svelte';
+  import ReactionResult from '../ui/ReactionResult.svelte';
   import Icon from '../ui/Icon.svelte';
   import StatBlock from '../ui/StatBlock.svelte';
   import Modal from '../ui/Modal.svelte';
@@ -14,6 +15,7 @@
   import { rollDice, type DiceRollResult } from '../../lib/generators/roll';
   import { ITEM_TABLE, generateFrom, generateNpc, type GeneratedNpc } from '../../lib/generators/tables';
   import { generateEncounterFor } from '../../lib/generators/encounters';
+  import { rollReaction, type ReactionRollResult } from '../../lib/generators/reaction';
   import { getHexNodes } from '../../lib/stores/hexmap.svelte';
   import { getBestiary, addBestiaryEntry, removeBestiaryEntry, type BestiaryEntry } from '../../lib/stores/bestiary.svelte';
   import { addHireling, removeHireling, type Hireling } from '../../lib/stores/hirelings.svelte';
@@ -42,9 +44,14 @@
   let selectedHexId = $state<string>('any');
   let encounterResult = $state<BestiaryEntry | null>(null);
   let resultSourceLabel = $state('');
+  // Reaction is tied to the specific rolled encounter, not the hex/bestiary
+  // pick in general — a fresh encounter roll always clears any previous
+  // reaction result rather than leaving a stale one attached to a new beast.
+  let reactionResult = $state<ReactionRollResult | null>(null);
 
   function rollEncounter() {
     encounterResult = generateEncounterFor(selectedHexId, hexNodes, bestiary);
+    reactionResult = null;
     if (selectedHexId === 'any') {
       resultSourceLabel = $_('generators.encounter.rolledAny');
     } else {
@@ -52,6 +59,10 @@
       const hexName = hex?.name || `Hex ${hex?.q},${hex?.r}`;
       resultSourceLabel = $_('generators.encounter.rolledFor', { values: { hex: hexName } });
     }
+  }
+
+  function rollEncounterReaction() {
+    reactionResult = rollReaction();
   }
 
   let item = $state<string | null>(null);
@@ -257,9 +268,17 @@
               {$_('generators.encounter.roll')}
             </Button>
             {#if encounterResult}
-              <div class="bg-[var(--surface-sunk)] rounded-[var(--radius-md)] p-[var(--sp-3)]">
-                <p class="text-[length:var(--text-caption)] text-[var(--text-muted)] mb-1">{resultSourceLabel}</p>
-                <StatBlock entry={encounterResult} statGap="var(--sp-3)" />
+              <div class="bg-[var(--surface-sunk)] rounded-[var(--radius-md)] p-[var(--sp-3)] flex flex-col gap-[var(--sp-3)]">
+                <div>
+                  <p class="text-[length:var(--text-caption)] text-[var(--text-muted)] mb-1">{resultSourceLabel}</p>
+                  <StatBlock entry={encounterResult} statGap="var(--sp-3)" />
+                </div>
+                <Button variant="secondary" size="sm" onclick={rollEncounterReaction}>
+                  {$_('generators.encounter.reaction.roll')}
+                </Button>
+                {#if reactionResult}
+                  <ReactionResult result={reactionResult} />
+                {/if}
               </div>
             {/if}
           {/if}

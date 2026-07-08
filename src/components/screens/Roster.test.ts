@@ -241,4 +241,77 @@ describe('Roster', () => {
     expect(screen.queryByRole('button', { name: 'Edit' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument();
   });
+
+  const limitWarning = 'This party has more hirelings than its mice can command';
+
+  it('shows the WIL-limit warning when active hirelings outnumber the party\'s summed WIL', () => {
+    replaceParty([member({ id: '1', name: 'Pip', wil: 4 })]);
+    replaceHirelings([
+      hireling({ id: '1', name: 'Oat' }),
+      hireling({ id: '2', name: 'Reed' }),
+      hireling({ id: '3', name: 'Fen' }),
+      hireling({ id: '4', name: 'Sable' }),
+      hireling({ id: '5', name: 'Basil' }),
+    ]);
+    render(Roster, { props: { onnavigate: vi.fn() } });
+
+    expect(screen.getByText(new RegExp(limitWarning))).toBeInTheDocument();
+  });
+
+  it('does not show the WIL-limit warning when hirelings are within the party\'s summed WIL', () => {
+    replaceParty([member({ id: '1', name: 'Pip', wil: 10 })]);
+    replaceHirelings([hireling({ id: '1', name: 'Oat' }), hireling({ id: '2', name: 'Reed' })]);
+    render(Roster, { props: { onnavigate: vi.fn() } });
+
+    expect(screen.queryByText(new RegExp(limitWarning))).not.toBeInTheDocument();
+  });
+
+  it('does not show the WIL-limit warning right at the boundary (hirelings equal to summed WIL)', () => {
+    replaceParty([member({ id: '1', name: 'Pip', wil: 5 })]);
+    replaceHirelings([
+      hireling({ id: '1', name: 'Oat' }),
+      hireling({ id: '2', name: 'Reed' }),
+      hireling({ id: '3', name: 'Fen' }),
+      hireling({ id: '4', name: 'Sable' }),
+      hireling({ id: '5', name: 'Basil' }),
+    ]);
+    // 5 hirelings === 5 WIL is exactly at capacity, not over it.
+    render(Roster, { props: { onnavigate: vi.fn() } });
+
+    expect(screen.queryByText(new RegExp(limitWarning))).not.toBeInTheDocument();
+  });
+
+  it('reappears when a hireling is added past the WIL limit and disappears again once removed', async () => {
+    replaceParty([member({ id: '1', name: 'Pip', wil: 1 })]);
+    replaceHirelings([hireling({ id: '1', name: 'Oat' })]);
+    render(Roster, { props: { onnavigate: vi.fn() } });
+
+    expect(screen.queryByText(new RegExp(limitWarning))).not.toBeInTheDocument();
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Add hireling' }));
+    await fireEvent.input(screen.getByLabelText('Name'), { target: { value: 'Reed' } });
+    await fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(screen.getByText(new RegExp(limitWarning))).toBeInTheDocument();
+
+    await fireEvent.click(screen.getAllByRole('button', { name: 'Delete' })[1]!);
+    const dialog = screen.getByRole('dialog');
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Delete' }));
+
+    expect(screen.queryByText(new RegExp(limitWarning))).not.toBeInTheDocument();
+  });
+
+  it('ignores deceased hirelings and deceased mice when computing the WIL limit', () => {
+    replaceParty([
+      member({ id: '1', name: 'Pip', wil: 10 }),
+      member({ id: '2', name: 'Wren', wil: 10, status: 'deceased' }),
+    ]);
+    replaceHirelings([
+      hireling({ id: '1', name: 'Oat', status: 'deceased' }),
+      hireling({ id: '2', name: 'Reed', status: 'deceased' }),
+    ]);
+    render(Roster, { props: { onnavigate: vi.fn() } });
+
+    expect(screen.queryByText(new RegExp(limitWarning))).not.toBeInTheDocument();
+  });
 });

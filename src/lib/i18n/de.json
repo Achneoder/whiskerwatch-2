@@ -101,7 +101,14 @@
     "payDayTitle": "Zahltag",
     "payDayPaid": "Bezahlt",
     "payDayUnpaid": "Unbezahlt",
-    "rollLoyaltySave": "Loyalitäts-Rettungswurf würfeln"
+    "rollLoyaltySave": "Loyalitäts-Rettungswurf würfeln",
+    "encounter": {
+      "eyebrow": "Begegnung",
+      "roll": "Begegnung würfeln"
+    },
+    "reaction": {
+      "roll": "Reaktion würfeln"
+    }
   },
   "recap": {
     "eyebrow": "Live · Sitzungsende",
@@ -140,7 +147,8 @@
       "addTitle": "Helfer hinzufügen",
       "editTitle": "Helfer bearbeiten",
       "deleteTitle": "Helfer löschen?",
-      "deleteMessage": "Dadurch wird {name} aus der Übersicht entfernt. Das kann nicht rückgängig gemacht werden — aber sonst ändert sich nichts an der Kampagne."
+      "deleteMessage": "Dadurch wird {name} aus der Übersicht entfernt. Das kann nicht rückgängig gemacht werden — aber sonst ändert sich nichts an der Kampagne.",
+      "hirelingLimitWarning": "Diese Gruppe hat mehr Gefolge, als ihre Mäuse befehligen können (WIL-Grenze) — spielbar ist es trotzdem, aber Loyalitätsproben könnten schwierig werden."
     },
     "form": {
       "name": "Name",
@@ -375,7 +383,10 @@
       "anyHex": "Beliebiges Hexfeld (ganzes Bestiarium)",
       "noBestiary": "Noch keine Bestiarium-Einträge — füge Kreaturen im Bestiarium hinzu.",
       "rolledFor": "Gewürfelt für {hex}",
-      "rolledAny": "Gewürfelt aus dem ganzen Bestiarium"
+      "rolledAny": "Gewürfelt aus dem ganzen Bestiarium",
+      "reaction": {
+        "roll": "Reaktion würfeln"
+      }
     },
     "item": {
       "eyebrow": "Gegenstand",
@@ -459,5 +470,21 @@
     "clockChanged": "{name}-Uhr: {from} — {to}",
     "died": "{name} ist gestorben",
     "diedWithCause": "{name} ist gestorben — {cause}"
+  },
+  "reaction": {
+    "band": {
+      "hostile": "Feindselig",
+      "unfriendly": "Unfreundlich",
+      "neutral": "Neutral",
+      "friendly": "Freundlich",
+      "helpful": "Hilfsbereit"
+    },
+    "guidance": {
+      "hostile": "Greift die Gruppe an oder handelt gegen sie.",
+      "unfriendly": "Tut das Gegenteil dessen, worum gebeten wurde, greift eventuell an.",
+      "neutral": "Unsicher, wird zur Selbsterhaltung handeln.",
+      "friendly": "Tut, worum gebeten wird, solange es sich nicht in Gefahr bringt.",
+      "helpful": "Hilft aktiv und bietet einen Dienst an."
+    }
   }
 }

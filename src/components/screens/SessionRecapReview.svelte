@@ -14,11 +14,19 @@
   interface Props {
     events: LiveSessionEvent[];
     defaultNumber: number;
+    /**
+     * The adventure whose beat was active (or picked via Phase 12's Live
+     * Session adventure picker) when "End Session" was tapped — tags the
+     * drafted session with it so "what happened in the granary raid" stays
+     * answerable once a GM runs more than one adventure. Optional/additive:
+     * `null` (no active beat at all) just leaves the draft untagged.
+     */
+    defaultAdventureId?: string | null;
     onback: () => void;
     ondraft: (draft: Omit<Session, 'id'>) => void;
   }
 
-  let { events, defaultNumber, onback, ondraft }: Props = $props();
+  let { events, defaultNumber, defaultAdventureId = null, onback, ondraft }: Props = $props();
 
   // Groups rendered in this fixed order regardless of when events were
   // logged — "display order" for the compiled bullets (below) follows this
@@ -56,7 +64,7 @@
       .filter((e) => checked[e.id])
       .map((e) => `• ${describeEvent(e)}`);
     const summary = bullets.length > 0 ? `${bullets.join('\n')}\n` : '';
-    ondraft({ number: defaultNumber, date: today(), title: '', summary });
+    ondraft({ number: defaultNumber, date: today(), title: '', summary, adventureId: defaultAdventureId });
   }
 </script>
 

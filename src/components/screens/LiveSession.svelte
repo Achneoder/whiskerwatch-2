@@ -34,7 +34,8 @@
     type Hireling,
   } from '../../lib/stores/hirelings.svelte';
   import { getFactions, bumpFactionClock, updateFaction } from '../../lib/stores/factions.svelte';
-  import { getBeats } from '../../lib/stores/beats.svelte';
+  import { getBeats, type Beat } from '../../lib/stores/beats.svelte';
+  import { getAdventures } from '../../lib/stores/adventures.svelte';
   import { getHexNodes } from '../../lib/stores/hexmap.svelte';
   import { getBestiary, type BestiaryEntry } from '../../lib/stores/bestiary.svelte';
   import { getLastSession, getNextSessionNumber, type Session } from '../../lib/stores/sessions.svelte';
@@ -91,7 +92,58 @@
   const factions = getFactions();
 
   const lastSession = $derived(getLastSession());
-  const activeBeat = $derived(getBeats().find((b) => b.status === 'active') ?? null);
+
+  // Which adventure the GM has explicitly picked this sitting, if any. Null
+  // until the GM taps a choice; the *effective* selection (see below) falls
+  // back to the first option so there's always a valid `activeBeat`. Nothing
+  // here persists — a fresh mount of Live Session always re-derives the
+  // default. See docs/design/phase-12-live-session-adventure-picker.md.
+  let selectedAdventureId = $state<string | null>(null);
+
+  // Every beat currently marked 'active', across every adventure.
+  const activeBeatsAll = $derived(getBeats().filter((b) => b.status === 'active'));
+
+  const adventures = getAdventures();
+
+  interface AdventureOption {
+    id: string; // adventure id, or the beat id itself for the orphan-fallback case
+    title: string;
+    beat: Beat;
+  }
+
+  // One entry per adventure that has an active beat. If a beat's adventureId
+  // doesn't resolve to a real Adventure record (shouldn't happen once boot's
+  // migration has run, but storage can't be trusted blindly), fall back to
+  // the beat's own title as the label so it never just vanishes from the
+  // list.
+  const activeAdventureOptions = $derived.by((): AdventureOption[] => {
+    const seen = new Set<string>();
+    const options: AdventureOption[] = [];
+    for (const beat of activeBeatsAll) {
+      const adventure = adventures.find((a) => a.id === beat.adventureId);
+      const key = adventure?.id ?? beat.id;
+      if (seen.has(key)) continue; // one option per adventure — first active beat wins, matching today's array-order fallback
+      seen.add(key);
+      options.push({ id: key, title: adventure?.title ?? beat.title, beat });
+    }
+    return options;
+  });
+
+  const needsPicker = $derived(activeAdventureOptions.length >= 2);
+
+  const effectiveAdventureId = $derived(
+    needsPicker ? (selectedAdventureId ?? activeAdventureOptions[0]!.id) : null,
+  );
+
+  // This replaces the old bare `getBeats().find(b => b.status === 'active')`
+  // — with two-or-more concurrent adventures each carrying an active beat,
+  // that lookup silently returned whichever beat happened to be first in
+  // storage order, not whichever one the GM is actually running tonight.
+  const activeBeat = $derived(
+    needsPicker
+      ? (activeAdventureOptions.find((o) => o.id === effectiveAdventureId)?.beat ?? null)
+      : (activeBeatsAll[0] ?? null),
+  );
 
   // The hex-encounter surface only appears once the active beat is actually
   // linked to a hex (see Phase 9's beat↔hex linking) — Live Session isn't
@@ -433,6 +485,7 @@
   <SessionRecapReview
     events={sessionEvents}
     defaultNumber={getNextSessionNumber()}
+    defaultAdventureId={activeBeat?.adventureId ?? null}
     onback={() => (endSessionOpen = false)}
     ondraft={draftRecap}
   />
@@ -442,6 +495,11 @@
     sessionNumber={lastSession?.number ?? null}
     sessionTitle={lastSession?.title ?? null}
     beatTitle={activeBeat?.title ?? null}
+    adventureOptions={needsPicker
+      ? activeAdventureOptions.map((o) => ({ id: o.id, title: o.title, beatTitle: o.beat.title }))
+      : undefined}
+    selectedAdventureId={needsPicker ? effectiveAdventureId : null}
+    onselectadventure={(id) => (selectedAdventureId = id)}
     {onexit}
     onopenrules={() => (rulesOpen = true)}
     onendsession={() => (endSessionOpen = true)}

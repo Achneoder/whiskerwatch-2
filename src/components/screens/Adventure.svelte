@@ -42,6 +42,14 @@
 
   const adventures = getAdventures();
   const beats = getBeats();
+
+  // Mirrors Roster's "Fallen (N)" collapse for deceased mice — an
+  // ever-growing flat list of adventure cards works against the whole
+  // "make the state that matters glanceable" ethos, so completed adventures
+  // move into a collapsed section at the bottom instead of piling up above
+  // the fold forever.
+  const liveAdventures = $derived(adventures.filter((a) => a.status !== 'completed'));
+  const completedAdventures = $derived(adventures.filter((a) => a.status === 'completed'));
   const hexNodes = getHexNodes();
   const factions = getFactions();
 
@@ -127,78 +135,95 @@
       </Button>
     </header>
 
+    {#snippet adventureCard(adventure: Adventure)}
+      <Card>
+        {#snippet actions()}
+          <div class="flex gap-1 shrink-0">
+            <button
+              type="button"
+              aria-label={$_('roster.edit')}
+              onclick={() => (adventureModal = { mode: 'edit', entry: adventure })}
+              class="grid place-items-center w-8 h-8 rounded-[var(--radius-md)] text-[var(--text-muted)] hover:bg-[var(--surface-sunk)] cursor-pointer"
+            >
+              <Icon icon={Pencil} />
+            </button>
+            <button
+              type="button"
+              aria-label={$_('roster.delete')}
+              onclick={() => (deleteAdventureTarget = adventure)}
+              class="grid place-items-center w-8 h-8 rounded-[var(--radius-md)] text-[var(--danger)] hover:bg-[var(--danger-tint)] cursor-pointer"
+            >
+              <Icon icon={Trash2} />
+            </button>
+          </div>
+        {/snippet}
+
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="font-[family-name:var(--font-display)] font-bold text-[length:var(--text-title)]">{adventure.title}</span>
+          <StatusPill tone={statusTone[adventure.status]} size="sm">
+            {$_(`adventure.adventureStatus.${adventure.status}`)}
+          </StatusPill>
+        </div>
+        {#if adventure.description}
+          <p class="mt-1 text-[var(--text-secondary)] text-[length:var(--text-body)]">{adventure.description}</p>
+        {/if}
+
+        <div class="flex items-center justify-between gap-[var(--sp-3)] mt-[var(--sp-4)] flex-wrap">
+          <span class="ww-label">{$_('adventure.beatOutline')}</span>
+          <Button
+            variant="secondary"
+            size="sm"
+            onclick={() => (beatModal = { mode: 'add', adventureId: adventure.id, parentId: null })}
+          >
+            {#snippet icon()}
+              <Icon icon={Plus} />
+            {/snippet}
+            {$_('adventure.addBeat')}
+          </Button>
+        </div>
+
+        {#if beatsFor(adventure.id).length === 0}
+          <p class="mt-2 text-[var(--text-muted)] text-[length:var(--text-body)]">{$_('adventure.empty')}</p>
+        {:else}
+          <div class="mt-2">
+            <BeatTree
+              beats={beatsFor(adventure.id)}
+              {hexNodes}
+              {factions}
+              parentId={null}
+              onedit={(beat) => (beatModal = { mode: 'edit', beat })}
+              ondelete={(beat) => (deleteBeatTarget = beat)}
+              onaddchild={(parentId) => onAddChild(adventure.id, parentId)}
+              onstatuschange={(beat, status) => updateBeat(beat.id, { status })}
+            />
+          </div>
+        {/if}
+      </Card>
+    {/snippet}
+
     {#if adventures.length === 0}
       <div class="bg-[var(--surface-raised)] border border-[var(--border)] rounded-[var(--radius-lg)] shadow-[var(--shadow-md)] p-[var(--pad-card)]">
         <p class="text-[var(--text-muted)] text-[length:var(--text-body)]">{$_('adventure.emptyAdventures')}</p>
       </div>
     {:else}
       <div class="flex flex-col gap-[var(--sp-4)]">
-        {#each adventures as adventure (adventure.id)}
-          <Card>
-            {#snippet actions()}
-              <div class="flex gap-1 shrink-0">
-                <button
-                  type="button"
-                  aria-label={$_('roster.edit')}
-                  onclick={() => (adventureModal = { mode: 'edit', entry: adventure })}
-                  class="grid place-items-center w-8 h-8 rounded-[var(--radius-md)] text-[var(--text-muted)] hover:bg-[var(--surface-sunk)] cursor-pointer"
-                >
-                  <Icon icon={Pencil} />
-                </button>
-                <button
-                  type="button"
-                  aria-label={$_('roster.delete')}
-                  onclick={() => (deleteAdventureTarget = adventure)}
-                  class="grid place-items-center w-8 h-8 rounded-[var(--radius-md)] text-[var(--danger)] hover:bg-[var(--danger-tint)] cursor-pointer"
-                >
-                  <Icon icon={Trash2} />
-                </button>
-              </div>
-            {/snippet}
-
-            <div class="flex items-center gap-2 flex-wrap">
-              <span class="font-[family-name:var(--font-display)] font-bold text-[length:var(--text-title)]">{adventure.title}</span>
-              <StatusPill tone={statusTone[adventure.status]} size="sm">
-                {$_(`adventure.adventureStatus.${adventure.status}`)}
-              </StatusPill>
-            </div>
-            {#if adventure.description}
-              <p class="mt-1 text-[var(--text-secondary)] text-[length:var(--text-body)]">{adventure.description}</p>
-            {/if}
-
-            <div class="flex items-center justify-between gap-[var(--sp-3)] mt-[var(--sp-4)] flex-wrap">
-              <span class="ww-label">{$_('adventure.beatOutline')}</span>
-              <Button
-                variant="secondary"
-                size="sm"
-                onclick={() => (beatModal = { mode: 'add', adventureId: adventure.id, parentId: null })}
-              >
-                {#snippet icon()}
-                  <Icon icon={Plus} />
-                {/snippet}
-                {$_('adventure.addBeat')}
-              </Button>
-            </div>
-
-            {#if beatsFor(adventure.id).length === 0}
-              <p class="mt-2 text-[var(--text-muted)] text-[length:var(--text-body)]">{$_('adventure.empty')}</p>
-            {:else}
-              <div class="mt-2">
-                <BeatTree
-                  beats={beatsFor(adventure.id)}
-                  {hexNodes}
-                  {factions}
-                  parentId={null}
-                  onedit={(beat) => (beatModal = { mode: 'edit', beat })}
-                  ondelete={(beat) => (deleteBeatTarget = beat)}
-                  onaddchild={(parentId) => onAddChild(adventure.id, parentId)}
-                  onstatuschange={(beat, status) => updateBeat(beat.id, { status })}
-                />
-              </div>
-            {/if}
-          </Card>
+        {#each liveAdventures as adventure (adventure.id)}
+          {@render adventureCard(adventure)}
         {/each}
       </div>
+
+      {#if completedAdventures.length > 0}
+        <details>
+          <summary class="ww-label cursor-pointer py-1">
+            {$_('adventure.completedSection', { values: { count: completedAdventures.length } })}
+          </summary>
+          <div class="flex flex-col gap-[var(--sp-4)] mt-[var(--sp-3)]">
+            {#each completedAdventures as adventure (adventure.id)}
+              {@render adventureCard(adventure)}
+            {/each}
+          </div>
+        </details>
+      {/if}
     {/if}
   </main>
 </div>

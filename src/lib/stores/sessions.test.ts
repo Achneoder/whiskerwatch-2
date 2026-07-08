@@ -50,4 +50,12 @@ describe('sessions store', () => {
     expect(entry).toMatchObject({ type: 'session', sessionId: session.id, number: 4, title: 'Into the sewers' });
     expect(entry?.timestamp.slice(0, 10)).toBe('2026-01-08');
   });
+
+  it('accepts an optional adventureId tag, and legacy sessions without one just carry it as undefined', () => {
+    addSession({ number: 1, date: '2026-01-01', title: 'Tagged', summary: '', adventureId: 'adv-1' });
+    addSession({ number: 2, date: '2026-01-08', title: 'Untagged', summary: '' });
+
+    expect(getSessions().find((s) => s.title === 'Tagged')?.adventureId).toBe('adv-1');
+    expect(getSessions().find((s) => s.title === 'Untagged')?.adventureId).toBeUndefined();
+  });
 });

@@ -176,4 +176,35 @@ describe('Adventure', () => {
     expect(await screen.findByText('C3')).toBeInTheDocument();
     expect(await screen.findByText('The Gnawing Court')).toBeInTheDocument();
   });
+
+  it('collapses completed adventures under a "Completed (N)" section, mirroring Roster\'s Fallen pattern', () => {
+    replaceAdventures([granaryRaid, { ...theOwlHunt, status: 'completed' }]);
+    render(Adventure, { props: { onnavigate: vi.fn() } });
+
+    expect(screen.getByText('The granary raid')).toBeInTheDocument();
+    // The completed adventure's title is still present in the DOM inside the
+    // collapsed <details> (content isn't unmounted, just visually
+    // collapsed) — same pattern Roster uses for fallen party members.
+    expect(screen.getByText('Completed (1)')).toBeInTheDocument();
+    expect(screen.getByText('The owl hunt')).toBeInTheDocument();
+  });
+
+  it('does not show a Completed section when no adventures are completed', () => {
+    replaceAdventures([granaryRaid, theOwlHunt]);
+    render(Adventure, { props: { onnavigate: vi.fn() } });
+
+    expect(screen.queryByText(/^Completed \(/)).not.toBeInTheDocument();
+  });
+
+  it('still lets the GM edit a completed adventure from inside the collapsed section', async () => {
+    replaceAdventures([{ ...theOwlHunt, status: 'completed' }]);
+    render(Adventure, { props: { onnavigate: vi.fn() } });
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
+    const input = screen.getByLabelText('Title');
+    await fireEvent.input(input, { target: { value: 'The owl hunt (wrapped up)' } });
+    await fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(await screen.findByText('The owl hunt (wrapped up)')).toBeInTheDocument();
+  });
 });

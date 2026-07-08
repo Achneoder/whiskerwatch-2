@@ -18,6 +18,7 @@
     flush as flushSessions,
     type Session,
   } from '../../lib/stores/sessions.svelte';
+  import { getAdventures } from '../../lib/stores/adventures.svelte';
 
   interface Props {
     onnavigate: (screen: NavScreen) => void;
@@ -37,7 +38,30 @@
   let { onnavigate, onstartsession, draftRecap = null, onconsumeddraft }: Props = $props();
 
   const sessions = getSessions();
-  const sorted = $derived([...sessions].sort((a, b) => b.number - a.number));
+  const adventures = getAdventures();
+
+  // Single-select filter chip: "All" (null), one chip per adventure, plus
+  // "Unassigned" (the UNASSIGNED sentinel) for sessions with no adventureId
+  // at all — including every session logged before this field existed, per
+  // the roadmap's "no backfill needed" ruling. Only shown once at least one
+  // adventure exists; with zero adventures there's nothing to filter by.
+  const UNASSIGNED = '__unassigned__';
+  let adventureFilter = $state<string | null>(null);
+
+  const sorted = $derived(
+    [...sessions]
+      .filter((s) => {
+        if (adventureFilter === null) return true;
+        if (adventureFilter === UNASSIGNED) return !s.adventureId;
+        return s.adventureId === adventureFilter;
+      })
+      .sort((a, b) => b.number - a.number),
+  );
+
+  function adventureTitleFor(id: string | null | undefined): string | null {
+    if (!id) return null;
+    return adventures.find((a) => a.id === id)?.title ?? null;
+  }
 
   let sessionModal = $state<{ mode: 'add'; draft?: Omit<Session, 'id'> } | { mode: 'edit'; session: Session } | null>(
     draftRecap ? { mode: 'add', draft: draftRecap } : null,
@@ -83,6 +107,22 @@
       </Button>
     </header>
 
+    {#if adventures.length > 0}
+      <div class="flex gap-2 overflow-x-auto pb-1" data-testid="session-adventure-filters">
+        <Tag tone={adventureFilter === null ? 'accent' : 'default'} onclick={() => (adventureFilter = null)}>
+          {$_('sessions.filterAll')}
+        </Tag>
+        {#each adventures as adventure (adventure.id)}
+          <Tag tone={adventureFilter === adventure.id ? 'accent' : 'default'} onclick={() => (adventureFilter = adventure.id)}>
+            {adventure.title}
+          </Tag>
+        {/each}
+        <Tag tone={adventureFilter === UNASSIGNED ? 'accent' : 'default'} onclick={() => (adventureFilter = UNASSIGNED)}>
+          {$_('sessions.filterUnassigned')}
+        </Tag>
+      </div>
+    {/if}
+
     <div class="flex flex-col gap-[var(--sp-4)]">
       {#each sorted as session (session.id)}
         <Card>
@@ -108,6 +148,9 @@
           {/snippet}
           <div class="flex items-center gap-[var(--sp-3)] flex-wrap">
             <Tag tone="accent">#{session.number}</Tag>
+            {#if adventureTitleFor(session.adventureId)}
+              <Tag size="sm">{adventureTitleFor(session.adventureId)}</Tag>
+            {/if}
             <span class="text-[length:var(--text-sm)] text-[var(--text-muted)]">{session.date}</span>
           </div>
           <div class="font-[family-name:var(--font-display)] font-bold text-[length:var(--text-title)] mt-1">

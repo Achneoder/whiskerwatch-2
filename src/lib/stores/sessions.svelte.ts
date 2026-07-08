@@ -7,6 +7,14 @@ export interface Session {
   date: string;
   title: string;
   summary: string;
+  /**
+   * Which `Adventure` (see `adventures.svelte.ts`) this session was mostly
+   * about, if the GM (or the Live Session "End Session" flow) tagged one —
+   * optional and additive per the Phase 12 roadmap: legacy sessions saved
+   * before this field existed simply have it `undefined` and never match an
+   * adventure filter, no backfill needed.
+   */
+  adventureId?: string | null;
 }
 
 const STORAGE_KEY = 'whiskerwatch:sessions';

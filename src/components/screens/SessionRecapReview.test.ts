@@ -97,4 +97,26 @@ describe('SessionRecapReview', () => {
     const draft = ondraft.mock.calls[0]![0];
     expect(draft.summary).not.toContain('STR drained');
   });
+
+  it('tags the drafted session with defaultAdventureId when passed (Phase 12)', async () => {
+    const ondraft = vi.fn();
+    render(SessionRecapReview, {
+      props: { events, defaultNumber: 6, defaultAdventureId: 'adv-1', onback: vi.fn(), ondraft },
+    });
+
+    await fireEvent.click(screen.getByRole('button', { name: /draft recap/i }));
+
+    expect(ondraft.mock.calls[0]![0].adventureId).toBe('adv-1');
+  });
+
+  it('leaves the draft untagged when there is no active-beat adventure to default to', async () => {
+    const ondraft = vi.fn();
+    render(SessionRecapReview, {
+      props: { events, defaultNumber: 6, onback: vi.fn(), ondraft },
+    });
+
+    await fireEvent.click(screen.getByRole('button', { name: /draft recap/i }));
+
+    expect(ondraft.mock.calls[0]![0].adventureId).toBeNull();
+  });
 });

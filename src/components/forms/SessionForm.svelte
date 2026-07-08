@@ -5,6 +5,7 @@
   import Stepper from '../ui/Stepper.svelte';
   import Button from '../ui/Button.svelte';
   import type { Session } from '../../lib/stores/sessions.svelte';
+  import { getAdventures } from '../../lib/stores/adventures.svelte';
   import { today } from '../../lib/date';
 
   interface Props {
@@ -28,6 +29,12 @@
   let date = $state(initial?.date ?? draft?.date ?? today());
   let title = $state(initial?.title ?? draft?.title ?? '');
   let summary = $state(initial?.summary ?? draft?.summary ?? '');
+  // Optional/additive per Phase 12 — defaults to whichever adventure Live
+  // Session's "End Session" flow was scoped to (`SessionRecapReview`'s
+  // `defaultAdventureId`), but the GM can freely change or clear it here.
+  let adventureId = $state<string | null>(initial?.adventureId ?? draft?.adventureId ?? null);
+
+  const adventures = getAdventures();
 
   // Captured once, at form-open time — deliberately not reactive to further
   // prop changes, since the pill's whole job is to reflect "have you edited
@@ -53,7 +60,7 @@
   function handleSubmit(event: SubmitEvent) {
     event.preventDefault();
     if (!title.trim()) return;
-    onsave({ number, date, title: title.trim(), summary: summary.trim() });
+    onsave({ number, date, title: title.trim(), summary: summary.trim(), adventureId });
   }
 </script>
 
@@ -63,6 +70,21 @@
     <Input label={$_('sessions.form.date')} type="date" bind:value={date} />
   </div>
   <Input label={$_('sessions.form.title')} bind:value={title} required />
+  {#if adventures.length > 0}
+    <div class="flex flex-col gap-1.5">
+      <span class="ww-label">{$_('sessions.form.adventure')}</span>
+      <select
+        bind:value={adventureId}
+        aria-label={$_('sessions.form.adventure')}
+        class="h-[var(--tap)] rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--surface-raised)] px-[var(--pad-control-x)] text-[length:var(--text-body)] w-fit max-w-full"
+      >
+        <option value={null}>{$_('sessions.form.adventureNone')}</option>
+        {#each adventures as adventure (adventure.id)}
+          <option value={adventure.id}>{adventure.title}</option>
+        {/each}
+      </select>
+    </div>
+  {/if}
   <div class="flex flex-col gap-[var(--sp-2)]">
     {#if showAutoGenPill}
       <div

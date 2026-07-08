@@ -8,6 +8,8 @@
   import { getCampaignHistory, type CampaignHistoryEntry } from '../../lib/stores/campaignHistory.svelte';
   import { getHexNodes } from '../../lib/stores/hexmap.svelte';
   import { getFactions } from '../../lib/stores/factions.svelte';
+  import { getAdventures } from '../../lib/stores/adventures.svelte';
+  import { getSessions } from '../../lib/stores/sessions.svelte';
   import { hexLabel } from '../../lib/hex';
 
   interface Props {
@@ -31,6 +33,27 @@
   const history = getCampaignHistory();
   const hexNodes = getHexNodes();
   const factions = getFactions();
+  const adventures = getAdventures();
+  const sessions = getSessions();
+
+  // Optional/additive per Phase 12: only `Session` carries an `adventureId`
+  // (beats/factions/deaths don't, and this phase doesn't add one) — so this
+  // filter only narrows down `session`-type rows. Every other entry kind
+  // keeps showing regardless of which adventure is selected here; the
+  // existing type checkboxes above are still how a GM hides those.
+  const UNASSIGNED = '__unassigned__';
+  let adventureFilter = $state<string | null>(null);
+
+  function adventureIdForSession(sessionId: string): string | null {
+    return sessions.find((s) => s.id === sessionId)?.adventureId ?? null;
+  }
+
+  function matchesAdventureFilter(entry: CampaignHistoryEntry): boolean {
+    if (adventureFilter === null) return true;
+    if (entry.type !== 'session') return true;
+    const id = adventureIdForSession(entry.sessionId);
+    return adventureFilter === UNASSIGNED ? !id : id === adventureFilter;
+  }
 
   function hexNameFor(hexNodeId: string | null | undefined): string | null {
     if (!hexNodeId) return null;
@@ -45,7 +68,7 @@
 
   const sorted = $derived(
     [...history]
-      .filter((entry) => activeFilters.has(entry.type))
+      .filter((entry) => activeFilters.has(entry.type) && matchesAdventureFilter(entry))
       .sort((a, b) => b.timestamp.localeCompare(a.timestamp)),
   );
 
@@ -120,6 +143,22 @@
         {$_('timeline.filter.deaths')}
       </Tag>
     </div>
+
+    {#if adventures.length > 0}
+      <div class="flex gap-2 overflow-x-auto pb-1" data-testid="timeline-adventure-filters">
+        <Tag tone={adventureFilter === null ? 'accent' : 'default'} onclick={() => (adventureFilter = null)}>
+          {$_('timeline.adventureFilterAll')}
+        </Tag>
+        {#each adventures as adventure (adventure.id)}
+          <Tag tone={adventureFilter === adventure.id ? 'accent' : 'default'} onclick={() => (adventureFilter = adventure.id)}>
+            {adventure.title}
+          </Tag>
+        {/each}
+        <Tag tone={adventureFilter === UNASSIGNED ? 'accent' : 'default'} onclick={() => (adventureFilter = UNASSIGNED)}>
+          {$_('timeline.adventureFilterUnassigned')}
+        </Tag>
+      </div>
+    {/if}
 
     {#if groups.length === 0}
       <p class="text-[var(--text-muted)] text-[length:var(--text-body)]">{$_('timeline.empty')}</p>

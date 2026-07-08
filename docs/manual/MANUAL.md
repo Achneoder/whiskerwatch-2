@@ -48,6 +48,8 @@ close to boiling over, and what needs attention before your next session.
   progress without leaving the dashboard.
 - Click **Start session** (bottom of the sidebar) any time you're ready to move into Live Session
   mode.
+- Click the pencil next to the campaign name to rename it in place — handy the first time you set
+  up a campaign, or whenever the adventure outgrows "My Campaign."
 
 ## Roster
 
@@ -69,17 +71,24 @@ data the Dashboard and Live Session screens read from.
 
 *Prep mode · Adventure*
 
-Break your current adventure into beats — a lightweight outline for planning what happens next,
-not a rigid script.
+Run more than one adventure at once — a main plotline and a side job the party picked up along
+the way, say — each with its own card and its own beat outline underneath it. Break each one into
+beats: a lightweight outline for planning what happens next, not a rigid script.
 
-![Whiskerwatch adventure screen showing an active adventure, 'The granary raid', with an Add beat button](03-adventure.png)
+![Whiskerwatch adventure screen showing two concurrent active adventures, 'The granary raid' and 'The tunnel widow's bargain', each with its own beat outline, and a collapsed 'Completed (1)' section below them](03-adventure.png)
 
-- **Add beat** builds out the outline: a beat can be a scene, a decision point, or a consequence
-  you're anticipating.
+- **Add adventure** starts a new thread without disturbing the others — every adventure keeps its
+  own title, description, status, and beat outline, so juggling a main plot and a side job never
+  means losing track of either one's beats.
+- **Add beat** builds out one adventure's outline: a beat can be a scene, a decision point, or a
+  consequence you're anticipating.
 - Beats you mark complete feed the **Timeline** screen automatically, so your campaign's history
   writes itself as you play.
-- The Dashboard's Session Prep checklist counts beats currently in play — keeping this list
-  current keeps that checklist honest.
+- Once an adventure wraps up, mark it **Completed** — it drops out of the active list and into a
+  collapsed **Completed (N)** section at the bottom, so wrapped-up plotlines stop competing for
+  space with what's still live.
+- The Dashboard's Session Prep checklist counts beats currently in play across every active
+  adventure — keeping outlines current keeps that checklist honest.
 
 ## Bestiary
 
@@ -161,6 +170,12 @@ things.
   is never a surprise.
 - **End Session** (top right) closes out the session and can hand off directly into drafting a
   recap on the Sessions screen.
+- Running two adventures with an active beat at the same time? A chip under the session title
+  lets you pick which one is "live" for the table right now — tap it to see both adventures and
+  their current beat, then choose. With zero or one active beat, nothing changes: the beat title
+  just shows underneath the session name as usual.
+
+![Whiskerwatch live session header with the adventure picker open, showing 'The granary raid' and 'The tunnel widow's bargain' as choices, each with its own active beat listed underneath](11b-livesession-picker.png)
 
 ## Sessions
 

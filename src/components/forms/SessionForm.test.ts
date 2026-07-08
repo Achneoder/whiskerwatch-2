@@ -1,8 +1,13 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/svelte';
 import SessionForm from './SessionForm.svelte';
+import { replaceAdventures } from '../../lib/stores/adventures.svelte';
 
 describe('SessionForm', () => {
+  beforeEach(() => {
+    replaceAdventures([]);
+  });
+
   it('saves a new session with the default number and entered title', async () => {
     const onsave = vi.fn();
     render(SessionForm, { props: { defaultNumber: 5, onsave, oncancel: vi.fn() } });
@@ -92,6 +97,56 @@ describe('SessionForm', () => {
 
       expect(screen.queryByText(/auto-generated draft/i)).not.toBeInTheDocument();
       expect(screen.getByDisplayValue(/Resolved: 'The raid'/)).toBeInTheDocument();
+    });
+  });
+
+  describe('optional adventure tag (Phase 12)', () => {
+    it('does not show an adventure picker when there are no adventures', () => {
+      render(SessionForm, { props: { defaultNumber: 1, onsave: vi.fn(), oncancel: vi.fn() } });
+
+      expect(screen.queryByLabelText('Adventure')).not.toBeInTheDocument();
+    });
+
+    it('defaults the adventure select to the draft\'s adventureId and saves it untouched', async () => {
+      replaceAdventures([{ id: 'adv-1', title: 'The granary raid', description: '', status: 'active' }]);
+      const onsave = vi.fn();
+      render(SessionForm, {
+        props: {
+          defaultNumber: 6,
+          draft: { number: 6, date: '2026-07-07', title: '', summary: '', adventureId: 'adv-1' },
+          onsave,
+          oncancel: vi.fn(),
+        },
+      });
+
+      expect(screen.getByLabelText('Adventure')).toHaveValue('adv-1');
+
+      await fireEvent.input(screen.getByLabelText('Title'), { target: { value: 'Wrap-up' } });
+      await fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+      expect(onsave.mock.calls[0]![0].adventureId).toBe('adv-1');
+    });
+
+    it('lets the GM change or clear the adventure tag', async () => {
+      replaceAdventures([
+        { id: 'adv-1', title: 'The granary raid', description: '', status: 'active' },
+        { id: 'adv-2', title: 'The Gnawing Court', description: '', status: 'active' },
+      ]);
+      const onsave = vi.fn();
+      render(SessionForm, {
+        props: {
+          defaultNumber: 6,
+          draft: { number: 6, date: '2026-07-07', title: '', summary: '', adventureId: 'adv-1' },
+          onsave,
+          oncancel: vi.fn(),
+        },
+      });
+
+      await fireEvent.change(screen.getByLabelText('Adventure'), { target: { value: 'adv-2' } });
+      await fireEvent.input(screen.getByLabelText('Title'), { target: { value: 'Wrap-up' } });
+      await fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+      expect(onsave.mock.calls[0]![0].adventureId).toBe('adv-2');
     });
   });
 });

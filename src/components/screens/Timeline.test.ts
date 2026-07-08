@@ -4,12 +4,16 @@ import Timeline from './Timeline.svelte';
 import { replaceCampaignHistory } from '../../lib/stores/campaignHistory.svelte';
 import { replaceHexNodes } from '../../lib/stores/hexmap.svelte';
 import { replaceFactions } from '../../lib/stores/factions.svelte';
+import { replaceAdventures } from '../../lib/stores/adventures.svelte';
+import { replaceSessions } from '../../lib/stores/sessions.svelte';
 
 describe('Timeline', () => {
   beforeEach(() => {
     replaceCampaignHistory([]);
     replaceHexNodes([]);
     replaceFactions([]);
+    replaceAdventures([]);
+    replaceSessions([]);
   });
 
   it('shows the empty state when nothing has happened yet', () => {
@@ -176,5 +180,50 @@ describe('Timeline', () => {
 
     expect(screen.queryByText('Session #4: Into the sewers')).not.toBeInTheDocument();
     expect(screen.getByText('Beat completed: The granary raid')).toBeInTheDocument();
+  });
+
+  describe('adventure filter chips (Phase 12)', () => {
+    beforeEach(() => {
+      replaceAdventures([
+        { id: 'adv-1', title: 'The granary raid', description: '', status: 'active' },
+        { id: 'adv-2', title: 'The Gnawing Court', description: '', status: 'active' },
+      ]);
+      replaceSessions([
+        { id: 's1', number: 4, date: '2026-07-01', title: 'Into the sewers', summary: '', adventureId: 'adv-1' },
+        { id: 's2', number: 5, date: '2026-07-03', title: 'Confront the envoy', summary: '', adventureId: 'adv-2' },
+      ]);
+      replaceCampaignHistory([
+        { id: '1', type: 'session', timestamp: '2026-07-01T10:00:00.000Z', sessionId: 's1', number: 4, title: 'Into the sewers' },
+        { id: '2', type: 'session', timestamp: '2026-07-03T10:00:00.000Z', sessionId: 's2', number: 5, title: 'Confront the envoy' },
+        {
+          id: '3',
+          type: 'beatCompleted',
+          timestamp: '2026-07-02T09:00:00.000Z',
+          beatId: 'b1',
+          title: 'A different plot entirely',
+          hexNodeId: null,
+          factionIds: [],
+        },
+      ]);
+    });
+
+    it('shows no adventure filter chips when there are no adventures', () => {
+      replaceAdventures([]);
+      render(Timeline, { props: { onnavigate: vi.fn() } });
+
+      expect(screen.queryByTestId('timeline-adventure-filters')).not.toBeInTheDocument();
+    });
+
+    it('filters session entries down to the selected adventure, leaving other entry types untouched', async () => {
+      render(Timeline, { props: { onnavigate: vi.fn() } });
+
+      const filters = within(screen.getByTestId('timeline-adventure-filters'));
+      await fireEvent.click(filters.getByText('The Gnawing Court'));
+
+      expect(screen.getByText('Session #5: Confront the envoy')).toBeInTheDocument();
+      expect(screen.queryByText('Session #4: Into the sewers')).not.toBeInTheDocument();
+      // beatCompleted has no adventureId concept — it's unaffected by this filter.
+      expect(screen.getByText('Beat completed: A different plot entirely')).toBeInTheDocument();
+    });
   });
 });

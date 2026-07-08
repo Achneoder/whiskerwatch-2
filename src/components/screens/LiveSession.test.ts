@@ -5,6 +5,7 @@ import { replaceParty, getParty, type PartyMember } from '../../lib/stores/party
 import { replaceHirelings, type Hireling } from '../../lib/stores/hirelings.svelte';
 import { replaceFactions, getFactions } from '../../lib/stores/factions.svelte';
 import { replaceBeats } from '../../lib/stores/beats.svelte';
+import { replaceAdventures } from '../../lib/stores/adventures.svelte';
 import { replaceSessions } from '../../lib/stores/sessions.svelte';
 import { getCampaignHistory, replaceCampaignHistory } from '../../lib/stores/campaignHistory.svelte';
 import { replaceHexNodes, type HexNode } from '../../lib/stores/hexmap.svelte';
@@ -114,6 +115,7 @@ describe('LiveSession', () => {
     replaceCampaignHistory([]);
     replaceHexNodes([]);
     replaceBestiary([]);
+    replaceAdventures([]);
   });
 
   afterEach(() => {
@@ -528,5 +530,67 @@ describe('LiveSession', () => {
     await fireEvent.click(screen.getByRole('button', { name: /pay day/i }));
 
     expect(screen.getByText('Unpaid')).toBeInTheDocument();
+  });
+
+  describe('adventure picker (Phase 12)', () => {
+    function seedTwoAdventures() {
+      replaceParty([member()]);
+      replaceHirelings([]);
+      replaceFactions([]);
+      replaceAdventures([
+        { id: 'adv-1', title: 'The granary raid', description: '', status: 'active' },
+        { id: 'adv-2', title: 'The Gnawing Court', description: '', status: 'active' },
+      ]);
+      replaceBeats([
+        { id: 'b1', parentId: null, title: 'Into the tunnels', notes: '', status: 'active', hexNodeId: null, factionIds: [], adventureId: 'adv-1' },
+        { id: 'b2', parentId: null, title: 'Confront the envoy', notes: '', status: 'active', hexNodeId: 'hex1', factionIds: [], adventureId: 'adv-2' },
+      ]);
+      replaceHexNodes([hexNode({ encounters: [{ bestiaryId: 'b1', weight: 1 }] })]);
+      replaceBestiary([bestiaryEntry()]);
+      replaceSessions([]);
+    }
+
+    it('does not show a picker when only one adventure has an active beat', () => {
+      seed();
+      render(LiveSession, { props: {} });
+
+      expect(screen.queryByRole('button', { name: /choose adventure/i })).not.toBeInTheDocument();
+      expect(screen.getByText('The granary raid')).toBeInTheDocument();
+    });
+
+    it('shows a picker defaulted to the first adventure when two adventures each have an active beat', () => {
+      seedTwoAdventures();
+      render(LiveSession, { props: {} });
+
+      expect(screen.getByRole('button', { name: /choose adventure, currently the granary raid/i })).toBeInTheDocument();
+      expect(screen.getByText('Into the tunnels')).toBeInTheDocument();
+      // The granary raid's beat has no linked hex, so no encounter card yet.
+      expect(screen.queryByRole('button', { name: 'Roll an encounter' })).not.toBeInTheDocument();
+    });
+
+    it('tags the End Session recap draft with the active beat\'s adventureId', async () => {
+      seed();
+      const ondraftrecap = vi.fn();
+      render(LiveSession, { props: { ondraftrecap } });
+
+      await fireEvent.click(screen.getByRole('button', { name: /end session/i }));
+      await fireEvent.click(screen.getByRole('button', { name: /draft recap/i }));
+
+      expect(ondraftrecap).toHaveBeenCalledOnce();
+      expect(ondraftrecap.mock.calls[0]![0].adventureId).toBe('adv-1');
+    });
+
+    it('switches the active beat (and any hex/encounter context) when the GM picks a different adventure', async () => {
+      seedTwoAdventures();
+      render(LiveSession, { props: {} });
+
+      await fireEvent.click(screen.getByRole('button', { name: /choose adventure/i }));
+      await fireEvent.click(screen.getByText('The Gnawing Court'));
+
+      expect(screen.getByRole('button', { name: /choose adventure, currently the gnawing court/i })).toBeInTheDocument();
+      expect(screen.getByText('Confront the envoy')).toBeInTheDocument();
+      // Confront the envoy's beat is linked to hex1, unlike The granary raid's beat.
+      expect(screen.getByRole('button', { name: 'Roll an encounter' })).toBeInTheDocument();
+    });
   });
 });

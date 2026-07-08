@@ -21,7 +21,8 @@
   },
   "dashboard": {
     "prepMode": "Prep mode · laptop",
-    "title": "My Campaign",
+    "editName": "Rename campaign",
+    "editNameLabel": "Campaign name",
     "sessionSummary": "Session {session} prep · last played {days} days ago",
     "sessionSummaryEmpty": "Session {session} prep · no sessions logged yet",
     "startSession": "Start session",

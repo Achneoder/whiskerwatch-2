@@ -1,5 +1,6 @@
 import { describe, expect, it, beforeEach } from 'vitest';
-import { buildCampaignExport, parseCampaignExport } from './campaignExport';
+import { buildCampaignExport, parseCampaignExport, importCampaign } from './campaignExport';
+import { getCampaignName, setCampaignName, DEFAULT_CAMPAIGN_NAME } from './stores/campaign.svelte';
 import { getParty } from './stores/party.svelte';
 import { getHirelings } from './stores/hirelings.svelte';
 import { getBeats } from './stores/beats.svelte';
@@ -12,12 +13,14 @@ import { getHexNodes } from './stores/hexmap.svelte';
 describe('campaignExport', () => {
   beforeEach(() => {
     localStorage.clear();
+    setCampaignName(DEFAULT_CAMPAIGN_NAME);
   });
 
   it('builds an export containing the current party, hirelings, beats, sessions, bestiary, factions and hexes', () => {
     const data = buildCampaignExport();
 
     expect(data.version).toBe(1);
+    expect(data.campaignName).toBe(DEFAULT_CAMPAIGN_NAME);
     expect(data.party).toEqual(getParty());
     expect(data.hirelings).toEqual(getHirelings());
     expect(data.beats).toEqual(getBeats());
@@ -30,9 +33,11 @@ describe('campaignExport', () => {
   });
 
   it('round-trips through JSON', () => {
+    setCampaignName('The Gnawing Court Rises');
     const data = buildCampaignExport();
     const parsed = parseCampaignExport(JSON.stringify(data));
 
+    expect(parsed.campaignName).toBe('The Gnawing Court Rises');
     expect(parsed.party).toEqual(data.party);
     expect(parsed.hirelings).toEqual(data.hirelings);
     expect(parsed.beats).toEqual(data.beats);
@@ -53,6 +58,41 @@ describe('campaignExport', () => {
     expect(parsed.factions).toEqual([]);
     expect(parsed.factionEdges).toEqual([]);
     expect(parsed.hexNodes).toEqual([]);
+    expect(parsed.campaignName).toBeUndefined();
+  });
+
+  it('imports an older export without a campaignName by keeping the current campaign name', async () => {
+    setCampaignName('My Ongoing Campaign');
+    const legacy = new File(
+      [JSON.stringify({ version: 1, exportedAt: '2026-01-01T00:00:00.000Z', party: [], hirelings: [] })],
+      'legacy.json',
+      { type: 'application/json' },
+    );
+
+    await importCampaign(legacy);
+
+    expect(getCampaignName()).toBe('My Ongoing Campaign');
+  });
+
+  it('imports a campaign name from a newer export', async () => {
+    setCampaignName('Old Name');
+    const file = new File(
+      [
+        JSON.stringify({
+          version: 1,
+          exportedAt: '2026-01-01T00:00:00.000Z',
+          campaignName: 'The Salt Marsh Expedition',
+          party: [],
+          hirelings: [],
+        }),
+      ],
+      'export.json',
+      { type: 'application/json' },
+    );
+
+    await importCampaign(file);
+
+    expect(getCampaignName()).toBe('The Salt Marsh Expedition');
   });
 
   it('rejects a faction entry missing required fields', () => {

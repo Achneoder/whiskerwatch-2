@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/svelte';
 import Dashboard from './Dashboard.svelte';
 import { replaceSessions } from '../../lib/stores/sessions.svelte';
@@ -6,6 +6,7 @@ import { replaceBeats, type Beat } from '../../lib/stores/beats.svelte';
 import { replaceHexNodes, type HexNode } from '../../lib/stores/hexmap.svelte';
 import { replaceHirelings, type Hireling } from '../../lib/stores/hirelings.svelte';
 import { replaceFactions, type Faction } from '../../lib/stores/factions.svelte';
+import { getCampaignName, setCampaignName, DEFAULT_CAMPAIGN_NAME } from '../../lib/stores/campaign.svelte';
 
 function makeBeat(overrides: Partial<Beat> = {}): Beat {
   return {
@@ -80,6 +81,10 @@ function clearPrepChecklistData() {
 }
 
 describe('Dashboard', () => {
+  beforeEach(() => {
+    setCampaignName(DEFAULT_CAMPAIGN_NAME);
+  });
+
   it('renders the warband and factions', () => {
     render(Dashboard, { props: { onnavigate: vi.fn() } });
 
@@ -219,6 +224,51 @@ describe('Dashboard', () => {
       expect(screen.getByText('0 hexes')).toBeInTheDocument();
       expect(screen.getByText('0 active hirelings')).toBeInTheDocument();
       expect(screen.getByText('0 faction clocks')).toBeInTheDocument();
+    });
+  });
+
+  describe('campaign name', () => {
+    it('renders the stored campaign name', () => {
+      setCampaignName('The Gnawing Court Rises');
+      render(Dashboard, { props: { onnavigate: vi.fn() } });
+
+      expect(screen.getByRole('heading', { name: 'The Gnawing Court Rises' })).toBeInTheDocument();
+    });
+
+    it('reveals an editable field when the rename pencil is clicked, and saves on Enter', async () => {
+      render(Dashboard, { props: { onnavigate: vi.fn() } });
+
+      await fireEvent.click(screen.getByRole('button', { name: /rename campaign/i }));
+      const input = screen.getByRole('textbox', { name: /campaign name/i });
+      await fireEvent.input(input, { target: { value: 'The Salt Marsh Expedition' } });
+      await fireEvent.keyDown(input, { key: 'Enter' });
+
+      expect(getCampaignName()).toBe('The Salt Marsh Expedition');
+      expect(screen.getByRole('heading', { name: 'The Salt Marsh Expedition' })).toBeInTheDocument();
+    });
+
+    it('saves the edited name on blur', async () => {
+      render(Dashboard, { props: { onnavigate: vi.fn() } });
+
+      await fireEvent.click(screen.getByRole('button', { name: /rename campaign/i }));
+      const input = screen.getByRole('textbox', { name: /campaign name/i });
+      await fireEvent.input(input, { target: { value: 'Sewers of Grimwater' } });
+      await fireEvent.blur(input);
+
+      expect(getCampaignName()).toBe('Sewers of Grimwater');
+    });
+
+    it('discards the edit on Escape', async () => {
+      setCampaignName('Original Name');
+      render(Dashboard, { props: { onnavigate: vi.fn() } });
+
+      await fireEvent.click(screen.getByRole('button', { name: /rename campaign/i }));
+      const input = screen.getByRole('textbox', { name: /campaign name/i });
+      await fireEvent.input(input, { target: { value: 'Some Draft' } });
+      await fireEvent.keyDown(input, { key: 'Escape' });
+
+      expect(getCampaignName()).toBe('Original Name');
+      expect(screen.getByRole('heading', { name: 'Original Name' })).toBeInTheDocument();
     });
   });
 });

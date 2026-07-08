@@ -2,6 +2,7 @@
   import {
     Dice5,
     Plus,
+    Pencil,
     ListChecks,
     MapPinned,
     Coins,
@@ -25,6 +26,7 @@
   import { getFactions, dispositionTagTone } from '../../lib/stores/factions.svelte';
   import { getBeats } from '../../lib/stores/beats.svelte';
   import { getHexNodes } from '../../lib/stores/hexmap.svelte';
+  import { getCampaignName, setCampaignName } from '../../lib/stores/campaign.svelte';
   import { CONDITIONS } from '../../lib/conditions';
   import { daysSince } from '../../lib/date';
 
@@ -106,6 +108,41 @@
   ]);
 
   const allClear = $derived(prepRows.every((row) => row.count === 0));
+
+  // -- Campaign name (inline rename) -----------------------------------------
+  // Matches the pencil-icon-to-edit pattern used elsewhere (e.g. beat/faction
+  // editing), but reveals a plain text field in place rather than opening a
+  // modal, since renaming the campaign is a single field, not a full form.
+  let editingName = $state(false);
+  let nameDraft = $state('');
+  let nameInput = $state<HTMLInputElement | null>(null);
+
+  $effect(() => {
+    if (editingName) nameInput?.focus();
+  });
+
+  function startEditName() {
+    nameDraft = getCampaignName();
+    editingName = true;
+  }
+
+  // Guards against the blur that fires when the input unmounts after Escape
+  // (or after an Enter-triggered commit) re-invoking a save with stale state.
+  function commitNameOnBlur() {
+    if (!editingName) return;
+    setCampaignName(nameDraft);
+    editingName = false;
+  }
+
+  function onNameKeydown(event: KeyboardEvent) {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      setCampaignName(nameDraft);
+      editingName = false;
+    } else if (event.key === 'Escape') {
+      editingName = false;
+    }
+  }
 </script>
 
 <div class="flex flex-col md:flex-row min-h-screen bg-[var(--bg)] text-[var(--text)]">
@@ -116,7 +153,29 @@
     <header class="flex items-end justify-between gap-[var(--sp-4)] flex-wrap">
       <div>
         <div class="ww-label text-[var(--accent)]">{$_('dashboard.prepMode')}</div>
-        <h1 class="text-[length:var(--text-h1)] mt-1">{$_('dashboard.title')}</h1>
+        {#if editingName}
+          <input
+            bind:this={nameInput}
+            type="text"
+            bind:value={nameDraft}
+            onblur={commitNameOnBlur}
+            onkeydown={onNameKeydown}
+            aria-label={$_('dashboard.editNameLabel')}
+            class="ww-no-native-ring block mt-1 w-full max-w-xs bg-transparent border-b-2 border-[var(--accent)] outline-none text-[length:var(--text-h1)] font-[family-name:var(--font-display)] font-bold text-[var(--text)]"
+          />
+        {:else}
+          <div class="flex items-center gap-1.5 mt-1">
+            <h1 class="text-[length:var(--text-h1)]">{getCampaignName()}</h1>
+            <button
+              type="button"
+              aria-label={$_('dashboard.editName')}
+              onclick={startEditName}
+              class="grid place-items-center w-8 h-8 rounded-[var(--radius-md)] text-[var(--text-muted)] hover:bg-[var(--surface-sunk)] cursor-pointer shrink-0"
+            >
+              <Icon icon={Pencil} />
+            </button>
+          </div>
+        {/if}
         <p class="mt-1 text-[var(--text-muted)] text-[length:var(--text-body)]">
           {#if lastSession}
             {$_('dashboard.sessionSummary', { values: { session: nextSessionNumber, days: daysSince(lastSession.date) } })}

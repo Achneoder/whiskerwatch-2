@@ -1,3 +1,4 @@
+import { getCampaignName, setCampaignName } from './stores/campaign.svelte';
 import { getParty, replaceParty, flush as flushParty, type PartyMember } from './stores/party.svelte';
 import { getHirelings, replaceHirelings, flush as flushHirelings, type Hireling } from './stores/hirelings.svelte';
 import { getBeats, replaceBeats, flush as flushBeats, type Beat } from './stores/beats.svelte';
@@ -17,6 +18,8 @@ export const CAMPAIGN_EXPORT_VERSION = 1;
 export interface CampaignExport {
   version: typeof CAMPAIGN_EXPORT_VERSION;
   exportedAt: string;
+  /** Optional so older exports (before campaign naming existed) still parse — see `parseCampaignExport`. */
+  campaignName?: string;
   party: PartyMember[];
   hirelings: Hireling[];
   beats: Beat[];
@@ -31,6 +34,7 @@ export function buildCampaignExport(): CampaignExport {
   return {
     version: CAMPAIGN_EXPORT_VERSION,
     exportedAt: new Date().toISOString(),
+    campaignName: getCampaignName(),
     party: getParty(),
     hirelings: getHirelings(),
     beats: getBeats(),
@@ -170,6 +174,7 @@ export function parseCampaignExport(text: string): CampaignExport {
   return {
     version: CAMPAIGN_EXPORT_VERSION,
     exportedAt: typeof candidate.exportedAt === 'string' ? candidate.exportedAt : new Date().toISOString(),
+    ...(typeof candidate.campaignName === 'string' ? { campaignName: candidate.campaignName } : {}),
     party: candidate.party,
     hirelings: candidate.hirelings,
     beats: Array.isArray(candidate.beats) ? candidate.beats : [],
@@ -195,6 +200,9 @@ export function exportCampaign(): void {
 export async function importCampaign(file: File): Promise<void> {
   const text = await file.text();
   const data = parseCampaignExport(text);
+  // Older exports predate campaign naming — fall back to whatever name is
+  // already set (itself defaulted by the store) rather than clobbering it.
+  setCampaignName(data.campaignName ?? getCampaignName());
   replaceParty(data.party);
   replaceHirelings(data.hirelings);
   replaceBeats(data.beats);

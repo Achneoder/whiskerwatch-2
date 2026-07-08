@@ -21,7 +21,8 @@
   },
   "dashboard": {
     "prepMode": "Vorbereitung · Laptop",
-    "title": "Meine Kampagne",
+    "editName": "Kampagne umbenennen",
+    "editNameLabel": "Kampagnenname",
     "sessionSummary": "Vorbereitung für Sitzung {session} · zuletzt gespielt vor {days} Tagen",
     "sessionSummaryEmpty": "Vorbereitung für Sitzung {session} · noch keine Sitzungen protokolliert",
     "startSession": "Sitzung starten",

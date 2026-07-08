@@ -419,6 +419,30 @@ describe('LiveSession', () => {
     expect(screen.queryByRole('button', { name: 'Roll an encounter' })).not.toBeInTheDocument();
   });
 
+  it('does not show a hex encounter card when the active beat links to a hex that no longer exists', () => {
+    replaceParty([member()]);
+    replaceHirelings([hireling()]);
+    replaceFactions([]);
+    replaceBeats([
+      {
+        id: 'b1',
+        parentId: null,
+        title: 'The granary raid',
+        notes: '',
+        status: 'active',
+        hexNodeId: 'deleted-hex',
+        factionIds: [],
+      },
+    ]);
+    replaceSessions([]);
+    replaceHexNodes([]);
+    replaceBestiary([bestiaryEntry()]);
+
+    render(LiveSession, { props: {} });
+
+    expect(screen.queryByRole('button', { name: 'Roll an encounter' })).not.toBeInTheDocument();
+  });
+
   it('rolls a hex encounter then a reaction for it, tied to that active hex', async () => {
     replaceParty([member()]);
     replaceHirelings([hireling()]);

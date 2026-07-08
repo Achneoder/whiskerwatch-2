@@ -94,6 +94,28 @@ describe('Timeline', () => {
     expect(screen.getByText('The Gnawing Court')).toBeInTheDocument();
   });
 
+  it('degrades gracefully when a completed beat references a hex/faction that has since been deleted', () => {
+    // hexNodes/factions are empty (as if the hex and faction were deleted after
+    // this beat was completed and logged) — the lookups in `hexNameFor`/
+    // `factionNamesFor` should just come up empty rather than crash or render
+    // a stale/undefined label.
+    replaceCampaignHistory([
+      {
+        id: '1',
+        type: 'beatCompleted',
+        timestamp: '2026-07-02T09:00:00.000Z',
+        beatId: 'b1',
+        title: 'The granary raid',
+        hexNodeId: 'deleted-hex',
+        factionIds: ['deleted-faction'],
+      },
+    ]);
+
+    expect(() => render(Timeline, { props: { onnavigate: vi.fn() } })).not.toThrow();
+
+    expect(screen.getByText('Beat completed: The granary raid')).toBeInTheDocument();
+  });
+
   it('renders a death entry with its cause', () => {
     replaceCampaignHistory([
       {

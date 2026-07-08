@@ -15,6 +15,7 @@
     updateSession,
     removeSession,
     getNextSessionNumber,
+    flush as flushSessions,
     type Session,
   } from '../../lib/stores/sessions.svelte';
 
@@ -47,15 +48,20 @@
     if (draftRecap) onconsumeddraft?.();
   });
 
-  function saveSession(data: Omit<Session, 'id'>) {
+  // Awaits `flush()` after the mutation so a GM who refreshes right after
+  // saving/deleting never loses the change — see the equivalent note in
+  // Roster.svelte.
+  async function saveSession(data: Omit<Session, 'id'>) {
     if (sessionModal?.mode === 'edit') updateSession(sessionModal.session.id, data);
     else addSession(data);
+    await flushSessions();
     sessionModal = null;
   }
 
-  function confirmDelete() {
+  async function confirmDelete() {
     if (!deleteTarget) return;
     removeSession(deleteTarget.id);
+    await flushSessions();
     deleteTarget = null;
   }
 </script>

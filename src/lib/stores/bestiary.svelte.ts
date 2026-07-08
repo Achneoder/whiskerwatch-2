@@ -82,6 +82,12 @@ const seedBestiary: BestiaryEntry[] = [
 
 const list = createPersistedList<BestiaryEntry>(STORAGE_KEY, seedBestiary);
 
+/** Resolves once this store's data has been hydrated from IndexedDB. App boot awaits this (alongside every other store) before mounting `App.svelte`. */
+export const ready: Promise<void> = list.ready;
+
+/** See `PersistedList.flush` — awaited by `campaignExport.ts` after `replaceBestiary` to guarantee an import is durably saved. */
+export const flush: () => Promise<void> = () => list.flush();
+
 export function getBestiary(): BestiaryEntry[] {
   return list.items;
 }

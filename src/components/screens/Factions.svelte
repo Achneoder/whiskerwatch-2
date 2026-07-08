@@ -17,12 +17,14 @@
     updateFaction,
     removeFaction,
     dispositionTagTone,
+    flush as flushFactions,
     type Faction,
   } from '../../lib/stores/factions.svelte';
   import {
     getFactionEdges,
     addFactionEdge,
     removeFactionEdge,
+    flush as flushFactionEdges,
     type FactionRelationType,
   } from '../../lib/stores/factionEdges.svelte';
   import { getBeats } from '../../lib/stores/beats.svelte';
@@ -61,16 +63,22 @@
     return beats.filter((b) => b.factionIds.includes(id));
   }
 
-  function saveFaction(data: Omit<Faction, 'id'>) {
+  // Awaits `flush()` after the mutation so a GM who refreshes right after
+  // saving/deleting never loses the change — see the equivalent note in
+  // Roster.svelte. Deleting a faction also cascades into `factionEdges`
+  // (see `removeFaction`), so that store's flush is awaited too.
+  async function saveFaction(data: Omit<Faction, 'id'>) {
     if (factionModal?.mode === 'edit') updateFaction(factionModal.entry.id, data);
     else addFaction(data);
+    await flushFactions();
     factionModal = null;
   }
 
-  function confirmDelete() {
+  async function confirmDelete() {
     if (!deleteTarget) return;
     removeFaction(deleteTarget.id);
     if (selectedId === deleteTarget.id) selectedId = null;
+    await Promise.all([flushFactions(), flushFactionEdges()]);
     deleteTarget = null;
   }
 </script>

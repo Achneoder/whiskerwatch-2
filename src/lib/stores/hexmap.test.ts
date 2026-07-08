@@ -11,6 +11,7 @@ import {
 } from './hexmap.svelte';
 import { getBeats, addBeat, replaceBeats } from './beats.svelte';
 import { addBestiaryEntry, getBestiary, removeBestiaryEntry, replaceBestiary } from './bestiary.svelte';
+import { idbReplaceAll, idbGetAll } from '../idb';
 
 function seedOne() {
   addHexNode({
@@ -122,33 +123,36 @@ describe('hexmap store', () => {
   });
 
   it('backfills legacy records missing `encounters` when the store first loads', async () => {
-    localStorage.setItem(
-      'whiskerwatch:hexmap',
-      JSON.stringify([{ id: 'legacy', q: 0, r: 0, terrain: 'meadow', name: 'Old', notes: '', discovered: false }]),
-    );
+    // Written straight into IndexedDB (not localStorage): the top-of-file
+    // import already ran this store's one-time localStorage migration, so
+    // by now IndexedDB — not localStorage — is the store's source of truth
+    // for a "fresh module load sees this shape" scenario.
+    await idbReplaceAll('whiskerwatch:hexmap', [
+      { id: 'legacy', q: 0, r: 0, terrain: 'meadow', name: 'Old', notes: '', discovered: false },
+    ]);
 
     const modulePath = './hexmap.svelte?backfill-test';
     const fresh: typeof import('./hexmap.svelte') = await import(/* @vite-ignore */ modulePath);
+    await fresh.ready;
 
     expect(fresh.getHexNodes()[0]?.encounters).toEqual([]);
-    expect(JSON.parse(localStorage.getItem('whiskerwatch:hexmap')!)[0].encounters).toEqual([]);
+    const stored = await idbGetAll<{ id: string; encounters: unknown[] }>('whiskerwatch:hexmap');
+    expect(stored[0]?.encounters).toEqual([]);
   });
 
   it('backfills legacy records missing `controlledBy`/`contestedBy` when the store first loads', async () => {
-    localStorage.setItem(
-      'whiskerwatch:hexmap',
-      JSON.stringify([
-        { id: 'legacy', q: 0, r: 0, terrain: 'meadow', name: 'Old', notes: '', discovered: false, encounters: [] },
-      ]),
-    );
+    await idbReplaceAll('whiskerwatch:hexmap', [
+      { id: 'legacy', q: 0, r: 0, terrain: 'meadow', name: 'Old', notes: '', discovered: false, encounters: [] },
+    ]);
 
     const modulePath = './hexmap.svelte?territory-backfill-test';
     const fresh: typeof import('./hexmap.svelte') = await import(/* @vite-ignore */ modulePath);
+    await fresh.ready;
 
     expect(fresh.getHexNodes()[0]?.controlledBy).toBeNull();
     expect(fresh.getHexNodes()[0]?.contestedBy).toEqual([]);
-    const stored = JSON.parse(localStorage.getItem('whiskerwatch:hexmap')!)[0];
-    expect(stored.controlledBy).toBeNull();
-    expect(stored.contestedBy).toEqual([]);
+    const stored = await idbGetAll<{ id: string; controlledBy: unknown; contestedBy: unknown[] }>('whiskerwatch:hexmap');
+    expect(stored[0]?.controlledBy).toBeNull();
+    expect(stored[0]?.contestedBy).toEqual([]);
   });
 });

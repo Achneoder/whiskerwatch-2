@@ -70,8 +70,13 @@ describe('Adventure', () => {
     await fireEvent.click(screen.getByRole('button', { name: 'Add faction' }));
     await fireEvent.click(screen.getByRole('button', { name: 'Save' }));
 
-    expect(screen.getByText('The granary raid')).toBeInTheDocument();
-    expect(screen.getByText('C3')).toBeInTheDocument();
-    expect(screen.getByText('The Gnawing Court')).toBeInTheDocument();
+    // Saving now awaits the store's IndexedDB flush before closing the
+    // modal (see Adventure.svelte's saveBeat), so the modal's own copy of
+    // this text can briefly coexist with the newly-rendered beat row —
+    // `findBy*` retries past that instant instead of failing on the
+    // transient "multiple elements" ambiguity.
+    expect(await screen.findByText('The granary raid')).toBeInTheDocument();
+    expect(await screen.findByText('C3')).toBeInTheDocument();
+    expect(await screen.findByText('The Gnawing Court')).toBeInTheDocument();
   });
 });

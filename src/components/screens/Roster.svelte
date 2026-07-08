@@ -14,13 +14,22 @@
   import PartyForm from '../forms/PartyForm.svelte';
   import HirelingForm from '../forms/HirelingForm.svelte';
   import ScarForm from '../forms/ScarForm.svelte';
-  import { getParty, addMember, updateMember, removeMember, addScar, type PartyMember } from '../../lib/stores/party.svelte';
+  import {
+    getParty,
+    addMember,
+    updateMember,
+    removeMember,
+    addScar,
+    flush as flushParty,
+    type PartyMember,
+  } from '../../lib/stores/party.svelte';
   import {
     getHirelings,
     addHireling,
     updateHireling,
     removeHireling,
     addHirelingScar,
+    flush as flushHirelings,
     type Hireling,
   } from '../../lib/stores/hirelings.svelte';
   import { CONDITIONS, type Scar } from '../../lib/conditions';
@@ -63,34 +72,50 @@
     null,
   );
 
-  function saveScar(scar: Scar) {
+  // Each handler below awaits its store's `flush()` right after the mutation:
+  // the mutation itself is already applied synchronously (optimistic
+  // in-memory update, per `persistedList.svelte.ts`), so this doesn't delay
+  // what the GM sees — it just means the modal/dialog doesn't close (and the
+  // "done" state doesn't set in) until the write is durably saved to
+  // IndexedDB, so a GM who immediately refreshes right after saving never
+  // loses the edit (see CLAUDE.md's "loses no data on refresh").
+  async function saveScar(scar: Scar) {
     if (!scarTarget) return;
-    if (scarTarget.source === 'party') addScar(scarTarget.member.id, scar);
-    else addHirelingScar(scarTarget.hireling.id, scar);
+    if (scarTarget.source === 'party') {
+      addScar(scarTarget.member.id, scar);
+      await flushParty();
+    } else {
+      addHirelingScar(scarTarget.hireling.id, scar);
+      await flushHirelings();
+    }
     scarTarget = null;
   }
 
-  function saveMember(data: Omit<PartyMember, 'id'>) {
+  async function saveMember(data: Omit<PartyMember, 'id'>) {
     if (memberModal?.mode === 'edit') updateMember(memberModal.member.id, data);
     else addMember(data);
+    await flushParty();
     memberModal = null;
   }
 
-  function saveHireling(data: Omit<Hireling, 'id'>) {
+  async function saveHireling(data: Omit<Hireling, 'id'>) {
     if (hirelingModal?.mode === 'edit') updateHireling(hirelingModal.hireling.id, data);
     else addHireling(data);
+    await flushHirelings();
     hirelingModal = null;
   }
 
-  function confirmDeleteMember() {
+  async function confirmDeleteMember() {
     if (!deleteMemberTarget) return;
     removeMember(deleteMemberTarget.id);
+    await flushParty();
     deleteMemberTarget = null;
   }
 
-  function confirmDeleteHireling() {
+  async function confirmDeleteHireling() {
     if (!deleteHirelingTarget) return;
     removeHireling(deleteHirelingTarget.id);
+    await flushHirelings();
     deleteHirelingTarget = null;
   }
 

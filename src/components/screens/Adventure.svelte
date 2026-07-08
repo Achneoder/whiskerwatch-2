@@ -14,6 +14,7 @@
     updateBeat,
     removeBeat,
     getDescendantCount,
+    flush as flushBeats,
     type Beat,
     type BeatStatus,
   } from '../../lib/stores/beats.svelte';
@@ -34,15 +35,20 @@
   let beatModal = $state<{ mode: 'add'; parentId: string | null } | { mode: 'edit'; beat: Beat } | null>(null);
   let deleteTarget = $state<Beat | null>(null);
 
-  function saveBeat(data: { title: string; notes: string; status: BeatStatus; hexNodeId: string | null; factionIds: string[] }) {
+  // Awaits `flush()` after the mutation so a GM who refreshes right after
+  // saving/deleting never loses the change — see the equivalent note in
+  // Roster.svelte.
+  async function saveBeat(data: { title: string; notes: string; status: BeatStatus; hexNodeId: string | null; factionIds: string[] }) {
     if (beatModal?.mode === 'edit') updateBeat(beatModal.beat.id, data);
     else if (beatModal) addBeat({ ...data, parentId: beatModal.parentId });
+    await flushBeats();
     beatModal = null;
   }
 
-  function confirmDelete() {
+  async function confirmDelete() {
     if (!deleteTarget) return;
     removeBeat(deleteTarget.id);
+    await flushBeats();
     deleteTarget = null;
   }
 </script>

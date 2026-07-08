@@ -21,6 +21,12 @@ const STORAGE_KEY = 'whiskerwatch:factionEdges';
 
 const list = createPersistedList<FactionEdge>(STORAGE_KEY, seedFactionEdges);
 
+/** Resolves once this store's data has been hydrated from IndexedDB. App boot awaits this (alongside every other store) before mounting `App.svelte`. */
+export const ready: Promise<void> = list.ready;
+
+/** See `PersistedList.flush` — awaited by `campaignExport.ts` after `replaceFactionEdges` to guarantee an import is durably saved. */
+export const flush: () => Promise<void> = () => list.flush();
+
 export function getFactionEdges(): FactionEdge[] {
   return list.items;
 }

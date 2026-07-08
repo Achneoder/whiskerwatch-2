@@ -53,6 +53,9 @@ const STORAGE_KEY = 'whiskerwatch:campaignHistory';
 
 const list = createPersistedList<CampaignHistoryEntry>(STORAGE_KEY, []);
 
+/** Resolves once this store's data has been hydrated from IndexedDB. App boot awaits this (alongside every other store) before mounting `App.svelte`. */
+export const ready: Promise<void> = list.ready;
+
 export function getCampaignHistory(): CampaignHistoryEntry[] {
   return list.items;
 }

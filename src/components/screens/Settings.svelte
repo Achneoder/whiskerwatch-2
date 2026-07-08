@@ -88,9 +88,9 @@
     pendingReset = true;
   }
 
-  function confirmReset() {
+  async function confirmReset() {
     pendingReset = false;
-    resetAllCampaignData();
+    await resetAllCampaignData();
   }
 
   function cancelReset() {

@@ -52,8 +52,15 @@ When('the GM adds {int} items to the inventory', async function (this: Whiskerwa
 });
 
 When('the GM saves the mouse', async function (this: WhiskerwatchWorld) {
+  const dialog = this.page.getByRole('dialog');
   // Scoped to the dialog's own Save button (not any leftover item-editor Save).
-  await this.page.getByRole('dialog').getByRole('button', { name: 'Save', exact: true }).click();
+  await dialog.getByRole('button', { name: 'Save', exact: true }).click();
+  // Saving now awaits an IndexedDB write before the modal closes (see
+  // Roster.svelte's saveMember) — wait for that close so a later step (e.g.
+  // reloading the app) can't race ahead of the write actually completing.
+  // This mirrors what a real GM would see: the dialog closing is the signal
+  // the save is done.
+  await dialog.waitFor({ state: 'hidden' });
 });
 
 Then("the mouse's inventory should show {string}", async function (this: WhiskerwatchWorld, itemName: string) {

@@ -15,6 +15,7 @@
     removeHexNode,
     terrainFill,
     TERRAINS,
+    flush as flushHexNodes,
     type HexNode,
   } from '../../lib/stores/hexmap.svelte';
   import { getBeats } from '../../lib/stores/beats.svelte';
@@ -55,18 +56,23 @@
     hexModal = node ? { mode: 'edit', node } : { mode: 'add', q, r };
   }
 
-  function saveHex(data: Omit<HexNode, 'id' | 'q' | 'r'>) {
+  // Awaits `flush()` after the mutation so a GM who refreshes right after
+  // saving/clearing a hex never loses the change — see the equivalent note
+  // in Roster.svelte.
+  async function saveHex(data: Omit<HexNode, 'id' | 'q' | 'r'>) {
     if (hexModal?.mode === 'edit') {
       updateHexNode(hexModal.node.id, data);
     } else if (hexModal?.mode === 'add') {
       addHexNode({ ...data, q: hexModal.q, r: hexModal.r });
     }
+    await flushHexNodes();
     hexModal = null;
   }
 
-  function confirmDelete() {
+  async function confirmDelete() {
     if (!deleteTarget) return;
     removeHexNode(deleteTarget.id);
+    await flushHexNodes();
     deleteTarget = null;
     selected = null;
   }

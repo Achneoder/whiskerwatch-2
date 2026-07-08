@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, within } from '@testing-library/svelte';
+import { render, screen, fireEvent, within, waitFor } from '@testing-library/svelte';
 import Roster from './Roster.svelte';
 import { replaceParty, getParty, type PartyMember } from '../../lib/stores/party.svelte';
 import { replaceHirelings, getHirelings, type Hireling } from '../../lib/stores/hirelings.svelte';
@@ -202,7 +202,10 @@ describe('Roster', () => {
     await fireEvent.click(screen.getByRole('button', { name: 'Add Scar' }));
 
     expect(getParty().find((m) => m.id === '1')?.scars).toEqual([{ label: 'Lost an eye', note: '' }]);
-    expect(screen.getByText('Lost an eye')).toBeInTheDocument();
+    // Saving now awaits the store's IndexedDB flush before closing the
+    // modal (see Roster.svelte's saveScar) — `findBy*` waits past that
+    // instant instead of failing on transient duplicate matches.
+    expect(await screen.findByText('Lost an eye')).toBeInTheDocument();
   });
 
   it('adds a scar to a hireling through the Add Scar flow', async () => {
@@ -292,6 +295,11 @@ describe('Roster', () => {
     await fireEvent.input(screen.getByLabelText('Name'), { target: { value: 'Reed' } });
     await fireEvent.click(screen.getByRole('button', { name: 'Save' }));
 
+    // Saving now awaits the store's IndexedDB flush before closing the
+    // modal (see Roster.svelte's saveHireling) — wait for that close before
+    // interacting with a *different* dialog (the delete confirmation
+    // below), so there's never more than one `role="dialog"` on screen.
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     expect(screen.getByText(new RegExp(limitWarning))).toBeInTheDocument();
 
     await fireEvent.click(screen.getAllByRole('button', { name: 'Delete' })[1]!);

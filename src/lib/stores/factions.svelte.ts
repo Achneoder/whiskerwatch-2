@@ -35,6 +35,12 @@ const STORAGE_KEY = 'whiskerwatch:factions';
 
 const list = createPersistedList<Faction>(STORAGE_KEY, seedFactions);
 
+/** Resolves once this store's data has been hydrated from IndexedDB. App boot awaits this (alongside every other store) before mounting `App.svelte`. */
+export const ready: Promise<void> = list.ready;
+
+/** See `PersistedList.flush` — awaited by `campaignExport.ts` after `replaceFactions` to guarantee an import is durably saved. */
+export const flush: () => Promise<void> = () => list.flush();
+
 export function getFactions(): Faction[] {
   return list.items;
 }

@@ -37,17 +37,27 @@ const seedBeats: Beat[] = [
 
 const list = createPersistedList<Beat>(STORAGE_KEY, seedBeats);
 
-// Backfill legacy records (saved before hexNodeId/factionIds existed) so
-// downstream code can rely on both fields always being present.
-if (list.items.some((b) => b.hexNodeId === undefined || !Array.isArray(b.factionIds))) {
-  list.replaceAll(
-    list.items.map((b) => ({
-      ...b,
-      hexNodeId: b.hexNodeId ?? null,
-      factionIds: Array.isArray(b.factionIds) ? b.factionIds : [],
-    }))
-  );
-}
+/**
+ * Resolves once this store's data has been hydrated from IndexedDB (see
+ * `persistedList.svelte.ts`) and backfilled for legacy records saved before
+ * `hexNodeId`/`factionIds` existed, so downstream code can rely on both
+ * fields always being present. App boot awaits this (alongside every other
+ * store) before mounting `App.svelte`.
+ */
+export const ready: Promise<void> = list.ready.then(() => {
+  if (list.items.some((b) => b.hexNodeId === undefined || !Array.isArray(b.factionIds))) {
+    list.replaceAll(
+      list.items.map((b) => ({
+        ...b,
+        hexNodeId: b.hexNodeId ?? null,
+        factionIds: Array.isArray(b.factionIds) ? b.factionIds : [],
+      }))
+    );
+  }
+});
+
+/** See `PersistedList.flush` — awaited by `campaignExport.ts` after `replaceBeats` to guarantee an import is durably saved. */
+export const flush: () => Promise<void> = () => list.flush();
 
 export function getBeats(): Beat[] {
   return list.items;

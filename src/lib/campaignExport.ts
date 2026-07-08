@@ -1,11 +1,16 @@
-import { getParty, replaceParty, type PartyMember } from './stores/party.svelte';
-import { getHirelings, replaceHirelings, type Hireling } from './stores/hirelings.svelte';
-import { getBeats, replaceBeats, type Beat } from './stores/beats.svelte';
-import { getSessions, replaceSessions, type Session } from './stores/sessions.svelte';
-import { getBestiary, replaceBestiary, type BestiaryEntry } from './stores/bestiary.svelte';
-import { getFactions, replaceFactions, type Faction } from './stores/factions.svelte';
-import { getFactionEdges, replaceFactionEdges, type FactionEdge } from './stores/factionEdges.svelte';
-import { getHexNodes, replaceHexNodes, type HexNode } from './stores/hexmap.svelte';
+import { getParty, replaceParty, flush as flushParty, type PartyMember } from './stores/party.svelte';
+import { getHirelings, replaceHirelings, flush as flushHirelings, type Hireling } from './stores/hirelings.svelte';
+import { getBeats, replaceBeats, flush as flushBeats, type Beat } from './stores/beats.svelte';
+import { getSessions, replaceSessions, flush as flushSessions, type Session } from './stores/sessions.svelte';
+import { getBestiary, replaceBestiary, flush as flushBestiary, type BestiaryEntry } from './stores/bestiary.svelte';
+import { getFactions, replaceFactions, flush as flushFactions, type Faction } from './stores/factions.svelte';
+import {
+  getFactionEdges,
+  replaceFactionEdges,
+  flush as flushFactionEdges,
+  type FactionEdge,
+} from './stores/factionEdges.svelte';
+import { getHexNodes, replaceHexNodes, flush as flushHexNodes, type HexNode } from './stores/hexmap.svelte';
 
 export const CAMPAIGN_EXPORT_VERSION = 1;
 
@@ -198,4 +203,20 @@ export async function importCampaign(file: File): Promise<void> {
   replaceFactions(data.factions);
   replaceFactionEdges(data.factionEdges);
   replaceHexNodes(data.hexNodes);
+
+  // Each `replace*` above updates in-memory state immediately and fires off
+  // an async IndexedDB write in the background (see `persistedList.svelte.ts`).
+  // Since this function is the "import complete" signal shown to the GM,
+  // wait for every one of those writes to actually settle so "import
+  // complete" genuinely means the data is durably saved, not just in-memory.
+  await Promise.all([
+    flushParty(),
+    flushHirelings(),
+    flushBeats(),
+    flushSessions(),
+    flushBestiary(),
+    flushFactions(),
+    flushFactionEdges(),
+    flushHexNodes(),
+  ]);
 }

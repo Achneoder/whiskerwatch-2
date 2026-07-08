@@ -128,9 +128,25 @@ export function replaceHirelings(hirelings: Hireling[]): void {
   list.replaceAll((hirelings as unknown[]).map(normalizeHireling));
 }
 
-// Normalize whatever came out of localStorage on load (see normalizeHireling
-// above) so old-shape records never leak undefined fields into the app.
-replaceHirelings(list.items);
+/**
+ * Resolves once this store's data has been hydrated from IndexedDB (see
+ * `persistedList.svelte.ts`) *and* normalized (see `normalizeHireling` above)
+ * so old-shape records never leak undefined fields into the app. App boot
+ * awaits this (alongside every other store) before mounting `App.svelte`.
+ */
+export const ready: Promise<void> = list.ready.then(() => {
+  // Skip the write entirely when normalization is a no-op (the overwhelmingly
+  // common case) — an unconditional `replaceHirelings` here would mean every
+  // single app boot pays for a second full IndexedDB round-trip on top of
+  // hydration's own, for no actual change.
+  const normalized = (list.items as unknown[]).map(normalizeHireling);
+  if (JSON.stringify(normalized) !== JSON.stringify(list.items)) {
+    list.replaceAll(normalized);
+  }
+});
+
+/** See `PersistedList.flush` — awaited by `campaignExport.ts` after `replaceHirelings` to guarantee an import is durably saved. */
+export const flush: () => Promise<void> = () => list.flush();
 
 export function healHirelingHp(id: string, amount: number): void {
   const hireling = list.items.find((h) => h.id === id);

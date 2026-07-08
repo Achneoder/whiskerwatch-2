@@ -9,7 +9,14 @@
   import Modal from '../ui/Modal.svelte';
   import ConfirmDialog from '../ui/ConfirmDialog.svelte';
   import BestiaryForm from '../forms/BestiaryForm.svelte';
-  import { getBestiary, addBestiaryEntry, updateBestiaryEntry, removeBestiaryEntry, type BestiaryEntry } from '../../lib/stores/bestiary.svelte';
+  import {
+    getBestiary,
+    addBestiaryEntry,
+    updateBestiaryEntry,
+    removeBestiaryEntry,
+    flush as flushBestiary,
+    type BestiaryEntry,
+  } from '../../lib/stores/bestiary.svelte';
 
   interface Props {
     onnavigate: (screen: NavScreen) => void;
@@ -23,15 +30,20 @@
   let entryModal = $state<{ mode: 'add' } | { mode: 'edit'; entry: BestiaryEntry } | null>(null);
   let deleteTarget = $state<BestiaryEntry | null>(null);
 
-  function saveEntry(data: Omit<BestiaryEntry, 'id'>) {
+  // Awaits `flush()` after the mutation so a GM who refreshes right after
+  // saving/deleting never loses the change — see the equivalent note in
+  // Roster.svelte.
+  async function saveEntry(data: Omit<BestiaryEntry, 'id'>) {
     if (entryModal?.mode === 'edit') updateBestiaryEntry(entryModal.entry.id, data);
     else addBestiaryEntry(data);
+    await flushBestiary();
     entryModal = null;
   }
 
-  function confirmDelete() {
+  async function confirmDelete() {
     if (!deleteTarget) return;
     removeBestiaryEntry(deleteTarget.id);
+    await flushBestiary();
     deleteTarget = null;
   }
 </script>

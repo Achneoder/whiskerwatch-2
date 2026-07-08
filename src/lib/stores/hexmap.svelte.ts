@@ -140,23 +140,35 @@ const seedHexNodes: HexNode[] = [
 
 const list = createPersistedList<HexNode>(STORAGE_KEY, seedHexNodes);
 
-// Backfill legacy records (saved before encounters existed) so downstream
-// code can rely on the field always being present.
-if (list.items.some((h) => !Array.isArray(h.encounters))) {
-  list.replaceAll(list.items.map((h) => ({ ...h, encounters: Array.isArray(h.encounters) ? h.encounters : [] })));
-}
+/**
+ * Resolves once this store's data has been hydrated from IndexedDB (see
+ * `persistedList.svelte.ts`) and backfilled for legacy records saved before
+ * `encounters`/`controlledBy`/`contestedBy` existed, so downstream code can
+ * rely on all three fields always being present. App boot awaits this
+ * (alongside every other store) before mounting `App.svelte`.
+ */
+export const ready: Promise<void> = list.ready.then(() => {
+  // Backfill legacy records (saved before encounters existed) so downstream
+  // code can rely on the field always being present.
+  if (list.items.some((h) => !Array.isArray(h.encounters))) {
+    list.replaceAll(list.items.map((h) => ({ ...h, encounters: Array.isArray(h.encounters) ? h.encounters : [] })));
+  }
 
-// Backfill legacy records (saved before controlledBy/contestedBy existed) so
-// downstream code can rely on both fields always being present.
-if (list.items.some((h) => h.controlledBy === undefined || !Array.isArray(h.contestedBy))) {
-  list.replaceAll(
-    list.items.map((h) => ({
-      ...h,
-      controlledBy: h.controlledBy ?? null,
-      contestedBy: Array.isArray(h.contestedBy) ? h.contestedBy : [],
-    }))
-  );
-}
+  // Backfill legacy records (saved before controlledBy/contestedBy existed) so
+  // downstream code can rely on both fields always being present.
+  if (list.items.some((h) => h.controlledBy === undefined || !Array.isArray(h.contestedBy))) {
+    list.replaceAll(
+      list.items.map((h) => ({
+        ...h,
+        controlledBy: h.controlledBy ?? null,
+        contestedBy: Array.isArray(h.contestedBy) ? h.contestedBy : [],
+      }))
+    );
+  }
+});
+
+/** See `PersistedList.flush` — awaited by `campaignExport.ts` after `replaceHexNodes` to guarantee an import is durably saved. */
+export const flush: () => Promise<void> = () => list.flush();
 
 export function getHexNodes(): HexNode[] {
   return list.items;

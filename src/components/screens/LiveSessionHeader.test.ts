@@ -41,4 +41,15 @@ describe('LiveSessionHeader', () => {
 
     expect(onendsession).toHaveBeenCalledOnce();
   });
+
+  it('calls onopenrules when the rules reference button is clicked', async () => {
+    const onopenrules = vi.fn();
+    render(LiveSessionHeader, {
+      props: { sessionNumber: 1, sessionTitle: 'A', beatTitle: 'B', onopenrules },
+    });
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Rules reference' }));
+
+    expect(onopenrules).toHaveBeenCalledOnce();
+  });
 });

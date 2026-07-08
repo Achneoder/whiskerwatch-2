@@ -53,6 +53,7 @@
     "eyebrow": "Live · Session {session}",
     "exit": "Prep",
     "exitAriaLabel": "Back to prep",
+    "rulesAriaLabel": "Rules reference",
     "endSession": "End Session",
     "endSessionAriaLabel": "End session and review the recap draft",
     "hp": "HP",
@@ -367,6 +368,7 @@
   "generators": {
     "eyebrow": "Improvise · generators",
     "title": "Generators",
+    "rulesAriaLabel": "Rules reference",
     "dice": {
       "eyebrow": "Dice",
       "title": "Roll dice",
@@ -485,6 +487,84 @@
       "neutral": "Uncertain, will act to preserve itself.",
       "friendly": "Does as asked, if not put in danger.",
       "helpful": "Actively helps, and offers a service."
+    }
+  },
+  "rulesDrawer": {
+    "title": "Rules reference",
+    "close": "Close",
+    "jump": {
+      "saves": "Saves",
+      "damage": "Damage",
+      "conditions": "Conditions",
+      "inventory": "Inventory",
+      "reaction": "Reaction",
+      "advancement": "Advancement",
+      "retainers": "Retainers"
+    },
+    "saves": {
+      "heading": "Saves",
+      "body": "Roll 1d20 and succeed on a result at or under the relevant score (STR/DEX/WIL — the GM picks based on the fiction). Rolling exactly the score is a pass. Plain pass/fail — nothing special happens on a natural 1 or 20.",
+      "note": "SRD note: this app does not use crit-success/fumble on saves."
+    },
+    "damage": {
+      "heading": "Damage & the death spiral",
+      "body": "Damage hits HP first. Once HP is empty, remaining damage overflows into STR. Any STR lost means an immediate STR save is required. A failed STR save applies Injured and Incapacitated. If STR is driven to exactly 0, the mouse dies immediately — no save, no wound roll.",
+      "note": "SRD note: this app skips the SRD's 2d6 Fatal Wounds table — 0 STR is a clean death, not a roll for what kind of wound it is."
+    },
+    "conditions": {
+      "heading": "Conditions",
+      "intro": "Mausritter's fixed condition vocabulary — every condition a mouse or hireling carries is one of these six:",
+      "list": {
+        "exhausted": {
+          "label": "Exhausted",
+          "note": "Disadvantage on STR and DEX saves. Cleared by a full rest."
+        },
+        "frightened": {
+          "label": "Frightened",
+          "note": "Must pass a WIL save to approach the source of the fear. Cleared by a short rest away from danger."
+        },
+        "hungryThirsty": {
+          "label": "Hungry & Thirsty",
+          "note": "Save penalty until fed and watered. Cleared by eating a proper meal."
+        },
+        "injured": {
+          "label": "Injured",
+          "note": "Disadvantage on STR and DEX saves. Cleared by a full rest."
+        },
+        "incapacitated": {
+          "label": "Incapacitated",
+          "note": "Out of the fight — from a failed STR save. Cleared once tended or stabilized, not by resting alone."
+        },
+        "unconscious": {
+          "label": "Unconscious",
+          "note": "Out cold from a Fatal Wound. Cleared by tending or rest."
+        }
+      }
+    },
+    "inventory": {
+      "heading": "Inventory & slots",
+      "body": "Every mouse and hireling has a fixed 10 slots: 6 body + 4 paws (paws fill first, for quick access). Most items take 1 slot; bulky gear (heavy armor, two-handed weapons, large treasure) takes 2. A handful of items (worn clothes, natural claws and teeth) take 0. Chargeable items (lanterns, spells, rope) track charges on a wear pip-track — tick one down per use. Going over 10 slots shows a warning, not a hard block."
+    },
+    "reaction": {
+      "heading": "Reaction roll",
+      "intro": "Flat 2d6, no score to roll under — just read the band off the total:",
+      "range": {
+        "hostile": "2",
+        "unfriendly": "3–5",
+        "neutral": "6–8",
+        "friendly": "9–11",
+        "helpful": "12"
+      }
+    },
+    "advancement": {
+      "heading": "Advancement",
+      "body": "XP comes from pips spent in downtime (carousing, gear, keepsakes) — never from kills or combat.",
+      "rate": "1 XP per 10 pips spent.",
+      "thresholds": "Level thresholds: 1,000 / 3,000 / 6,000 / 11,000 / 16,000 XP, then +5,000 XP per level after that."
+    },
+    "retainers": {
+      "heading": "Retainer limit",
+      "body": "A mouse can command a number of hirelings equal to their WIL score. This is per mouse, summed across the whole party for the party's total hireling capacity."
     }
   }
 }

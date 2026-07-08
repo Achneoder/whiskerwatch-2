@@ -46,6 +46,7 @@
   import { logDeath } from '../../lib/stores/campaignHistory.svelte';
   import { today } from '../../lib/date';
   import SessionRecapReview from './SessionRecapReview.svelte';
+  import RulesDrawer from '../ui/RulesDrawer.svelte';
 
   interface Props {
     onexit?: () => void;
@@ -54,6 +55,8 @@
   }
 
   let { onexit, ondraftrecap }: Props = $props();
+
+  let rulesOpen = $state(false);
 
   $effect(() => {
     document.documentElement.setAttribute('data-density', 'live');
@@ -440,8 +443,11 @@
     sessionTitle={lastSession?.title ?? null}
     beatTitle={activeBeat?.title ?? null}
     {onexit}
+    onopenrules={() => (rulesOpen = true)}
     onendsession={() => (endSessionOpen = true)}
   />
+
+  <RulesDrawer open={rulesOpen} onclose={() => (rulesOpen = false)} />
 
   <main class="flex-1 w-full max-w-160 mx-auto p-[var(--sp-5)] flex flex-col gap-[var(--sp-5)]">
     <FactionClockStrip

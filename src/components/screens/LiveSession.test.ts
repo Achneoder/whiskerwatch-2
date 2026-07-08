@@ -154,6 +154,18 @@ describe('LiveSession', () => {
     expect(onexit).toHaveBeenCalledOnce();
   });
 
+  it('opens the rules reference drawer from the header button', async () => {
+    seed();
+    render(LiveSession, { props: {} });
+
+    expect(screen.queryByRole('dialog', { name: 'Rules reference' })).not.toBeInTheDocument();
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Rules reference' }));
+
+    expect(screen.getByRole('dialog', { name: 'Rules reference' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Saves' })).toBeInTheDocument();
+  });
+
   it('shows the real session and active beat in the header instead of fixture text', () => {
     seed();
     render(LiveSession, { props: {} });

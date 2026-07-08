@@ -53,6 +53,7 @@
     "eyebrow": "Live · Sitzung {session}",
     "exit": "Vorbereitung",
     "exitAriaLabel": "Zurück zur Vorbereitung",
+    "rulesAriaLabel": "Regelübersicht",
     "endSession": "Sitzung beenden",
     "endSessionAriaLabel": "Sitzung beenden und Zusammenfassungsentwurf prüfen",
     "hp": "TP",
@@ -367,6 +368,7 @@
   "generators": {
     "eyebrow": "Improvisieren · Generatoren",
     "title": "Generatoren",
+    "rulesAriaLabel": "Regelübersicht",
     "dice": {
       "eyebrow": "Würfel",
       "title": "Würfeln",
@@ -485,6 +487,84 @@
       "neutral": "Unsicher, wird zur Selbsterhaltung handeln.",
       "friendly": "Tut, worum gebeten wird, solange es sich nicht in Gefahr bringt.",
       "helpful": "Hilft aktiv und bietet einen Dienst an."
+    }
+  },
+  "rulesDrawer": {
+    "title": "Regelübersicht",
+    "close": "Schließen",
+    "jump": {
+      "saves": "Rettungswürfe",
+      "damage": "Schaden",
+      "conditions": "Zustände",
+      "inventory": "Inventar",
+      "reaction": "Reaktion",
+      "advancement": "Aufstieg",
+      "retainers": "Gefolge"
+    },
+    "saves": {
+      "heading": "Rettungswürfe",
+      "body": "Würfle 1w20 und bestehe bei einem Ergebnis auf oder unter dem jeweiligen Wert (STR/DEX/WIL — der SL entscheidet passend zur Situation). Genau den Wert zu würfeln zählt als Erfolg. Reines Bestehen/Scheitern — bei einer natürlichen 1 oder 20 passiert nichts Besonderes.",
+      "note": "SRD-Hinweis: Diese App kennt keine kritischen Erfolge oder Patzer bei Rettungswürfen."
+    },
+    "damage": {
+      "heading": "Schaden & die Todesspirale",
+      "body": "Schaden trifft zuerst die TP. Sind die TP aufgebraucht, fließt der restliche Schaden in STR über. Jeder STR-Verlust erfordert sofort einen STR-Rettungswurf. Ein misslungener STR-Rettungswurf verursacht Verletzt und Kampfunfähig. Sinkt STR auf genau 0, stirbt die Maus sofort — kein Rettungswurf, kein Wunden-Wurf.",
+      "note": "SRD-Hinweis: Diese App verzichtet auf die 2w6-Tabelle „Tödliche Wunden“ des SRD — 0 STR bedeutet einen klaren Tod, keinen Wurf für die Art der Wunde."
+    },
+    "conditions": {
+      "heading": "Zustände",
+      "intro": "Mausritters feste Zustands-Liste — jeder Zustand, den eine Maus oder ein Gefolgsmitglied trägt, ist einer dieser sechs:",
+      "list": {
+        "exhausted": {
+          "label": "Erschöpft",
+          "note": "Nachteil bei STR- und DEX-Rettungswürfen. Wird durch eine ausgiebige Rast beseitigt."
+        },
+        "frightened": {
+          "label": "Verängstigt",
+          "note": "Muss einen WIL-Rettungswurf bestehen, um sich der Ursache der Angst zu nähern. Wird durch eine kurze Rast fernab der Gefahr beseitigt."
+        },
+        "hungryThirsty": {
+          "label": "Hungrig & Durstig",
+          "note": "Abzug auf Rettungswürfe, bis gegessen und getrunken wurde. Wird durch eine richtige Mahlzeit beseitigt."
+        },
+        "injured": {
+          "label": "Verletzt",
+          "note": "Nachteil bei STR- und DEX-Rettungswürfen. Wird durch eine ausgiebige Rast beseitigt."
+        },
+        "incapacitated": {
+          "label": "Kampfunfähig",
+          "note": "Aus dem Kampf — Folge eines misslungenen STR-Rettungswurfs. Wird erst durch Versorgung oder Stabilisierung beseitigt, nicht durch Rast allein."
+        },
+        "unconscious": {
+          "label": "Bewusstlos",
+          "note": "Durch eine Tödliche Wunde außer Gefecht. Wird durch Versorgung oder Rast gemäß den Regeln zu Tödlichen Wunden beseitigt."
+        }
+      }
+    },
+    "inventory": {
+      "heading": "Inventar & Slots",
+      "body": "Jede Maus und jedes Gefolgsmitglied hat fest 10 Slots: 6 Körper + 4 Pfoten (Pfoten füllen sich zuerst, für schnellen Zugriff). Die meisten Gegenstände belegen 1 Slot; sperrige Ausrüstung (schwere Rüstung, zweihändige Waffen, große Schätze) belegt 2. Manche Dinge (getragene Kleidung, natürliche Krallen und Zähne) belegen 0. Aufladbare Gegenstände (Laternen, Zauber, Seil) verfolgen ihre Ladungen auf einer Verschleiß-Leiste — pro Nutzung einen Punkt abhaken. Mehr als 10 Slots zeigt nur eine Warnung, blockiert aber nichts."
+    },
+    "reaction": {
+      "heading": "Reaktionswurf",
+      "intro": "Einfach 2w6, kein Zielwert zum Unterwürfeln — die Bande wird direkt von der Summe abgelesen:",
+      "range": {
+        "hostile": "2",
+        "unfriendly": "3–5",
+        "neutral": "6–8",
+        "friendly": "9–11",
+        "helpful": "12"
+      }
+    },
+    "advancement": {
+      "heading": "Aufstieg",
+      "body": "Erfahrungspunkte (EP) kommen aus in der Ruhephase ausgegebenen Pfennigen (Feiern, Ausrüstung, Andenken) — niemals aus Kills oder Kämpfen.",
+      "rate": "1 EP pro 10 ausgegebene Pfennige.",
+      "thresholds": "Stufen-Schwellen: 1.000 / 3.000 / 6.000 / 11.000 / 16.000 EP, danach +5.000 EP pro weiterer Stufe."
+    },
+    "retainers": {
+      "heading": "Gefolge-Obergrenze",
+      "body": "Eine Maus kann so viele Gefolgsmitglieder befehligen, wie ihr WIL-Wert beträgt. Das gilt pro Maus und wird über die ganze Gruppe summiert, um die Gesamtkapazität der Gruppe zu ergeben."
     }
   }
 }

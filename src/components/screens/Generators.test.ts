@@ -57,6 +57,17 @@ describe('Generators', () => {
     expect(screen.getByText(/2d6/)).toBeInTheDocument();
   });
 
+  it('opens the rules reference drawer from the header button', async () => {
+    render(Generators, { props: { onnavigate: vi.fn() } });
+
+    expect(screen.queryByRole('dialog', { name: 'Rules reference' })).not.toBeInTheDocument();
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Rules reference' }));
+
+    expect(screen.getByRole('dialog', { name: 'Rules reference' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Saves' })).toBeInTheDocument();
+  });
+
   it('rolls an encounter from the whole bestiary by default and shows a stat block', async () => {
     render(Generators, { props: { onnavigate: vi.fn() } });
 

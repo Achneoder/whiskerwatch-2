@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Dices, Swords, Package, UserRound } from 'lucide-svelte';
+  import { Dices, Swords, Package, UserRound, BookOpen } from 'lucide-svelte';
   import { _ } from 'svelte-i18n';
   import AppSidebar, { type NavScreen } from '../layout/AppSidebar.svelte';
   import Button from '../ui/Button.svelte';
@@ -10,6 +10,7 @@
   import Icon from '../ui/Icon.svelte';
   import StatBlock from '../ui/StatBlock.svelte';
   import Modal from '../ui/Modal.svelte';
+  import RulesDrawer from '../ui/RulesDrawer.svelte';
   import HirelingForm from '../forms/HirelingForm.svelte';
   import BestiaryForm from '../forms/BestiaryForm.svelte';
   import { rollDice, type DiceRollResult } from '../../lib/generators/roll';
@@ -26,6 +27,8 @@
   }
 
   let { onnavigate, onstartsession }: Props = $props();
+
+  let rulesOpen = $state(false);
 
   const diceSides = [4, 6, 8, 10, 12, 20];
   let count = $state(2);
@@ -187,9 +190,18 @@
   <AppSidebar active="generators" {onnavigate} {onstartsession} />
 
   <main class="flex-1 p-[var(--sp-6)] max-w-[var(--content-max)] flex flex-col gap-[var(--sp-5)]">
-    <header>
-      <div class="ww-label text-[var(--accent)]">{$_('generators.eyebrow')}</div>
-      <h1 class="text-[length:var(--text-h1)] mt-1">{$_('generators.title')}</h1>
+    <header class="flex items-center justify-between gap-[var(--sp-3)]">
+      <div>
+        <div class="ww-label text-[var(--accent)]">{$_('generators.eyebrow')}</div>
+        <h1 class="text-[length:var(--text-h1)] mt-1">{$_('generators.title')}</h1>
+      </div>
+      <button
+        onclick={() => (rulesOpen = true)}
+        aria-label={$_('generators.rulesAriaLabel')}
+        class="inline-flex items-center justify-center min-h-[var(--tap)] min-w-[var(--tap)] shrink-0 bg-none border-none text-[var(--text-muted)] cursor-pointer"
+      >
+        <Icon icon={BookOpen} />
+      </button>
     </header>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-[var(--sp-4)]">
@@ -395,3 +407,5 @@
     <BestiaryForm initial={npcBestiaryInitial} onsave={saveNpcToBestiary} oncancel={() => (npcModal = null)} />
   {/if}
 </Modal>
+
+<RulesDrawer open={rulesOpen} onclose={() => (rulesOpen = false)} />

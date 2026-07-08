@@ -1,4 +1,5 @@
 import { createPersistedList } from './persistedList.svelte';
+import { logSession } from './campaignHistory.svelte';
 
 export interface Session {
   id: string;
@@ -32,8 +33,26 @@ export function getSessions(): Session[] {
   return list.items;
 }
 
+/** Converts a session's `YYYY-MM-DD` date field into an ISO timestamp for the timeline, so the
+ *  entry sorts by when the session was actually played rather than when it was logged. Falls
+ *  back to "now" if the date is malformed, so a bad record can't crash the timeline sort. */
+function sessionDateToTimestamp(date: string): string {
+  // Parsed as UTC midnight (not local time) so the resulting ISO timestamp's date
+  // portion always matches the `YYYY-MM-DD` the GM entered, regardless of the
+  // browser's timezone offset.
+  const parsed = new Date(`${date}T00:00:00.000Z`);
+  return Number.isNaN(parsed.getTime()) ? new Date().toISOString() : parsed.toISOString();
+}
+
 export function addSession(input: Omit<Session, 'id'>): void {
-  list.add({ ...input, id: crypto.randomUUID() });
+  const id = crypto.randomUUID();
+  list.add({ ...input, id });
+  logSession({
+    timestamp: sessionDateToTimestamp(input.date),
+    sessionId: id,
+    number: input.number,
+    title: input.title,
+  });
 }
 
 export function updateSession(id: string, patch: Partial<Omit<Session, 'id'>>): void {

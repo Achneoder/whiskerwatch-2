@@ -1,4 +1,5 @@
 import { createPersistedList } from './persistedList.svelte';
+import { logBeatCompleted } from './campaignHistory.svelte';
 
 export type BeatStatus = 'planned' | 'active' | 'done';
 
@@ -62,7 +63,26 @@ export function addBeat(input: BeatInput): void {
 }
 
 export function updateBeat(id: string, patch: Partial<Omit<Beat, 'id'>>): void {
+  const before = list.items.find((b) => b.id === id);
+  // Snapshot the fields we need before mutating — `list.update` mutates `before` in place
+  // (it's the same object reference held in the array), so reading `before.status` after
+  // the update would always see the *new* status.
+  const wasDone = before?.status === 'done';
+  const title = before?.title;
+  const hexNodeId = before?.hexNodeId;
+  const factionIds = before?.factionIds;
+
   list.update(id, patch);
+
+  if (before && !wasDone && patch.status === 'done') {
+    logBeatCompleted({
+      timestamp: new Date().toISOString(),
+      beatId: before.id,
+      title: title ?? '',
+      hexNodeId: hexNodeId ?? null,
+      factionIds: factionIds ?? [],
+    });
+  }
 }
 
 function collectDescendantIds(id: string): string[] {

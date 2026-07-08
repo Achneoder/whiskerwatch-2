@@ -10,6 +10,7 @@ import {
 import { getFactionEdges, addFactionEdge, replaceFactionEdges } from './factionEdges.svelte';
 import { getBeats, addBeat, replaceBeats } from './beats.svelte';
 import { getHexNodes, addHexNode, replaceHexNodes } from './hexmap.svelte';
+import { getCampaignHistory, replaceCampaignHistory } from './campaignHistory.svelte';
 
 function seedOne(name = 'The Court') {
   addFaction({ name, disposition: 'hostile', clock: 3, of: 6, note: '', tags: ['Hostile'] });
@@ -20,6 +21,7 @@ describe('factions store', () => {
   beforeEach(() => {
     replaceFactions([]);
     replaceFactionEdges([]);
+    replaceCampaignHistory([]);
   });
 
   it('adds a faction', () => {
@@ -70,6 +72,30 @@ describe('factions store', () => {
       seedOne();
       bumpFactionClock('missing', 1);
       expect(getFactions()[0]?.clock).toBe(3);
+    });
+
+    it('logs a campaign history entry when the clock actually changes', () => {
+      const id = seedOne('The Court');
+      bumpFactionClock(id, 1);
+
+      expect(getCampaignHistory()).toHaveLength(1);
+      expect(getCampaignHistory()[0]).toMatchObject({
+        type: 'clockChanged',
+        factionId: id,
+        factionName: 'The Court',
+        from: 3,
+        to: 4,
+        max: 6,
+      });
+    });
+
+    it('does not log a history entry when clamping leaves the clock unchanged', () => {
+      const id = seedOne('The Court');
+      bumpFactionClock(id, 10);
+      expect(getCampaignHistory()).toHaveLength(1);
+
+      bumpFactionClock(id, 10);
+      expect(getCampaignHistory()).toHaveLength(1);
     });
   });
 

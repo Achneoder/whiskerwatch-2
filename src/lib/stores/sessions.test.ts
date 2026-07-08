@@ -8,10 +8,12 @@ import {
   getLastSession,
   getNextSessionNumber,
 } from './sessions.svelte';
+import { getCampaignHistory, replaceCampaignHistory } from './campaignHistory.svelte';
 
 describe('sessions store', () => {
   beforeEach(() => {
     replaceSessions([]);
+    replaceCampaignHistory([]);
   });
 
   it('defaults to session 1 when nothing is logged', () => {
@@ -37,5 +39,15 @@ describe('sessions store', () => {
 
     removeSession(id);
     expect(getSessions()).toHaveLength(0);
+  });
+
+  it('logs a campaign history entry timestamped from the session date, not creation time', () => {
+    addSession({ number: 4, date: '2026-01-08', title: 'Into the sewers', summary: '' });
+    const session = getSessions()[0]!;
+
+    expect(getCampaignHistory()).toHaveLength(1);
+    const [entry] = getCampaignHistory();
+    expect(entry).toMatchObject({ type: 'session', sessionId: session.id, number: 4, title: 'Into the sewers' });
+    expect(entry?.timestamp.slice(0, 10)).toBe('2026-01-08');
   });
 });

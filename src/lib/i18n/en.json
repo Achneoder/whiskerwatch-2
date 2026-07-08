@@ -8,6 +8,7 @@
     "hexMap": "Hex map",
     "generators": "Generators",
     "sessions": "Sessions",
+    "timeline": "Timeline",
     "settings": "Settings",
     "comingSoon": "Coming soon"
   },
@@ -424,5 +425,18 @@
       "resetConfirmAction": "Reset and start over",
       "resetDone": "Campaign reset. Start fresh!"
     }
+  },
+  "timeline": {
+    "eyebrow": "Prep mode · timeline",
+    "title": "Timeline",
+    "empty": "Nothing recorded yet — this fills in as you complete beats, log sessions, and bump faction clocks.",
+    "filter": {
+      "sessions": "Sessions",
+      "beats": "Beats",
+      "clocks": "Clocks"
+    },
+    "session": "Session #{number}: {title}",
+    "beatCompleted": "Beat completed: {title}",
+    "clockChanged": "{name} clock: {from} — {to}"
   }
 }

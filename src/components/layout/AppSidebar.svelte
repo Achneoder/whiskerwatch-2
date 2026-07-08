@@ -8,6 +8,7 @@
     Map,
     WandSparkles,
     ScrollText,
+    History,
     Moon,
     Sun,
     Play,
@@ -29,6 +30,7 @@
     | 'hexMap'
     | 'generators'
     | 'sessions'
+    | 'timeline'
     | 'settings';
 
   interface Props {
@@ -52,6 +54,7 @@
     { screen: 'hexMap', icon: Map, key: 'nav.hexMap', enabled: true },
     { screen: 'generators', icon: WandSparkles, key: 'nav.generators', enabled: true },
     { screen: 'sessions', icon: ScrollText, key: 'nav.sessions', enabled: true },
+    { screen: 'timeline', icon: History, key: 'nav.timeline', enabled: true },
   ];
 
   function toggleLocale() {

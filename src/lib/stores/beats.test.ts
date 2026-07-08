@@ -9,10 +9,12 @@ import {
   clearHexNodeFromBeats,
   removeFactionFromBeats,
 } from './beats.svelte';
+import { getCampaignHistory, replaceCampaignHistory } from './campaignHistory.svelte';
 
 describe('beats store', () => {
   beforeEach(() => {
     replaceBeats([]);
+    replaceCampaignHistory([]);
   });
 
   it('adds a root beat', () => {
@@ -86,5 +88,39 @@ describe('beats store', () => {
 
     expect(getBeats().find((b) => b.title === 'Raid')?.factionIds).toEqual(['fac-2']);
     expect(getBeats().find((b) => b.title === 'Unrelated')?.factionIds).toEqual(['fac-2']);
+  });
+
+  it('logs a campaign history entry when a beat transitions to done', () => {
+    addBeat({ parentId: null, title: 'Raid', notes: '', status: 'active', hexNodeId: 'hex-1', factionIds: ['fac-1'] });
+    const id = getBeats()[0]!.id;
+
+    updateBeat(id, { status: 'done' });
+
+    expect(getCampaignHistory()).toHaveLength(1);
+    expect(getCampaignHistory()[0]).toMatchObject({
+      type: 'beatCompleted',
+      beatId: id,
+      title: 'Raid',
+      hexNodeId: 'hex-1',
+      factionIds: ['fac-1'],
+    });
+  });
+
+  it('does not log again when a beat is already done', () => {
+    addBeat({ parentId: null, title: 'Raid', notes: '', status: 'done' });
+    const id = getBeats()[0]!.id;
+
+    updateBeat(id, { status: 'done' });
+
+    expect(getCampaignHistory()).toHaveLength(0);
+  });
+
+  it('does not log when a beat status change is not to done', () => {
+    addBeat({ parentId: null, title: 'Raid', notes: '', status: 'planned' });
+    const id = getBeats()[0]!.id;
+
+    updateBeat(id, { status: 'active' });
+
+    expect(getCampaignHistory()).toHaveLength(0);
   });
 });

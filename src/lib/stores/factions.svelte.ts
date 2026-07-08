@@ -3,6 +3,7 @@ import { removeEdgesForFaction } from './factionEdges.svelte';
 import { removeFactionFromBeats } from './beats.svelte';
 import { removeFactionFromHexNodes } from './hexmap.svelte';
 import { seedFactions } from './factionSeed';
+import { logClockChanged } from './campaignHistory.svelte';
 
 export type FactionDisposition = 'hostile' | 'neutral' | 'ally';
 
@@ -50,8 +51,19 @@ export function updateFaction(id: string, patch: Partial<Omit<Faction, 'id'>>): 
 export function bumpFactionClock(id: string, delta: number): void {
   const faction = list.items.find((f) => f.id === id);
   if (!faction) return;
+  const from = faction.clock;
   const clock = Math.max(0, Math.min(faction.of, faction.clock + delta));
   list.update(id, { clock });
+  if (clock !== from) {
+    logClockChanged({
+      timestamp: new Date().toISOString(),
+      factionId: id,
+      factionName: faction.name,
+      from,
+      to: clock,
+      max: faction.of,
+    });
+  }
 }
 
 /** Removes a faction and cascades to any relationships that referenced it. */

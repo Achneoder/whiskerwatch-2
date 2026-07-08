@@ -8,6 +8,7 @@
     "hexMap": "Hexkarte",
     "generators": "Generatoren",
     "sessions": "Sitzungen",
+    "timeline": "Zeitleiste",
     "settings": "Einstellungen",
     "comingSoon": "Demnächst verfügbar"
   },
@@ -424,5 +425,18 @@
       "resetConfirmAction": "Zurücksetzen und neu anfangen",
       "resetDone": "Kampagne zurückgesetzt. Neuer Anfang!"
     }
+  },
+  "timeline": {
+    "eyebrow": "Vorbereitung · Zeitleiste",
+    "title": "Zeitleiste",
+    "empty": "Noch nichts vermerkt — hier füllt sich mit der Zeit, wenn du Beats abschließt, Sitzungen protokollierst und Fraktions-Uhren bewegst.",
+    "filter": {
+      "sessions": "Sitzungen",
+      "beats": "Beats",
+      "clocks": "Uhren"
+    },
+    "session": "Sitzung Nr. {number}: {title}",
+    "beatCompleted": "Beat abgeschlossen: {title}",
+    "clockChanged": "{name}-Uhr: {from} — {to}"
   }
 }

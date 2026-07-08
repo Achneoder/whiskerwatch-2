@@ -7,6 +7,7 @@
   import HexMap from './components/screens/HexMap.svelte';
   import Generators from './components/screens/Generators.svelte';
   import Sessions from './components/screens/Sessions.svelte';
+  import Timeline from './components/screens/Timeline.svelte';
   import Settings from './components/screens/Settings.svelte';
   import LiveSession from './components/screens/LiveSession.svelte';
   import type { NavScreen } from './components/layout/AppSidebar.svelte';
@@ -28,6 +29,7 @@
     | 'hexMap'
     | 'generators'
     | 'sessions'
+    | 'timeline'
     | 'settings'
     | 'live'
   >('dashboard');
@@ -41,6 +43,7 @@
     else if (target === 'hexMap') screen = 'hexMap';
     else if (target === 'generators') screen = 'generators';
     else if (target === 'sessions') screen = 'sessions';
+    else if (target === 'timeline') screen = 'timeline';
     else if (target === 'settings') screen = 'settings';
   }
 </script>
@@ -66,6 +69,8 @@
     draftRecap={pendingRecapDraft}
     onconsumeddraft={() => (pendingRecapDraft = null)}
   />
+{:else if screen === 'timeline'}
+  <Timeline onnavigate={navigate} onstartsession={() => (screen = 'live')} />
 {:else if screen === 'settings'}
   <Settings onnavigate={navigate} onstartsession={() => (screen = 'live')} />
 {:else}

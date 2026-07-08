@@ -64,7 +64,7 @@ describe('Factions', () => {
   it('shows a beat linked to a faction as a tag on its card', () => {
     replaceFactions([court]);
     replaceBeats([
-      { id: 'b1', parentId: null, title: 'The granary raid', notes: '', status: 'active', hexNodeId: null, factionIds: ['1'] },
+      { id: 'b1', parentId: null, title: 'The granary raid', notes: '', status: 'active', hexNodeId: null, factionIds: ['1'], adventureId: 'adv-1' },
     ]);
     render(Factions, { props: { onnavigate: vi.fn() } });
 

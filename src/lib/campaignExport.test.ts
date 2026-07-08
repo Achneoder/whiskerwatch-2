@@ -3,7 +3,8 @@ import { buildCampaignExport, parseCampaignExport, importCampaign } from './camp
 import { getCampaignName, setCampaignName, DEFAULT_CAMPAIGN_NAME } from './stores/campaign.svelte';
 import { getParty } from './stores/party.svelte';
 import { getHirelings } from './stores/hirelings.svelte';
-import { getBeats } from './stores/beats.svelte';
+import { getAdventures, replaceAdventures } from './stores/adventures.svelte';
+import { getBeats, replaceBeats } from './stores/beats.svelte';
 import { getSessions } from './stores/sessions.svelte';
 import { getBestiary } from './stores/bestiary.svelte';
 import { getFactions } from './stores/factions.svelte';
@@ -16,13 +17,14 @@ describe('campaignExport', () => {
     setCampaignName(DEFAULT_CAMPAIGN_NAME);
   });
 
-  it('builds an export containing the current party, hirelings, beats, sessions, bestiary, factions and hexes', () => {
+  it('builds an export containing the current party, hirelings, adventures, beats, sessions, bestiary, factions and hexes', () => {
     const data = buildCampaignExport();
 
     expect(data.version).toBe(1);
     expect(data.campaignName).toBe(DEFAULT_CAMPAIGN_NAME);
     expect(data.party).toEqual(getParty());
     expect(data.hirelings).toEqual(getHirelings());
+    expect(data.adventures).toEqual(getAdventures());
     expect(data.beats).toEqual(getBeats());
     expect(data.sessions).toEqual(getSessions());
     expect(data.bestiary).toEqual(getBestiary());
@@ -40,6 +42,7 @@ describe('campaignExport', () => {
     expect(parsed.campaignName).toBe('The Gnawing Court Rises');
     expect(parsed.party).toEqual(data.party);
     expect(parsed.hirelings).toEqual(data.hirelings);
+    expect(parsed.adventures).toEqual(data.adventures);
     expect(parsed.beats).toEqual(data.beats);
     expect(parsed.sessions).toEqual(data.sessions);
     expect(parsed.bestiary).toEqual(data.bestiary);
@@ -52,6 +55,7 @@ describe('campaignExport', () => {
     const legacy = JSON.stringify({ version: 1, exportedAt: '2026-01-01T00:00:00.000Z', party: [], hirelings: [] });
     const parsed = parseCampaignExport(legacy);
 
+    expect(parsed.adventures).toEqual([]);
     expect(parsed.beats).toEqual([]);
     expect(parsed.sessions).toEqual([]);
     expect(parsed.bestiary).toEqual([]);
@@ -93,6 +97,21 @@ describe('campaignExport', () => {
     await importCampaign(file);
 
     expect(getCampaignName()).toBe('The Salt Marsh Expedition');
+  });
+
+  it('rejects an adventure entry missing required fields', () => {
+    const bad = JSON.stringify({ party: [], hirelings: [], adventures: [{ id: '1' }] });
+    expect(() => parseCampaignExport(bad)).toThrow(/does not look like/);
+  });
+
+  it('accepts an adventure entry with all required fields', () => {
+    const ok = JSON.stringify({
+      party: [],
+      hirelings: [],
+      adventures: [{ id: '1', title: 'The granary raid', description: 'Tunnels', status: 'active' }],
+    });
+    const parsed = parseCampaignExport(ok);
+    expect(parsed.adventures).toHaveLength(1);
   });
 
   it('rejects a faction entry missing required fields', () => {
@@ -152,5 +171,63 @@ describe('campaignExport', () => {
   it('rejects a party entry missing required fields', () => {
     const bad = JSON.stringify({ party: [{ id: '1' }], hirelings: [] });
     expect(() => parseCampaignExport(bad)).toThrow(/does not look like/);
+  });
+
+  describe('importing a legacy (pre-Adventures) export', () => {
+    it('migrates a legacy root beat into a real Adventure instead of losing the beat tree', async () => {
+      replaceAdventures([]);
+      replaceBeats([]);
+
+      const legacy = {
+        version: 1,
+        exportedAt: '2026-01-01T00:00:00.000Z',
+        party: [],
+        hirelings: [],
+        // No `adventures`, and the root beat has no `adventureId` — exactly
+        // what an export made before this feature existed looks like.
+        beats: [
+          { id: 'root', parentId: null, title: 'The granary raid', notes: 'Tunnels below.', status: 'active', hexNodeId: null, factionIds: [] },
+          { id: 'child', parentId: 'root', title: 'Find the entrance', notes: '', status: 'planned', hexNodeId: null, factionIds: [] },
+        ],
+      };
+      const file = new File([JSON.stringify(legacy)], 'legacy.json', { type: 'application/json' });
+
+      await importCampaign(file);
+
+      expect(getAdventures()).toHaveLength(1);
+      expect(getAdventures()[0]).toMatchObject({
+        title: 'The granary raid',
+        description: 'Tunnels below.',
+        status: 'active',
+      });
+      const adventureId = getAdventures()[0]!.id;
+
+      expect(getBeats()).toHaveLength(1);
+      expect(getBeats()[0]).toMatchObject({ id: 'child', parentId: null, adventureId });
+    });
+
+    it('leaves a modern export (with adventures and adventureId already set) unchanged', async () => {
+      replaceAdventures([]);
+      replaceBeats([]);
+
+      const modern = {
+        version: 1,
+        exportedAt: '2026-01-01T00:00:00.000Z',
+        party: [],
+        hirelings: [],
+        adventures: [{ id: 'adv-1', title: 'The granary raid', description: 'Tunnels below.', status: 'active' }],
+        beats: [
+          { id: 'b1', parentId: null, title: 'Find the entrance', notes: '', status: 'planned', hexNodeId: null, factionIds: [], adventureId: 'adv-1' },
+        ],
+      };
+      const file = new File([JSON.stringify(modern)], 'modern.json', { type: 'application/json' });
+
+      await importCampaign(file);
+
+      expect(getAdventures()).toHaveLength(1);
+      expect(getAdventures()[0]?.id).toBe('adv-1');
+      expect(getBeats()).toHaveLength(1);
+      expect(getBeats()[0]).toMatchObject({ id: 'b1', adventureId: 'adv-1' });
+    });
   });
 });

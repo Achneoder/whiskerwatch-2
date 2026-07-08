@@ -86,6 +86,7 @@ describe('FactionForm', () => {
       status: 'active',
       hexNodeId: null,
       factionIds: ['1'],
+      adventureId: 'adv-1',
     };
     render(FactionForm, { props: { initial: sample, beats: [beat], onsave: vi.fn(), oncancel: vi.fn() } });
 

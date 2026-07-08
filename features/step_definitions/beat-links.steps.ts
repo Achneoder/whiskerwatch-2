@@ -2,11 +2,6 @@ import { Given, Then, When } from '@cucumber/cucumber';
 import type { Locator, Page } from 'playwright';
 import type { WhiskerwatchWorld } from '../support/world';
 
-/** The beat row containing a given title — used to scope the Edit click to the right row. */
-function beatRow(page: Page, title: string): Locator {
-  return page.getByText(title, { exact: true }).locator('xpath=../..');
-}
-
 /** The faction card containing a given faction name — used to scope assertions to the right card. */
 function factionCard(page: Page, name: string): Locator {
   return page.getByText(name, { exact: true }).locator('xpath=../..');
@@ -19,10 +14,6 @@ async function selectOptionContaining(select: Locator, text: string): Promise<vo
   if (!value) throw new Error(`No option containing "${text}" in select`);
   await select.selectOption(value);
 }
-
-Given('the GM opens {string} beat to edit', async function (this: WhiskerwatchWorld, title: string) {
-  await beatRow(this.page, title).getByRole('button', { name: 'Edit' }).click();
-});
 
 When('the GM links the beat to the {string} hex', async function (this: WhiskerwatchWorld, hexName: string) {
   const dialog = this.page.getByRole('dialog');

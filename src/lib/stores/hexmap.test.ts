@@ -71,7 +71,7 @@ describe('hexmap store', () => {
   it('cascades to beats referencing a removed hex node', () => {
     replaceBeats([]);
     const id = seedOne();
-    addBeat({ parentId: null, title: 'Raid', notes: '', status: 'planned', hexNodeId: id });
+    addBeat({ parentId: null, title: 'Raid', notes: '', status: 'planned', hexNodeId: id, adventureId: 'adv-1' });
 
     removeHexNode(id);
 

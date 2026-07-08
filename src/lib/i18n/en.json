@@ -47,6 +47,27 @@
     "factionsCard": {
       "heading": "Factions & clocks",
       "clock": "Clock"
+    },
+    "prepChecklist": {
+      "eyebrow": "BEFORE YOU SIT DOWN",
+      "title": "Session Prep",
+      "beats": {
+        "lead": "{n} beats",
+        "trailing": "in play"
+      },
+      "hexes": {
+        "lead": "{n} hexes",
+        "trailing": "have encounters ready"
+      },
+      "wages": {
+        "lead": "{n} active hirelings",
+        "trailing": "on wages — check Pay Day"
+      },
+      "clocks": {
+        "lead": "{n} faction clocks",
+        "trailing": "about to trigger"
+      },
+      "allClear": "Nothing urgent — you're ready to run."
     }
   },
   "liveSession": {

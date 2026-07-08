@@ -47,6 +47,27 @@
     "factionsCard": {
       "heading": "Fraktionen & Uhren",
       "clock": "Uhr"
+    },
+    "prepChecklist": {
+      "eyebrow": "VOR DER SITZUNG",
+      "title": "Sitzungsvorbereitung",
+      "beats": {
+        "lead": "{n} Beats",
+        "trailing": "aktiv in Bearbeitung"
+      },
+      "hexes": {
+        "lead": "{n} Hexfelder",
+        "trailing": "haben Begegnungen bereit"
+      },
+      "wages": {
+        "lead": "{n} aktive Söldner",
+        "trailing": "auf Lohn — Zahltag prüfen"
+      },
+      "clocks": {
+        "lead": "{n} Fraktionsuhren",
+        "trailing": "kurz vor dem Auslösen"
+      },
+      "allClear": "Nichts Dringendes — ihr seid startklar."
     }
   },
   "liveSession": {

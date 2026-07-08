@@ -1,5 +1,16 @@
 <script lang="ts">
-  import { Dice5, Plus } from 'lucide-svelte';
+  import {
+    Dice5,
+    Plus,
+    ListChecks,
+    MapPinned,
+    Coins,
+    AlarmClockCheck,
+    ChevronRight,
+    PawPrint,
+  } from 'lucide-svelte';
+  import type { IconProps } from 'lucide-svelte';
+  import type { ComponentType, SvelteComponent } from 'svelte';
   import { _ } from 'svelte-i18n';
   import Button from '../ui/Button.svelte';
   import Card from '../ui/Card.svelte';
@@ -9,8 +20,11 @@
   import Icon from '../ui/Icon.svelte';
   import AppSidebar, { type NavScreen } from '../layout/AppSidebar.svelte';
   import { getParty } from '../../lib/stores/party.svelte';
+  import { getHirelings } from '../../lib/stores/hirelings.svelte';
   import { getLastSession, getNextSessionNumber } from '../../lib/stores/sessions.svelte';
   import { getFactions, dispositionTagTone } from '../../lib/stores/factions.svelte';
+  import { getBeats } from '../../lib/stores/beats.svelte';
+  import { getHexNodes } from '../../lib/stores/hexmap.svelte';
   import { CONDITIONS } from '../../lib/conditions';
   import { daysSince } from '../../lib/date';
 
@@ -31,6 +45,67 @@
   const factions = getFactions();
   const activeClocks = $derived(factions.length);
   const nearFull = $derived(factions.filter((f) => f.of > 0 && f.clock >= f.of - 1).length);
+
+  // -- Session prep checklist -----------------------------------------------
+  // Read-only counts pulled from stores that already exist elsewhere on this
+  // screen/app — no new persisted data. See ROADMAP.md Phase 11's "Session
+  // prep checklist" for the exact spec these four rows implement.
+  const beats = getBeats();
+  const hexNodes = getHexNodes();
+  const hirelings = getHirelings();
+
+  const activeBeatsCount = $derived(beats.filter((b) => b.status === 'active').length);
+  const hexesWithEncountersCount = $derived(hexNodes.filter((h) => h.encounters.length > 0).length);
+  const wagedHirelingsCount = $derived(hirelings.filter((h) => h.status === 'active' && h.wage > 0).length);
+  // `nearFull` above is the exact same faction-clock-near-full threshold Live
+  // Session uses to decide which clocks are tappable at the table — reused
+  // here rather than reimplemented so the two surfaces can never disagree.
+
+  interface PrepRow {
+    key: string;
+    icon: ComponentType<SvelteComponent<IconProps>>;
+    count: number;
+    leadKey: string;
+    trailingKey: string;
+    target: NavScreen;
+  }
+
+  const prepRows = $derived<PrepRow[]>([
+    {
+      key: 'beats',
+      icon: ListChecks,
+      count: activeBeatsCount,
+      leadKey: 'dashboard.prepChecklist.beats.lead',
+      trailingKey: 'dashboard.prepChecklist.beats.trailing',
+      target: 'adventure',
+    },
+    {
+      key: 'hexes',
+      icon: MapPinned,
+      count: hexesWithEncountersCount,
+      leadKey: 'dashboard.prepChecklist.hexes.lead',
+      trailingKey: 'dashboard.prepChecklist.hexes.trailing',
+      target: 'hexMap',
+    },
+    {
+      key: 'wages',
+      icon: Coins,
+      count: wagedHirelingsCount,
+      leadKey: 'dashboard.prepChecklist.wages.lead',
+      trailingKey: 'dashboard.prepChecklist.wages.trailing',
+      target: 'warband',
+    },
+    {
+      key: 'clocks',
+      icon: AlarmClockCheck,
+      count: nearFull,
+      leadKey: 'dashboard.prepChecklist.clocks.lead',
+      trailingKey: 'dashboard.prepChecklist.clocks.trailing',
+      target: 'factions',
+    },
+  ]);
+
+  const allClear = $derived(prepRows.every((row) => row.count === 0));
 </script>
 
 <div class="flex flex-col md:flex-row min-h-screen bg-[var(--bg)] text-[var(--text)]">
@@ -100,6 +175,40 @@
         </div>
       </Card>
     </section>
+
+    <Card
+      eyebrow={$_('dashboard.prepChecklist.eyebrow')}
+      title={$_('dashboard.prepChecklist.title')}
+      class="!rounded-[var(--radius-md)]"
+    >
+      {#if allClear}
+        <div class="flex items-center justify-center gap-2 py-6 text-[var(--text-muted)] text-[length:var(--text-body)]">
+          <Icon icon={PawPrint} />
+          {$_('dashboard.prepChecklist.allClear')}
+        </div>
+      {:else}
+        <div class="flex flex-col divide-y divide-[var(--border)]">
+          {#each prepRows as row (row.key)}
+            <button
+              type="button"
+              class="w-full min-h-11 flex items-center gap-3 py-3 px-1 text-left cursor-pointer active:bg-[var(--surface-sunk)]"
+              onclick={() => onnavigate(row.target)}
+            >
+              <span
+                class="grid place-items-center w-8 h-8 rounded-full shrink-0 bg-[var(--surface-sunk)] text-[var(--text-secondary)]"
+              >
+                <Icon icon={row.icon} />
+              </span>
+              <span class="flex-1 min-w-0 text-[length:var(--text-body)]">
+                <span class="font-bold">{$_(row.leadKey, { values: { n: row.count } })}</span>
+                <span class="text-[var(--text-muted)]">{$_(row.trailingKey)}</span>
+              </span>
+              <Icon icon={ChevronRight} class="text-[var(--text-muted)] shrink-0" />
+            </button>
+          {/each}
+        </div>
+      {/if}
+    </Card>
 
     <div class="grid grid-cols-1 lg:grid-cols-[1.1fr_1fr] gap-[var(--sp-5)] items-start">
       <!-- Warband -->

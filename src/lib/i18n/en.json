@@ -127,7 +127,13 @@
     "rollLoyaltySave": "Roll loyalty save",
     "encounter": {
       "eyebrow": "Encounter",
-      "roll": "Roll an encounter"
+      "roll": "Roll an encounter",
+      "defeated": "Defeated",
+      "remove": "Remove",
+      "removed": "{label} removed",
+      "removeAria": "Remove {label}",
+      "addAnother": "+ Add another {name}",
+      "fightOverTip": "Fight's over. Tap a mouse's Bag to hand off any loot."
     },
     "reaction": {
       "roll": "Roll Reaction"
@@ -135,7 +141,9 @@
     "adventurePicker": {
       "ariaLabel": "Choose adventure, currently {adventure}",
       "listAriaLabel": "Active adventures"
-    }
+    },
+    "itemMoved": "{item} moved to {to}",
+    "hirelingTag": "Hireling"
   },
   "recap": {
     "eyebrow": "Live · End of session",
@@ -222,6 +230,12 @@
     "chargesAria": "{current} of {max} charges remaining",
     "overburdenedTitle": "Overburdened.",
     "overburdenedMessage": "A mouse can't carry more than 10 slots — drop something before the next scene.",
+    "move": "Move",
+    "moveAria": "Move {name}",
+    "moveTo": "Move {item} to:",
+    "back": "Back",
+    "willOverburden": "will be overburdened",
+    "noRecipients": "No one else to hand this off to.",
     "form": {
       "name": "Name",
       "slots": "Slots",

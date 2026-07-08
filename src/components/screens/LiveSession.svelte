@@ -5,6 +5,7 @@
   import LiveSessionCard from './LiveSessionCard.svelte';
   import LiveSessionInventoryModal from './LiveSessionInventoryModal.svelte';
   import LiveSessionEncounterCard from './LiveSessionEncounterCard.svelte';
+  import type { EncounterInstance } from './LiveSessionEncounterInstance.svelte';
   import SaveDock from './SaveDock.svelte';
   import ConfirmDialog from '../ui/ConfirmDialog.svelte';
   import Tag from '../ui/Tag.svelte';
@@ -38,6 +39,7 @@
   import { getAdventures } from '../../lib/stores/adventures.svelte';
   import { getHexNodes } from '../../lib/stores/hexmap.svelte';
   import { getBestiary, type BestiaryEntry } from '../../lib/stores/bestiary.svelte';
+  import type { Item } from '../../lib/items';
   import { getLastSession, getNextSessionNumber, type Session } from '../../lib/stores/sessions.svelte';
   import { rollSave, rollLoyaltySave } from '../../lib/generators/save';
   import { generateEncounterFor } from '../../lib/generators/encounters';
@@ -157,23 +159,81 @@
   // clears whatever reaction was rolled for the previous one.
   let reactionResult = $state<ReactionRollResult | null>(null);
 
+  // Live-combat HP tracker (Phase 13) — transient, screen-scoped, never
+  // persisted, exactly as ephemeral as `encounterResult`/`reactionResult`
+  // above. See docs/design/phase-13-encounter-tracker-and-item-handoff.md.
+  let encounterInstances = $state<EncounterInstance[]>([]);
+  // Whether this card has ever held at least one instance — used only to
+  // decide whether an empty instance list means "never rolled" (show
+  // nothing) or "fight's over" (show the loot hand-off tip). Reset whenever
+  // the active hex changes, same as the instances themselves.
+  let hadEncounterInstances = $state(false);
+
+  function spawnInstance(entry: BestiaryEntry): EncounterInstance {
+    const n = encounterInstances.length + 1;
+    return { id: crypto.randomUUID(), label: `${entry.name} ${n}`, hp: entry.hp, maxHp: entry.hp };
+  }
+
   function rollHexEncounter() {
     if (!activeHex) return;
     encounterResult = generateEncounterFor(activeHex.id, hexNodes, bestiary);
     reactionResult = null;
+    // Clear before spawning so `spawnInstance`'s numbering starts back at 1
+    // for the new fight, rather than continuing on from the previous one.
+    encounterInstances = [];
+    encounterInstances = encounterResult ? [spawnInstance(encounterResult)] : [];
+    if (encounterInstances.length > 0) hadEncounterInstances = true;
+    // Re-rolling closes any open instance drawer from the previous
+    // encounter — those instance ids no longer exist.
+    openDrawer = null;
   }
 
   function rollHexEncounterReaction() {
     reactionResult = rollReaction();
   }
 
+  function addAnotherInstance() {
+    if (!encounterResult) return;
+    encounterInstances = [...encounterInstances, spawnInstance(encounterResult)];
+    hadEncounterInstances = true;
+  }
+
+  function damageInstance(id: string, amount: number) {
+    const before = encounterInstances;
+    encounterInstances = encounterInstances.map((i) => (i.id === id ? { ...i, hp: Math.max(0, i.hp - amount) } : i));
+    announce('encounter:' + id, $_('liveSession.damageApplied', { values: { amount } }), () => (encounterInstances = before));
+  }
+
+  function healInstance(id: string, amount: number) {
+    const before = encounterInstances;
+    encounterInstances = encounterInstances.map((i) =>
+      i.id === id ? { ...i, hp: Math.min(i.maxHp, i.hp + amount) } : i,
+    );
+    announce('encounter:' + id, $_('liveSession.healApplied', { values: { amount } }), () => (encounterInstances = before));
+  }
+
+  function removeInstance(id: string) {
+    const before = encounterInstances;
+    const removed = before.find((i) => i.id === id);
+    encounterInstances = before.filter((i) => i.id !== id);
+    if (removed) {
+      announce(
+        'encounter:' + id,
+        $_('liveSession.encounter.removed', { values: { label: removed.label } }),
+        () => (encounterInstances = before),
+      );
+    }
+  }
+
   // A different active hex (new beat, or the same beat re-linked to a
-  // different hex) means any previously-rolled encounter/reaction no longer
-  // applies to what's on screen.
+  // different hex) means any previously-rolled encounter/reaction/instances
+  // no longer apply to what's on screen.
   $effect(() => {
     void activeHex?.id;
     encounterResult = null;
     reactionResult = null;
+    encounterInstances = [];
+    hadEncounterInstances = false;
   });
 
   const activeParty = $derived(party.filter((m) => m.status === 'active'));
@@ -212,6 +272,11 @@
   // id is enough to find the right one across both lists (see
   // `memberOfEitherSource` below).
   let openInventoryId = $state<string | null>(null);
+  // The id of the item currently being handed off from the open inventory's
+  // owner, or `null` when the modal is showing the plain item grid. Reset
+  // whenever the inventory modal itself closes (see the `onclose` wiring
+  // below) so reopening a different mouse's bag never starts mid-move.
+  let movePickerFor = $state<string | null>(null);
 
   // Pay Day's paid/unpaid state is deliberately local and NOT persisted —
   // it resets every time the modal reopens. Non-payment has no automatic
@@ -293,6 +358,63 @@
     const hireling = hirelings.find((h) => h.id === id);
     if (hireling) return { source: 'hireling', member: hireling };
     return null;
+  }
+
+  interface Recipient {
+    id: string;
+    name: string;
+    kind: 'party' | 'hireling';
+    items: Item[];
+  }
+
+  // Every other active party member and hireling — never the sender, never
+  // a fallen/deceased entry — matching `activeParty`/`activeHirelings`'
+  // existing filters used everywhere else on this screen. Presentational
+  // (`LiveSessionInventoryModal`) doesn't reach back into the stores itself.
+  const recipients = $derived.by((): Recipient[] => {
+    if (!openInventoryId) return [];
+    return [
+      ...activeParty
+        .filter((m) => m.id !== openInventoryId)
+        .map((m): Recipient => ({ id: m.id, name: m.name, kind: 'party', items: m.items })),
+      ...activeHirelings
+        .filter((h) => h.id !== openInventoryId)
+        .map((h): Recipient => ({ id: h.id, name: h.name, kind: 'hireling', items: h.items })),
+    ];
+  });
+
+  /**
+   * Moves one item from whichever mouse/hireling currently has the
+   * inventory modal open to `toId`. Always a genuine move (spliced out of
+   * one array, pushed into the other), never a copy — undoable the same
+   * "snapshot both sides, restore both sides" way `handleDamage`/
+   * `handleHeal` already are across the party/hireling boundary. Per
+   * `lib/items.ts`'s `isOverCapacity` rule, the 10-slot cap is never used to
+   * block this — `LiveSessionInventoryModal` only warns.
+   */
+  function moveItem(itemId: string, toId: string) {
+    if (!openInventoryId) return;
+    const from = sourceAndMemberFor(openInventoryId);
+    const to = sourceAndMemberFor(toId);
+    if (!from || !to) return;
+    const item = from.member.items.find((i) => i.id === itemId);
+    if (!item) return;
+
+    const beforeFrom = from.member.items;
+    const beforeTo = to.member.items;
+    const fromId = openInventoryId;
+
+    const updateOwner = (owner: Source, id: string, items: Item[]) =>
+      owner === 'party' ? updateMember(id, { items }) : updateHireling(id, { items });
+
+    updateOwner(from.source, fromId, beforeFrom.filter((i) => i.id !== itemId));
+    updateOwner(to.source, toId, [...beforeTo, item]);
+
+    announce('item:' + itemId, $_('liveSession.itemMoved', { values: { item: item.name, to: to.member.name } }), () => {
+      updateOwner(from.source, fromId, beforeFrom);
+      updateOwner(to.source, toId, beforeTo);
+    });
+    movePickerFor = null;
   }
 
   function handleBurnCharge(id: string, itemId: string) {
@@ -521,8 +643,18 @@
         hasBestiary={bestiary.length > 0}
         {encounterResult}
         {reactionResult}
+        instances={encounterInstances}
+        openDrawerId={openDrawer?.kind === 'damage' ? openDrawer.id : null}
+        hadInstances={hadEncounterInstances}
+        notice={notice && notice.id.startsWith('encounter:') ? { text: notice.text, undo: notice.undo } : null}
         onrollencounter={rollHexEncounter}
         onrollreaction={rollHexEncounterReaction}
+        onaddanother={addAnotherInstance}
+        ontoggledrawer={(id) => toggleDrawer(id, 'damage')}
+        onhurtinstance={damageInstance}
+        onhealinstance={healInstance}
+        onremoveinstance={removeInstance}
+        ondismissnotice={dismissNotice}
       />
     {/if}
 
@@ -662,8 +794,16 @@
   name={openInventoryMember?.name ?? ''}
   items={openInventoryMember?.items ?? []}
   notice={notice && notice.id.startsWith('item:') ? { text: notice.text, undo: notice.undo } : null}
+  {recipients}
+  movingItemId={movePickerFor}
   onburn={(itemId) => openInventoryId && handleBurnCharge(openInventoryId, itemId)}
-  onclose={() => (openInventoryId = null)}
+  onclose={() => {
+    openInventoryId = null;
+    movePickerFor = null;
+  }}
+  onrequestmove={(itemId) => (movePickerFor = itemId)}
+  onmove={moveItem}
+  oncancelmove={() => (movePickerFor = null)}
   ondismissnotice={dismissNotice}
 />
 

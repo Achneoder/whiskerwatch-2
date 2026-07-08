@@ -76,3 +76,10 @@ Given('the GM adds a completed adventure titled {string}', async function (this:
 When('the GM expands the completed adventures section', async function (this: WhiskerwatchWorld) {
   await this.page.getByText(/^Completed \(/).click();
 });
+
+// `BeatForm`'s status <select> has no accessible label of its own — it's
+// always rendered first in the dialog, ahead of the labelled hex/faction
+// pickers (see other beat steps' positional-select comments above).
+When('the GM sets the beat status to {string}', async function (this: WhiskerwatchWorld, status: string) {
+  await this.page.getByRole('dialog').locator('select').first().selectOption({ label: status });
+});

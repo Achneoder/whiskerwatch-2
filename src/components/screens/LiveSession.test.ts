@@ -300,6 +300,103 @@ describe('LiveSession', () => {
     expect(screen.queryByRole('button', { name: 'Undo' })).not.toBeInTheDocument();
   });
 
+  describe('item hand-off (Phase 13)', () => {
+    it('moves an item from the open bag to another active party member, undoably', async () => {
+      replaceParty([
+        member({ id: 'p1', name: 'Wren', items: [{ id: 'torch-1', name: 'Torch', slots: 1, charges: null, maxCharges: null, notes: '' }] }),
+        member({ id: 'p2', name: 'Pip', items: [] }),
+      ]);
+      replaceHirelings([]);
+      replaceFactions([]);
+      replaceBeats([]);
+      replaceSessions([]);
+      render(LiveSession, { props: {} });
+
+      await fireEvent.click(screen.getByRole('button', { name: /open wren's bag/i }));
+      const dialog = screen.getByRole('dialog');
+      await fireEvent.click(within(dialog).getByRole('button', { name: 'Move Torch' }));
+      await fireEvent.click(within(dialog).getByRole('button', { name: /Pip/ }));
+
+      expect(getParty().find((m) => m.id === 'p1')?.items).toHaveLength(0);
+      expect(getParty().find((m) => m.id === 'p2')?.items[0]?.name).toBe('Torch');
+      expect(screen.getByText(/Torch moved to Pip/)).toBeInTheDocument();
+
+      await fireEvent.click(screen.getByRole('button', { name: 'Undo' }));
+
+      expect(getParty().find((m) => m.id === 'p1')?.items).toHaveLength(1);
+      expect(getParty().find((m) => m.id === 'p2')?.items).toHaveLength(0);
+    });
+
+    it('never lists the sender or a fallen mouse as a hand-off recipient', async () => {
+      replaceParty([
+        member({ id: 'p1', name: 'Wren', items: [{ id: 'torch-1', name: 'Torch', slots: 1, charges: null, maxCharges: null, notes: '' }] }),
+        member({ id: 'p2', name: 'Juniper', status: 'deceased', items: [] }),
+      ]);
+      replaceHirelings([hireling({ id: 'h1', name: 'Oat' })]);
+      replaceFactions([]);
+      replaceBeats([]);
+      replaceSessions([]);
+      render(LiveSession, { props: {} });
+
+      await fireEvent.click(screen.getByRole('button', { name: /open wren's bag/i }));
+      const dialog = screen.getByRole('dialog');
+      await fireEvent.click(within(dialog).getByRole('button', { name: 'Move Torch' }));
+
+      expect(within(dialog).queryByRole('button', { name: /Wren/ })).not.toBeInTheDocument();
+      expect(within(dialog).queryByText('Juniper')).not.toBeInTheDocument();
+      expect(within(dialog).getByRole('button', { name: /Oat/ })).toBeInTheDocument();
+    });
+
+    it('allows a move to an already-full recipient without blocking it', async () => {
+      const fullBag = Array.from({ length: 10 }, (_, i) => ({
+        id: `full-${i}`,
+        name: `Gear ${i}`,
+        slots: 1 as const,
+        charges: null,
+        maxCharges: null,
+        notes: '',
+      }));
+      replaceParty([
+        member({ id: 'p1', name: 'Wren', items: [{ id: 'torch-1', name: 'Torch', slots: 1, charges: null, maxCharges: null, notes: '' }] }),
+        member({ id: 'p2', name: 'Pip', items: fullBag }),
+      ]);
+      replaceHirelings([]);
+      replaceFactions([]);
+      replaceBeats([]);
+      replaceSessions([]);
+      render(LiveSession, { props: {} });
+
+      await fireEvent.click(screen.getByRole('button', { name: /open wren's bag/i }));
+      const dialog = screen.getByRole('dialog');
+      await fireEvent.click(within(dialog).getByRole('button', { name: 'Move Torch' }));
+
+      const pipRow = within(dialog).getByRole('button', { name: /Pip/ });
+      expect(pipRow).toHaveTextContent('will be overburdened');
+      await fireEvent.click(pipRow);
+
+      expect(getParty().find((m) => m.id === 'p2')?.items).toHaveLength(11);
+    });
+
+    it('backs out of the move picker without moving anything', async () => {
+      replaceParty([
+        member({ id: 'p1', name: 'Wren', items: [{ id: 'torch-1', name: 'Torch', slots: 1, charges: null, maxCharges: null, notes: '' }] }),
+        member({ id: 'p2', name: 'Pip', items: [] }),
+      ]);
+      replaceHirelings([]);
+      replaceFactions([]);
+      replaceBeats([]);
+      replaceSessions([]);
+      render(LiveSession, { props: {} });
+
+      await fireEvent.click(screen.getByRole('button', { name: /open wren's bag/i }));
+      await fireEvent.click(screen.getByRole('button', { name: 'Move Torch' }));
+      await fireEvent.click(screen.getByRole('button', { name: 'Back' }));
+
+      expect(screen.getByText('Torch')).toBeInTheDocument();
+      expect(getParty().find((m) => m.id === 'p1')?.items).toHaveLength(1);
+    });
+  });
+
   it('rolls a loyalty save from a hireling\'s card and shows a pass/fail result inline', async () => {
     seed();
     mockD6Pair(1, 2); // total 3, well under Oat's loyalty of 4
@@ -516,6 +613,114 @@ describe('LiveSession', () => {
     // it's tied to *this* encounter instance, not gone for good.
     expect(screen.queryByText('Helpful')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Roll Reaction' })).toBeInTheDocument();
+  });
+
+  describe('encounter HP tracker (Phase 13)', () => {
+    function seedActiveHexFight() {
+      replaceParty([member()]);
+      replaceHirelings([]);
+      replaceFactions([]);
+      replaceBeats([
+        {
+          id: 'b1',
+          parentId: null,
+          title: 'The granary raid',
+          notes: '',
+          status: 'active',
+          hexNodeId: 'hex1',
+          factionIds: [],
+          adventureId: 'adv-1',
+        },
+      ]);
+      replaceSessions([]);
+      replaceHexNodes([hexNode({ encounters: [{ bestiaryId: 'b1', weight: 1 }] })]);
+      replaceBestiary([bestiaryEntry({ hp: 4 })]);
+    }
+
+    it('spawns one numbered instance immediately on rolling an encounter', async () => {
+      seedActiveHexFight();
+      mockEncounterPickThenReaction(1, 1);
+      render(LiveSession, { props: {} });
+
+      await fireEvent.click(screen.getByRole('button', { name: 'Roll an encounter' }));
+
+      expect(screen.getByText('Barn Cat 1')).toBeInTheDocument();
+    });
+
+    it('adds another numbered instance of the same creature via "+ Add another"', async () => {
+      seedActiveHexFight();
+      mockEncounterPickThenReaction(1, 1);
+      render(LiveSession, { props: {} });
+
+      await fireEvent.click(screen.getByRole('button', { name: 'Roll an encounter' }));
+      await fireEvent.click(screen.getByRole('button', { name: '+ Add another Barn Cat' }));
+
+      expect(screen.getByText('Barn Cat 1')).toBeInTheDocument();
+      expect(screen.getByText('Barn Cat 2')).toBeInTheDocument();
+    });
+
+    it('damages an instance via its Hurt drawer and shows Defeated + Remove once it hits 0', async () => {
+      seedActiveHexFight();
+      mockEncounterPickThenReaction(1, 1);
+      render(LiveSession, { props: {} });
+      await fireEvent.click(screen.getByRole('button', { name: 'Roll an encounter' }));
+
+      const row = screen.getByTestId('encounter-instance-Barn Cat 1');
+      await fireEvent.click(within(row).getByRole('button', { name: 'Hurt' }));
+      await fireEvent.click(within(row).getByRole('button', { name: /custom amount/i }));
+      const increase = within(row).getByRole('button', { name: 'Increase' });
+      for (let i = 0; i < 4; i += 1) {
+        await fireEvent.click(increase); // 7 default + 4 = doesn't matter, floors at 0
+      }
+      await fireEvent.click(within(row).getByRole('button', { name: 'Apply' }));
+
+      expect(within(row).getByText('Defeated')).toBeInTheDocument();
+      await fireEvent.click(within(row).getByRole('button', { name: 'Remove' }));
+
+      expect(screen.queryByText('Barn Cat 1')).not.toBeInTheDocument();
+    });
+
+    it('removing a still-living instance is undoable', async () => {
+      seedActiveHexFight();
+      mockEncounterPickThenReaction(1, 1);
+      render(LiveSession, { props: {} });
+      await fireEvent.click(screen.getByRole('button', { name: 'Roll an encounter' }));
+
+      await fireEvent.click(screen.getByRole('button', { name: 'Remove Barn Cat 1' }));
+
+      expect(screen.queryByText('Barn Cat 1')).not.toBeInTheDocument();
+      await fireEvent.click(screen.getByRole('button', { name: 'Undo' }));
+
+      expect(screen.getByText('Barn Cat 1')).toBeInTheDocument();
+    });
+
+    it('shows the fight-over tip once the last instance is removed', async () => {
+      seedActiveHexFight();
+      mockEncounterPickThenReaction(1, 1);
+      render(LiveSession, { props: {} });
+      await fireEvent.click(screen.getByRole('button', { name: 'Roll an encounter' }));
+
+      await fireEvent.click(screen.getByRole('button', { name: 'Remove Barn Cat 1' }));
+
+      expect(screen.getByText(/Fight's over/)).toBeInTheDocument();
+    });
+
+    it('rerolling the encounter clears every existing instance and spawns one fresh instance', async () => {
+      seedActiveHexFight();
+      const spy = vi.spyOn(Math, 'random');
+      spy.mockReturnValueOnce(0.0001); // first roll's weightedPick draw
+      spy.mockReturnValueOnce(0.0001); // second roll's weightedPick draw
+      render(LiveSession, { props: {} });
+
+      await fireEvent.click(screen.getByRole('button', { name: 'Roll an encounter' }));
+      await fireEvent.click(screen.getByRole('button', { name: '+ Add another Barn Cat' }));
+      expect(screen.getByText('Barn Cat 2')).toBeInTheDocument();
+
+      await fireEvent.click(screen.getByRole('button', { name: 'Roll an encounter' }));
+
+      expect(screen.getByText('Barn Cat 1')).toBeInTheDocument();
+      expect(screen.queryByText('Barn Cat 2')).not.toBeInTheDocument();
+    });
   });
 
   it('resets Pay Day\'s paid state every time the modal reopens', async () => {

@@ -127,7 +127,13 @@
     "rollLoyaltySave": "Loyalitäts-Rettungswurf würfeln",
     "encounter": {
       "eyebrow": "Begegnung",
-      "roll": "Begegnung würfeln"
+      "roll": "Begegnung würfeln",
+      "defeated": "Besiegt",
+      "remove": "Entfernen",
+      "removed": "{label} entfernt",
+      "removeAria": "{label} entfernen",
+      "addAnother": "+ Weitere/n {name}",
+      "fightOverTip": "Kampf vorbei. Tippe auf den Beutel einer Maus, um Beute zu übergeben."
     },
     "reaction": {
       "roll": "Reaktion würfeln"
@@ -135,7 +141,9 @@
     "adventurePicker": {
       "ariaLabel": "Abenteuer wählen, aktuell {adventure}",
       "listAriaLabel": "Aktive Abenteuer"
-    }
+    },
+    "itemMoved": "{item} an {to} übergeben",
+    "hirelingTag": "Söldner"
   },
   "recap": {
     "eyebrow": "Live · Sitzungsende",
@@ -222,6 +230,12 @@
     "chargesAria": "{current} von {max} Ladungen übrig",
     "overburdenedTitle": "Überladen.",
     "overburdenedMessage": "Eine Maus kann nicht mehr als 10 Plätze tragen — leg vor der nächsten Szene etwas ab.",
+    "move": "Übergeben",
+    "moveAria": "{name} übergeben",
+    "moveTo": "{item} übergeben an:",
+    "back": "Zurück",
+    "willOverburden": "wird überladen sein",
+    "noRecipients": "Niemand sonst, an den du das übergeben könntest.",
     "form": {
       "name": "Name",
       "slots": "Plätze",

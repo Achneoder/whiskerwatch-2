@@ -5,7 +5,7 @@
   import StatusPill from '../ui/StatusPill.svelte';
   import HpBar from '../ui/HpBar.svelte';
   import Button from '../ui/Button.svelte';
-  import Stepper from '../ui/Stepper.svelte';
+  import HurtHealDrawer from '../ui/HurtHealDrawer.svelte';
   import { CONDITIONS, type ConditionName } from '../../lib/conditions';
   import { MAX_SLOTS, usedSlots, type Item } from '../../lib/items';
 
@@ -193,43 +193,17 @@
   {/if}
 
   {#if drawer === 'damage'}
-    <div class="mt-3 flex flex-col gap-3 border-t border-[var(--border)] pt-3">
-      <div class="flex gap-2">
-        <Button variant={mode === 'hurt' ? 'danger' : 'ghost'} size="sm" onclick={() => (mode = 'hurt')}>
-          {$_('liveSession.hurt')}
-        </Button>
-        <Button variant={mode === 'heal' ? 'primary' : 'ghost'} size="sm" onclick={() => (mode = 'heal')}>
-          {$_('liveSession.heal')}
-        </Button>
-      </div>
-      <div class="grid grid-cols-3 gap-2">
-        {#each chips as n (n)}
-          <button
-            type="button"
-            onclick={() => applyChip(n)}
-            class="min-h-[var(--tap)] rounded-[var(--radius-md)] font-[family-name:var(--font-display)] font-bold text-[length:var(--text-title)] cursor-pointer border {mode ===
-            'hurt'
-              ? 'bg-[var(--danger-tint)] text-[var(--danger-hover)] border-[var(--danger)]'
-              : 'bg-[var(--success-tint)] text-[var(--success)] border-[var(--success)]'}"
-          >
-            {n}
-          </button>
-        {/each}
-      </div>
-      {#if !customOpen}
-        <Button variant="secondary" block onclick={() => (customOpen = true)}>{$_('liveSession.customAmount')}</Button>
-      {:else}
-        <div class="flex items-center justify-center gap-[var(--sp-4)] flex-wrap">
-          <Stepper
-            value={customAmount}
-            min={1}
-            max={30}
-            tone={mode === 'heal' ? 'accent' : 'hp'}
-            onchange={(v) => (customAmount = v)}
-          />
-          <Button variant={mode === 'hurt' ? 'danger' : 'primary'} onclick={applyCustom}>{$_('liveSession.apply')}</Button>
-        </div>
-      {/if}
+    <div class="mt-3 border-t border-[var(--border)] pt-3">
+      <HurtHealDrawer
+        {mode}
+        {chips}
+        {customOpen}
+        bind:customAmount
+        onmode={(m) => (mode = m)}
+        onchip={applyChip}
+        oncustomtoggle={() => (customOpen = true)}
+        onapplycustom={applyCustom}
+      />
     </div>
   {/if}
   </Card>

@@ -1,6 +1,10 @@
 <script lang="ts">
+  import { ArrowLeftRight } from 'lucide-svelte';
   import { _ } from 'svelte-i18n';
   import Modal from '../ui/Modal.svelte';
+  import Icon from '../ui/Icon.svelte';
+  import Button from '../ui/Button.svelte';
+  import Tag from '../ui/Tag.svelte';
   import { MAX_SLOTS, PAWS_SLOTS, BODY_SLOTS, usedSlots, splitSections, type Item } from '../../lib/items';
 
   interface Notice {
@@ -8,17 +12,45 @@
     undo?: (() => void) | undefined;
   }
 
+  /** A possible hand-off target — every other active party member/hireling, never the sender. */
+  interface Recipient {
+    id: string;
+    name: string;
+    kind: 'party' | 'hireling';
+    items: Item[];
+  }
+
   interface Props {
     name: string;
     items: Item[];
     open: boolean;
     notice?: Notice | null;
+    /** Every other active party member/hireling this item could be handed off to — computed by `LiveSession.svelte`, this modal never reaches into the stores itself. */
+    recipients: Recipient[];
+    /** The id of the item currently mid-move, or `null` when showing the plain item grid. */
+    movingItemId: string | null;
     onburn: (itemId: string) => void;
     onclose: () => void;
     ondismissnotice?: () => void;
+    onrequestmove: (itemId: string) => void;
+    onmove: (itemId: string, recipientId: string) => void;
+    oncancelmove: () => void;
   }
 
-  let { name, items, open, notice = null, onburn, onclose, ondismissnotice }: Props = $props();
+  let {
+    name,
+    items,
+    open,
+    notice = null,
+    recipients,
+    movingItemId,
+    onburn,
+    onclose,
+    ondismissnotice,
+    onrequestmove,
+    onmove,
+    oncancelmove,
+  }: Props = $props();
 
   function undoNotice() {
     notice?.undo?.();
@@ -49,6 +81,8 @@
   const bodyCells = $derived(buildCells(sections.body, BODY_SLOTS, 'body'));
   const used = $derived(usedSlots(items));
 
+  const movingItem = $derived(movingItemId ? (items.find((i) => i.id === movingItemId) ?? null) : null);
+
   function chargeCellAria(item: Item): string {
     return $_('liveSession.chargeCellAria', {
       values: { name: item.name, current: item.charges ?? 0, max: item.maxCharges ?? 0 },
@@ -67,23 +101,33 @@
 {/snippet}
 
 {#snippet cell(item: Item)}
-  {#if item.maxCharges != null}
+  <div
+    class="min-h-19 flex items-stretch rounded-[var(--radius-md)] border border-[var(--border-strong)] overflow-hidden"
+  >
+    {#if item.maxCharges != null}
+      <button
+        type="button"
+        onclick={() => onburn(item.id)}
+        aria-label={chargeCellAria(item)}
+        class="flex-1 min-w-0 flex flex-col items-center justify-center gap-1 p-[var(--sp-2)] text-center cursor-pointer bg-[var(--surface)] border-none"
+      >
+        <span class="text-[length:var(--text-sm)] font-bold leading-tight truncate w-full">{item.name}</span>
+        {@render chargeDots(item)}
+      </button>
+    {:else}
+      <div class="flex-1 min-w-0 flex items-center justify-center p-[var(--sp-2)] text-center bg-[var(--surface)]">
+        <span class="text-[length:var(--text-sm)] font-bold leading-tight truncate w-full">{item.name}</span>
+      </div>
+    {/if}
     <button
       type="button"
-      onclick={() => onburn(item.id)}
-      aria-label={chargeCellAria(item)}
-      class="min-h-19 flex flex-col items-center justify-center gap-1 rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--surface)] cursor-pointer p-[var(--sp-2)] text-center"
+      onclick={() => onrequestmove(item.id)}
+      aria-label={$_('inventory.moveAria', { values: { name: item.name } })}
+      class="w-11 min-w-[var(--tap)] shrink-0 flex items-center justify-center border-l border-[var(--border)] bg-[var(--surface-sunk)] text-[var(--accent)] cursor-pointer"
     >
-      <span class="text-[length:var(--text-sm)] font-bold leading-tight">{item.name}</span>
-      {@render chargeDots(item)}
+      <Icon icon={ArrowLeftRight} size="prep" />
     </button>
-  {:else}
-    <div
-      class="min-h-19 flex flex-col items-center justify-center gap-1 rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--surface)] p-[var(--sp-2)] text-center"
-    >
-      <span class="text-[length:var(--text-sm)] font-bold leading-tight">{item.name}</span>
-    </div>
-  {/if}
+  </div>
 {/snippet}
 
 {#snippet empty()}
@@ -94,35 +138,72 @@
 
 <Modal {open} title={name} eyebrow={$_('inventory.heading')} {onclose}>
   <div class="flex flex-col gap-[var(--gap-stack)] pb-[var(--sp-5)]">
-    <div class="font-[family-name:var(--font-mono)] text-[length:var(--text-sm)] text-[var(--text-secondary)]">
-      {$_('inventory.slotsUsed', { values: { used, max: MAX_SLOTS } })}
-    </div>
-
-    <div>
-      <div class="ww-label text-[length:var(--text-caption)] mb-1.5">{$_('inventory.paws')}</div>
-      <div class="grid grid-cols-2 gap-2">
-        {#each pawsCells as entry (entry.type === 'item' ? entry.item.id : entry.key)}
-          {#if entry.type === 'item'}
-            {@render cell(entry.item)}
-          {:else}
-            {@render empty()}
-          {/if}
-        {/each}
+    {#if movingItem}
+      <div class="flex items-center justify-between gap-2 flex-wrap">
+        <span class="font-bold text-[length:var(--text-body)]">
+          {$_('inventory.moveTo', { values: { item: movingItem.name } })}
+        </span>
+        <Button variant="ghost" size="sm" onclick={oncancelmove}>{$_('inventory.back')}</Button>
       </div>
-    </div>
 
-    <div>
-      <div class="ww-label text-[length:var(--text-caption)] mb-1.5 mt-1">{$_('inventory.body')}</div>
-      <div class="grid grid-cols-2 gap-2">
-        {#each bodyCells as entry (entry.type === 'item' ? entry.item.id : entry.key)}
-          {#if entry.type === 'item'}
-            {@render cell(entry.item)}
-          {:else}
-            {@render empty()}
-          {/if}
+      <div class="flex flex-col gap-2">
+        {#each recipients as recipient (recipient.id)}
+          {@const recipientUsed = usedSlots(recipient.items)}
+          {@const wouldOverburden = recipientUsed + movingItem.slots > MAX_SLOTS}
+          <button
+            type="button"
+            onclick={() => onmove(movingItem.id, recipient.id)}
+            class="min-h-[var(--tap)] w-full flex items-center justify-between gap-2 px-[var(--sp-3)] py-2 rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--surface)] cursor-pointer"
+          >
+            <span class="flex items-center gap-2">
+              <span class="font-bold text-[length:var(--text-body)]">{recipient.name}</span>
+              {#if recipient.kind === 'hireling'}
+                <Tag size="sm">{$_('liveSession.hirelingTag')}</Tag>
+              {/if}
+            </span>
+            <span
+              class="ww-num text-[length:var(--text-sm)] {wouldOverburden ? 'text-[var(--warning)]' : ''}"
+            >
+              {recipientUsed}/{MAX_SLOTS}
+              {#if wouldOverburden}<span class="ww-label ml-1">{$_('inventory.willOverburden')}</span>{/if}
+            </span>
+          </button>
         {/each}
+        {#if recipients.length === 0}
+          <p class="text-[length:var(--text-sm)] text-[var(--text-muted)]">{$_('inventory.noRecipients')}</p>
+        {/if}
       </div>
-    </div>
+    {:else}
+      <div class="font-[family-name:var(--font-mono)] text-[length:var(--text-sm)] text-[var(--text-secondary)]">
+        {$_('inventory.slotsUsed', { values: { used, max: MAX_SLOTS } })}
+      </div>
+
+      <div>
+        <div class="ww-label text-[length:var(--text-caption)] mb-1.5">{$_('inventory.paws')}</div>
+        <div class="grid grid-cols-2 gap-2">
+          {#each pawsCells as entry (entry.type === 'item' ? entry.item.id : entry.key)}
+            {#if entry.type === 'item'}
+              {@render cell(entry.item)}
+            {:else}
+              {@render empty()}
+            {/if}
+          {/each}
+        </div>
+      </div>
+
+      <div>
+        <div class="ww-label text-[length:var(--text-caption)] mb-1.5 mt-1">{$_('inventory.body')}</div>
+        <div class="grid grid-cols-2 gap-2">
+          {#each bodyCells as entry (entry.type === 'item' ? entry.item.id : entry.key)}
+            {#if entry.type === 'item'}
+              {@render cell(entry.item)}
+            {:else}
+              {@render empty()}
+            {/if}
+          {/each}
+        </div>
+      </div>
+    {/if}
 
     {#if notice}
       <div class="flex items-center justify-between gap-2 border-t border-[var(--border)] pt-3">

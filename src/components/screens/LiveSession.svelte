@@ -9,6 +9,7 @@
   import Tag from '../ui/Tag.svelte';
   import Button from '../ui/Button.svelte';
   import Modal from '../ui/Modal.svelte';
+  import Input from '../ui/Input.svelte';
   import {
     getParty,
     dealDamage,
@@ -37,6 +38,7 @@
   import { rollSave, rollLoyaltySave } from '../../lib/generators/save';
   import { CONDITIONS, type ConditionName } from '../../lib/conditions';
   import { getLiveSessionEvents, logEvent, clearLog } from '../../lib/stores/liveSessionLog.svelte';
+  import { logDeath } from '../../lib/stores/campaignHistory.svelte';
   import { today } from '../../lib/date';
   import SessionRecapReview from './SessionRecapReview.svelte';
 
@@ -108,6 +110,10 @@
   let openDrawer = $state<{ id: string; kind: 'damage' | 'condition' } | null>(null);
   let pendingStrSave = $state<{ id: string; source: Source; str: number } | null>(null);
   let deathConfirm = $state<{ id: string; source: Source; name: string } | null>(null);
+  // Reset whenever a new death confirmation opens (see `requestDeath`/
+  // `handleDamage`'s `outcome.died` branch) so a previous mouse's typed
+  // cause never leaks into the next one's confirmation.
+  let deathCause = $state('');
   // Independent of `openDrawer` — the inventory modal overlays the card
   // rather than expanding it, so there's no coordination needed between
   // "which drawer is open" and "whose bag is open". IDs are `crypto.
@@ -248,6 +254,7 @@
       // STR hit exactly 0 — immediate death per the rules, no save. Death
       // itself is logged from `confirmDeath` once the GM actually confirms
       // it, not here.
+      deathCause = '';
       deathConfirm = { id, source, name: member.name };
     } else if (outcome.strSaveRequired) {
       pendingStrSave = { id, source, str: outcome.newStr };
@@ -329,15 +336,37 @@
   function requestDeath(source: Source, id: string) {
     const member = memberOf(source, id);
     if (!member) return;
+    deathCause = '';
     deathConfirm = { id, source, name: member.name };
   }
 
   function confirmDeath() {
     if (!deathConfirm) return;
-    if (deathConfirm.source === 'party') killMember(deathConfirm.id);
-    else killHireling(deathConfirm.id);
-    logEvent({ kind: 'death', name: deathConfirm.name, role: deathConfirm.source });
+    const { id, source, name } = deathConfirm;
+    // Snapshot role (and level, for party mice) before killing — `killMember`/
+    // `killHireling` only flip `status`, but reading after would still work;
+    // this just keeps the ledger's source of truth explicit.
+    const partyMember = source === 'party' ? party.find((m) => m.id === id) : undefined;
+    const hirelingMember = source === 'hireling' ? hirelings.find((h) => h.id === id) : undefined;
+    const role = partyMember?.role ?? hirelingMember?.role ?? '';
+
+    if (source === 'party') killMember(id);
+    else killHireling(id);
+    logEvent({ kind: 'death', name, role: source });
+
+    const cause = deathCause.trim();
+    logDeath({
+      timestamp: new Date().toISOString(),
+      memberId: id,
+      name,
+      role,
+      source,
+      ...(cause ? { cause } : {}),
+      ...(lastSession ? { sessionNumber: lastSession.number } : {}),
+      ...(partyMember ? { level: partyMember.level } : {}),
+    });
     deathConfirm = null;
+    deathCause = '';
   }
 
   const openInventoryMember = $derived(openInventoryId ? sourceAndMemberFor(openInventoryId)?.member ?? null : null);
@@ -496,13 +525,26 @@
 <ConfirmDialog
   open={deathConfirm !== null}
   title={$_('liveSession.deathTitle')}
-  message={deathConfirm ? $_('liveSession.deathMessage', { values: { name: deathConfirm.name } }) : undefined}
   confirmLabel={$_('liveSession.confirmDeathAction')}
   cancelLabel={$_('liveSession.cancel')}
   danger
   onconfirm={confirmDeath}
   oncancel={() => (deathConfirm = null)}
-/>
+>
+  {#if deathConfirm}
+    <div class="flex flex-col gap-[var(--sp-3)]">
+      <p class="text-[var(--text-secondary)] text-[length:var(--text-body)]">
+        {$_('liveSession.deathMessage', { values: { name: deathConfirm.name } })}
+      </p>
+      <Input
+        label={$_('liveSession.causeOfDeath')}
+        placeholder={$_('liveSession.causeOfDeathPlaceholder')}
+        size="live"
+        bind:value={deathCause}
+      />
+    </div>
+  {/if}
+</ConfirmDialog>
 
 <LiveSessionInventoryModal
   open={openInventoryMember !== null}

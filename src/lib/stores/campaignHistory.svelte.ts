@@ -30,7 +30,24 @@ export interface ClockChangedHistoryEntry {
   max: number;
 }
 
-export type CampaignHistoryEntry = SessionHistoryEntry | BeatCompletedHistoryEntry | ClockChangedHistoryEntry;
+export interface DeathHistoryEntry {
+  id: string;
+  type: 'death';
+  timestamp: string;
+  memberId: string;
+  name: string;
+  role: string;
+  source: 'party' | 'hireling';
+  cause?: string;
+  sessionNumber?: number;
+  level?: number;
+}
+
+export type CampaignHistoryEntry =
+  | SessionHistoryEntry
+  | BeatCompletedHistoryEntry
+  | ClockChangedHistoryEntry
+  | DeathHistoryEntry;
 
 const STORAGE_KEY = 'whiskerwatch:campaignHistory';
 
@@ -50,6 +67,10 @@ export function logBeatCompleted(input: Omit<BeatCompletedHistoryEntry, 'id' | '
 
 export function logClockChanged(input: Omit<ClockChangedHistoryEntry, 'id' | 'type'>): void {
   list.add({ ...input, id: crypto.randomUUID(), type: 'clockChanged' });
+}
+
+export function logDeath(input: Omit<DeathHistoryEntry, 'id' | 'type'>): void {
+  list.add({ ...input, id: crypto.randomUUID(), type: 'death' });
 }
 
 export function replaceCampaignHistory(entries: CampaignHistoryEntry[]): void {

@@ -75,6 +75,8 @@
     "confirmDeathAction": "Confirm death",
     "deathTitle": "Confirm death?",
     "deathMessage": "{name} has been reduced to 0 STR — a Fatal Wound. This permanently removes them from active play and can't be undone.",
+    "causeOfDeath": "Cause of death (optional)",
+    "causeOfDeathPlaceholder": "Overrun by the barn cat's claws…",
     "cancel": "Cancel",
     "hurt": "Hurt",
     "heal": "Heal",
@@ -154,7 +156,23 @@
       "addCondition": "Add",
       "cancel": "Cancel",
       "save": "Save"
-    }
+    },
+    "scars": {
+      "eyebrow": "Fatal Wounds",
+      "add": "Scar",
+      "addTitle": "Add Scar",
+      "submit": "Add Scar",
+      "addAriaLabel": "Add a scar for {name}",
+      "suggestions": "Suggestions",
+      "labelField": "Label",
+      "noteField": "Note",
+      "notePlaceholder": "How it happened…",
+      "more": "+{count}",
+      "moreAriaLabel": "Show all of {name}'s scars",
+      "allTitle": "{name}'s scars"
+    },
+    "fallen": "Fallen ({count})",
+    "deceased": "Deceased"
   },
   "inventory": {
     "heading": "Inventory",
@@ -433,10 +451,13 @@
     "filter": {
       "sessions": "Sessions",
       "beats": "Beats",
-      "clocks": "Clocks"
+      "clocks": "Clocks",
+      "deaths": "Deaths"
     },
     "session": "Session #{number}: {title}",
     "beatCompleted": "Beat completed: {title}",
-    "clockChanged": "{name} clock: {from} — {to}"
+    "clockChanged": "{name} clock: {from} — {to}",
+    "died": "{name} died",
+    "diedWithCause": "{name} died — {cause}"
   }
 }

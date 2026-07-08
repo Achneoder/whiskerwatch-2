@@ -75,6 +75,8 @@
     "confirmDeathAction": "Tod bestätigen",
     "deathTitle": "Tod bestätigen?",
     "deathMessage": "{name} wurde auf 0 STK reduziert — eine tödliche Wunde. Dies entfernt die Maus dauerhaft aus dem aktiven Spiel und kann nicht rückgängig gemacht werden.",
+    "causeOfDeath": "Todesursache (optional)",
+    "causeOfDeathPlaceholder": "Von den Krallen der Hofkatze überrannt…",
     "cancel": "Abbrechen",
     "hurt": "Verletzen",
     "heal": "Heilen",
@@ -154,7 +156,23 @@
       "addCondition": "Hinzufügen",
       "cancel": "Abbrechen",
       "save": "Speichern"
-    }
+    },
+    "scars": {
+      "eyebrow": "Tödliche Wunden",
+      "add": "Narbe",
+      "addTitle": "Narbe hinzufügen",
+      "submit": "Narbe hinzufügen",
+      "addAriaLabel": "Narbe für {name} hinzufügen",
+      "suggestions": "Vorschläge",
+      "labelField": "Bezeichnung",
+      "noteField": "Notiz",
+      "notePlaceholder": "Wie es passiert ist…",
+      "more": "+{count}",
+      "moreAriaLabel": "Alle Narben von {name} anzeigen",
+      "allTitle": "Narben von {name}"
+    },
+    "fallen": "Gefallen ({count})",
+    "deceased": "Verstorben"
   },
   "inventory": {
     "heading": "Inventar",
@@ -433,10 +451,13 @@
     "filter": {
       "sessions": "Sitzungen",
       "beats": "Beats",
-      "clocks": "Uhren"
+      "clocks": "Uhren",
+      "deaths": "Todesfälle"
     },
     "session": "Sitzung Nr. {number}: {title}",
     "beatCompleted": "Beat abgeschlossen: {title}",
-    "clockChanged": "{name}-Uhr: {from} — {to}"
+    "clockChanged": "{name}-Uhr: {from} — {to}",
+    "died": "{name} ist gestorben",
+    "diedWithCause": "{name} ist gestorben — {cause}"
   }
 }

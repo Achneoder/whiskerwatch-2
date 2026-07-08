@@ -4,6 +4,7 @@ import {
   logSession,
   logBeatCompleted,
   logClockChanged,
+  logDeath,
   replaceCampaignHistory,
 } from './campaignHistory.svelte';
 
@@ -63,6 +64,46 @@ describe('campaignHistory store', () => {
       to: 3,
       max: 6,
     });
+  });
+
+  it('appends a death entry with an optional cause, session number, and level', () => {
+    logDeath({
+      timestamp: '2026-07-01T12:00:00.000Z',
+      memberId: 'p1',
+      name: 'Wren',
+      role: 'Tinker',
+      source: 'party',
+      cause: "Overrun by the barn cat's claws",
+      sessionNumber: 5,
+      level: 2,
+    });
+
+    const [entry] = getCampaignHistory();
+    expect(entry).toMatchObject({
+      type: 'death',
+      memberId: 'p1',
+      name: 'Wren',
+      role: 'Tinker',
+      source: 'party',
+      cause: "Overrun by the barn cat's claws",
+      sessionNumber: 5,
+      level: 2,
+    });
+    expect(entry?.id).toBeTruthy();
+  });
+
+  it('appends a death entry with no cause when none is given', () => {
+    logDeath({
+      timestamp: '2026-07-01T12:00:00.000Z',
+      memberId: 'h1',
+      name: 'Oat',
+      role: 'Porter',
+      source: 'hireling',
+    });
+
+    const [entry] = getCampaignHistory();
+    expect(entry).toMatchObject({ type: 'death', name: 'Oat', source: 'hireling' });
+    expect((entry as { cause?: string }).cause).toBeUndefined();
   });
 
   it('appends multiple entries in insertion order', () => {

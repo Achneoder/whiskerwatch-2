@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, afterEach } from 'vitest';
+import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/svelte';
 import LiveSession from './LiveSession.svelte';
 import { replaceParty, getParty, type PartyMember } from '../../lib/stores/party.svelte';
@@ -6,6 +6,7 @@ import { replaceHirelings, type Hireling } from '../../lib/stores/hirelings.svel
 import { replaceFactions, getFactions } from '../../lib/stores/factions.svelte';
 import { replaceBeats } from '../../lib/stores/beats.svelte';
 import { replaceSessions } from '../../lib/stores/sessions.svelte';
+import { getCampaignHistory, replaceCampaignHistory } from '../../lib/stores/campaignHistory.svelte';
 
 function member(overrides: Partial<PartyMember> = {}): PartyMember {
   return {
@@ -62,6 +63,10 @@ function mockD6Pair(d1: number, d2: number) {
 }
 
 describe('LiveSession', () => {
+  beforeEach(() => {
+    replaceCampaignHistory([]);
+  });
+
   afterEach(() => {
     vi.restoreAllMocks();
   });
@@ -284,6 +289,66 @@ describe('LiveSession', () => {
 
     await fireEvent.click(within(dialog).getByText('Unpaid'));
     expect(within(dialog).getByText('Paid')).toBeInTheDocument();
+  });
+
+  it('confirms a death with an optional cause and logs it to the campaign history', async () => {
+    seed();
+    render(LiveSession, { props: {} });
+
+    // Pip's str is 10 and max HP is 6 — 16 damage empties HP then drains STR
+    // to exactly 0, which is immediate death per the rules (no save).
+    const [hurtButton] = screen.getAllByRole('button', { name: 'Hurt' });
+    await fireEvent.click(hurtButton!);
+    await fireEvent.click(screen.getByRole('button', { name: /custom amount/i }));
+    const increase = screen.getByRole('button', { name: 'Increase' });
+    for (let i = 0; i < 9; i += 1) {
+      await fireEvent.click(increase);
+    }
+    await fireEvent.click(screen.getByRole('button', { name: 'Apply' }));
+
+    expect(screen.getByText('Confirm death?')).toBeInTheDocument();
+
+    const dialog = screen.getByRole('dialog');
+    await fireEvent.input(within(dialog).getByLabelText('Cause of death (optional)'), {
+      target: { value: "Overrun by the barn cat's claws" },
+    });
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Confirm death' }));
+
+    expect(getParty().find((m) => m.id === 'p1')?.status).toBe('deceased');
+    const [entry] = getCampaignHistory();
+    expect(entry).toMatchObject({
+      type: 'death',
+      name: 'Pip',
+      role: 'Scout',
+      source: 'party',
+      cause: "Overrun by the barn cat's claws",
+      sessionNumber: 5,
+      level: 1,
+    });
+  });
+
+  it('confirms a death with a blank cause without blocking the confirm button', async () => {
+    seed();
+    render(LiveSession, { props: {} });
+
+    const [hurtButton] = screen.getAllByRole('button', { name: 'Hurt' });
+    await fireEvent.click(hurtButton!);
+    await fireEvent.click(screen.getByRole('button', { name: /custom amount/i }));
+    const increase = screen.getByRole('button', { name: 'Increase' });
+    for (let i = 0; i < 9; i += 1) {
+      await fireEvent.click(increase);
+    }
+    await fireEvent.click(screen.getByRole('button', { name: 'Apply' }));
+
+    const dialog = screen.getByRole('dialog');
+    const confirmButton = within(dialog).getByRole('button', { name: 'Confirm death' });
+    expect(confirmButton).not.toBeDisabled();
+    await fireEvent.click(confirmButton);
+
+    expect(getParty().find((m) => m.id === 'p1')?.status).toBe('deceased');
+    const [entry] = getCampaignHistory();
+    expect(entry).toMatchObject({ type: 'death', name: 'Pip' });
+    expect((entry as { cause?: string }).cause).toBeUndefined();
   });
 
   it('resets Pay Day\'s paid state every time the modal reopens', async () => {

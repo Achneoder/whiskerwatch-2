@@ -1,8 +1,52 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/svelte';
 import Roster from './Roster.svelte';
-import { replaceParty } from '../../lib/stores/party.svelte';
-import { replaceHirelings } from '../../lib/stores/hirelings.svelte';
+import { replaceParty, getParty, type PartyMember } from '../../lib/stores/party.svelte';
+import { replaceHirelings, getHirelings, type Hireling } from '../../lib/stores/hirelings.svelte';
+
+function member(overrides: Partial<PartyMember> = {}): PartyMember {
+  return {
+    id: '1',
+    name: 'Pip',
+    role: 'Scout',
+    hp: 4,
+    max: 6,
+    str: 10,
+    maxStr: 10,
+    dex: 10,
+    wil: 10,
+    pips: 0,
+    xp: 0,
+    level: 1,
+    status: 'active',
+    conditions: [],
+    scars: [],
+    items: [],
+    ...overrides,
+  };
+}
+
+function hireling(overrides: Partial<Hireling> = {}): Hireling {
+  return {
+    id: '1',
+    name: 'Oat',
+    role: 'Porter',
+    hp: 3,
+    max: 3,
+    str: 10,
+    maxStr: 10,
+    dex: 10,
+    wil: 10,
+    loyalty: 9,
+    wage: 0,
+    notes: '',
+    status: 'active',
+    conditions: [],
+    scars: [],
+    items: [],
+    ...overrides,
+  };
+}
 
 describe('Roster', () => {
   beforeEach(() => {
@@ -140,5 +184,61 @@ describe('Roster', () => {
     await fireEvent.change(input, { target: { files: [file] } });
 
     expect(await screen.findByText(/not valid JSON/)).toBeInTheDocument();
+  });
+
+  it("shows a party member's scars on their roster row", () => {
+    replaceParty([member({ scars: [{ label: 'Lost an eye', note: '' }] })]);
+    render(Roster, { props: { onnavigate: vi.fn() } });
+
+    expect(screen.getByText('Lost an eye')).toBeInTheDocument();
+  });
+
+  it('adds a scar to a living party member through the Add Scar flow', async () => {
+    replaceParty([member()]);
+    render(Roster, { props: { onnavigate: vi.fn() } });
+
+    await fireEvent.click(screen.getByRole('button', { name: /add a scar for pip/i }));
+    await fireEvent.click(screen.getByRole('button', { name: 'Lost an eye' }));
+    await fireEvent.click(screen.getByRole('button', { name: 'Add Scar' }));
+
+    expect(getParty().find((m) => m.id === '1')?.scars).toEqual([{ label: 'Lost an eye', note: '' }]);
+    expect(screen.getByText('Lost an eye')).toBeInTheDocument();
+  });
+
+  it('adds a scar to a hireling through the Add Scar flow', async () => {
+    replaceHirelings([hireling()]);
+    render(Roster, { props: { onnavigate: vi.fn() } });
+
+    await fireEvent.click(screen.getByRole('button', { name: /add a scar for oat/i }));
+    await fireEvent.click(screen.getByRole('button', { name: 'Tremor in the paw' }));
+    await fireEvent.click(screen.getByRole('button', { name: 'Add Scar' }));
+
+    expect(getHirelings().find((h) => h.id === '1')?.scars).toEqual([{ label: 'Tremor in the paw', note: '' }]);
+  });
+
+  it('shows deceased party members and hirelings collapsed under a Fallen section', () => {
+    replaceParty([member({ id: '1', name: 'Pip' }), member({ id: '2', name: 'Wren', status: 'deceased' })]);
+    replaceHirelings([hireling({ id: '1', name: 'Oat' }), hireling({ id: '2', name: 'Reed', status: 'deceased' })]);
+    render(Roster, { props: { onnavigate: vi.fn() } });
+
+    expect(screen.getByText('Pip')).toBeInTheDocument();
+    expect(screen.getByText('Oat')).toBeInTheDocument();
+    // Both fallen rows start collapsed inside a <details> — the names are
+    // present in the DOM (details content isn't unmounted) but the section
+    // headers should show the right counts.
+    const fallenSummaries = screen.getAllByText('Fallen (1)');
+    expect(fallenSummaries).toHaveLength(2);
+    expect(screen.getByText('Wren')).toBeInTheDocument();
+    expect(screen.getByText('Reed')).toBeInTheDocument();
+    expect(screen.getAllByText('Deceased').length).toBe(2);
+  });
+
+  it('only shows a delete button (no edit) on a fallen roster row', () => {
+    replaceParty([member({ status: 'deceased' })]);
+    replaceHirelings([]);
+    render(Roster, { props: { onnavigate: vi.fn() } });
+
+    expect(screen.queryByRole('button', { name: 'Edit' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument();
   });
 });

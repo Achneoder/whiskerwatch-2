@@ -94,6 +94,44 @@ describe('Timeline', () => {
     expect(screen.getByText('The Gnawing Court')).toBeInTheDocument();
   });
 
+  it('renders a death entry with its cause', () => {
+    replaceCampaignHistory([
+      {
+        id: '1',
+        type: 'death',
+        timestamp: '2026-07-02T09:00:00.000Z',
+        memberId: 'p1',
+        name: 'Wren',
+        role: 'Tinker',
+        source: 'party',
+        cause: "Overrun by the barn cat's claws",
+      },
+    ]);
+
+    render(Timeline, { props: { onnavigate: vi.fn() } });
+
+    expect(screen.getByText("Wren died — Overrun by the barn cat's claws")).toBeInTheDocument();
+  });
+
+  it('falls back to a plain "died" line when no cause was given', () => {
+    replaceCampaignHistory([
+      {
+        id: '1',
+        type: 'death',
+        timestamp: '2026-07-02T09:00:00.000Z',
+        memberId: 'h1',
+        name: 'Oat',
+        role: 'Porter',
+        source: 'hireling',
+      },
+    ]);
+
+    render(Timeline, { props: { onnavigate: vi.fn() } });
+
+    expect(screen.getByText('Oat died')).toBeInTheDocument();
+    expect(screen.queryByText(/Oat died —/)).not.toBeInTheDocument();
+  });
+
   it('filters out entry types when their toggle tag is tapped', async () => {
     replaceCampaignHistory([
       { id: '1', type: 'session', timestamp: '2026-07-01T10:00:00.000Z', sessionId: 's1', number: 4, title: 'Into the sewers' },

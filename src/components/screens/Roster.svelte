@@ -10,17 +10,20 @@
   import Modal from '../ui/Modal.svelte';
   import ConfirmDialog from '../ui/ConfirmDialog.svelte';
   import Icon from '../ui/Icon.svelte';
+  import ScarRow from '../ui/ScarRow.svelte';
   import PartyForm from '../forms/PartyForm.svelte';
   import HirelingForm from '../forms/HirelingForm.svelte';
-  import { getParty, addMember, updateMember, removeMember, type PartyMember } from '../../lib/stores/party.svelte';
+  import ScarForm from '../forms/ScarForm.svelte';
+  import { getParty, addMember, updateMember, removeMember, addScar, type PartyMember } from '../../lib/stores/party.svelte';
   import {
     getHirelings,
     addHireling,
     updateHireling,
     removeHireling,
+    addHirelingScar,
     type Hireling,
   } from '../../lib/stores/hirelings.svelte';
-  import { CONDITIONS } from '../../lib/conditions';
+  import { CONDITIONS, type Scar } from '../../lib/conditions';
   import { exportCampaign, importCampaign } from '../../lib/campaignExport';
 
   interface Props {
@@ -33,12 +36,31 @@
   const party = getParty();
   const hirelings = getHirelings();
 
+  const activeParty = $derived(party.filter((m) => m.status === 'active'));
+  const fallenParty = $derived(party.filter((m) => m.status === 'deceased'));
+  const activeHirelings = $derived(hirelings.filter((h) => h.status === 'active'));
+  const fallenHirelings = $derived(hirelings.filter((h) => h.status === 'deceased'));
+
   let memberModal = $state<{ mode: 'add' } | { mode: 'edit'; member: PartyMember } | null>(null);
   let hirelingModal = $state<{ mode: 'add' } | { mode: 'edit'; hireling: Hireling } | null>(null);
   let deleteMemberTarget = $state<PartyMember | null>(null);
   let deleteHirelingTarget = $state<Hireling | null>(null);
   let importError = $state<string | null>(null);
   let fileInput = $state<HTMLInputElement | undefined>(undefined);
+
+  // Scar-adding is a fully separate, manual flow from editing — see the
+  // roadmap's Scars & death ledger ruling. Keyed on source so the same
+  // handler/modal serve both the Warband and Hirelings cards.
+  let scarTarget = $state<{ source: 'party'; member: PartyMember } | { source: 'hireling'; hireling: Hireling } | null>(
+    null,
+  );
+
+  function saveScar(scar: Scar) {
+    if (!scarTarget) return;
+    if (scarTarget.source === 'party') addScar(scarTarget.member.id, scar);
+    else addHirelingScar(scarTarget.hireling.id, scar);
+    scarTarget = null;
+  }
 
   function saveMember(data: Omit<PartyMember, 'id'>) {
     if (memberModal?.mode === 'edit') updateMember(memberModal.member.id, data);
@@ -129,13 +151,14 @@
           </Button>
         {/snippet}
         <div class="flex flex-col gap-[var(--sp-3)]">
-          {#each party as member (member.id)}
+          {#each activeParty as member (member.id)}
             <div class="flex flex-wrap items-center gap-x-[var(--sp-4)] gap-y-2 py-2 border-b border-[var(--border)]">
-              <div class="min-w-23">
+              <div class="min-w-23 flex flex-col gap-1">
                 <div class="font-[family-name:var(--font-display)] font-bold text-[length:var(--text-title)]">
                   {member.name}
                 </div>
                 <div class="text-[length:var(--text-sm)] text-[var(--text-muted)]">{member.role}</div>
+                <ScarRow name={member.name} scars={member.scars} onaddscar={() => (scarTarget = { source: 'party', member })} />
               </div>
               <div class="flex-1 min-w-35"><HpBar value={member.hp} max={member.max} label={$_('roster.form.hp')} size="sm" /></div>
               <div class="flex gap-1.5 shrink-0">
@@ -163,8 +186,45 @@
               </div>
             </div>
           {/each}
-          {#if party.length === 0}
+          {#if activeParty.length === 0}
             <p class="text-[var(--text-muted)] text-[length:var(--text-body)]">{$_('roster.warband.empty')}</p>
+          {/if}
+          {#if fallenParty.length > 0}
+            <details>
+              <summary class="ww-label cursor-pointer py-1">
+                {$_('roster.fallen', { values: { count: fallenParty.length } })}
+              </summary>
+              <div class="flex flex-col gap-[var(--sp-3)] mt-2">
+                {#each fallenParty as member (member.id)}
+                  <div class="flex flex-wrap items-center gap-x-[var(--sp-4)] gap-y-2 py-2 border-b border-[var(--border)]">
+                    <div class="min-w-23 flex flex-col gap-1">
+                      <div class="font-[family-name:var(--font-display)] font-bold text-[length:var(--text-title)]">
+                        {member.name}
+                      </div>
+                      <div class="text-[length:var(--text-sm)] text-[var(--text-muted)]">{member.role}</div>
+                      <ScarRow
+                        name={member.name}
+                        scars={member.scars}
+                        onaddscar={() => (scarTarget = { source: 'party', member })}
+                      />
+                    </div>
+                    <div class="flex-1 min-w-35">
+                      <StatusPill tone="danger" dot={false} size="sm">{$_('roster.deceased')}</StatusPill>
+                    </div>
+                    <div class="flex gap-1 shrink-0">
+                      <button
+                        type="button"
+                        aria-label={$_('roster.delete')}
+                        onclick={() => (deleteMemberTarget = member)}
+                        class="grid place-items-center w-8 h-8 rounded-[var(--radius-md)] text-[var(--danger)] hover:bg-[var(--danger-tint)] cursor-pointer"
+                      >
+                        <Icon icon={Trash2} />
+                      </button>
+                    </div>
+                  </div>
+                {/each}
+              </div>
+            </details>
           {/if}
         </div>
       </Card>
@@ -180,9 +240,9 @@
           </Button>
         {/snippet}
         <div class="flex flex-col gap-[var(--sp-3)]">
-          {#each hirelings as hireling (hireling.id)}
+          {#each activeHirelings as hireling (hireling.id)}
             <div class="flex flex-wrap items-center gap-x-[var(--sp-4)] gap-y-2 py-2 border-b border-[var(--border)]">
-              <div class="min-w-23">
+              <div class="min-w-23 flex flex-col gap-1">
                 <div class="font-[family-name:var(--font-display)] font-bold text-[length:var(--text-title)]">
                   {hireling.name}
                 </div>
@@ -192,6 +252,11 @@
                     <Tag size="sm">{hireling.wage}p/day</Tag>
                   {/if}
                 </div>
+                <ScarRow
+                  name={hireling.name}
+                  scars={hireling.scars}
+                  onaddscar={() => (scarTarget = { source: 'hireling', hireling })}
+                />
               </div>
               <div class="flex-1 min-w-35"><HpBar value={hireling.hp} max={hireling.max} label={$_('roster.form.hp')} size="sm" /></div>
               <div class="shrink-0">
@@ -217,8 +282,45 @@
               </div>
             </div>
           {/each}
-          {#if hirelings.length === 0}
+          {#if activeHirelings.length === 0}
             <p class="text-[var(--text-muted)] text-[length:var(--text-body)]">{$_('roster.hirelings.empty')}</p>
+          {/if}
+          {#if fallenHirelings.length > 0}
+            <details>
+              <summary class="ww-label cursor-pointer py-1">
+                {$_('roster.fallen', { values: { count: fallenHirelings.length } })}
+              </summary>
+              <div class="flex flex-col gap-[var(--sp-3)] mt-2">
+                {#each fallenHirelings as hireling (hireling.id)}
+                  <div class="flex flex-wrap items-center gap-x-[var(--sp-4)] gap-y-2 py-2 border-b border-[var(--border)]">
+                    <div class="min-w-23 flex flex-col gap-1">
+                      <div class="font-[family-name:var(--font-display)] font-bold text-[length:var(--text-title)]">
+                        {hireling.name}
+                      </div>
+                      <div class="text-[length:var(--text-sm)] text-[var(--text-muted)]">{hireling.role}</div>
+                      <ScarRow
+                        name={hireling.name}
+                        scars={hireling.scars}
+                        onaddscar={() => (scarTarget = { source: 'hireling', hireling })}
+                      />
+                    </div>
+                    <div class="flex-1 min-w-35">
+                      <StatusPill tone="danger" dot={false} size="sm">{$_('roster.deceased')}</StatusPill>
+                    </div>
+                    <div class="flex gap-1 shrink-0">
+                      <button
+                        type="button"
+                        aria-label={$_('roster.delete')}
+                        onclick={() => (deleteHirelingTarget = hireling)}
+                        class="grid place-items-center w-8 h-8 rounded-[var(--radius-md)] text-[var(--danger)] hover:bg-[var(--danger-tint)] cursor-pointer"
+                      >
+                        <Icon icon={Trash2} />
+                      </button>
+                    </div>
+                  </div>
+                {/each}
+              </div>
+            </details>
           {/if}
         </div>
       </Card>
@@ -275,3 +377,14 @@
   onconfirm={confirmDeleteHireling}
   oncancel={() => (deleteHirelingTarget = null)}
 />
+
+<Modal
+  open={scarTarget !== null}
+  eyebrow={scarTarget ? (scarTarget.source === 'party' ? scarTarget.member.name : scarTarget.hireling.name) : undefined}
+  title={$_('roster.scars.addTitle')}
+  onclose={() => (scarTarget = null)}
+>
+  {#if scarTarget}
+    <ScarForm onsave={saveScar} oncancel={() => (scarTarget = null)} />
+  {/if}
+</Modal>

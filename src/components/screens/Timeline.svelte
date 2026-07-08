@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ScrollText, CheckCircle2, Swords } from 'lucide-svelte';
+  import { ScrollText, CheckCircle2, Swords, Skull } from 'lucide-svelte';
   import { _, locale } from 'svelte-i18n';
   import AppSidebar, { type NavScreen } from '../layout/AppSidebar.svelte';
   import Icon from '../ui/Icon.svelte';
@@ -17,9 +17,9 @@
 
   let { onnavigate, onstartsession }: Props = $props();
 
-  type FilterKind = 'session' | 'beatCompleted' | 'clockChanged';
+  type FilterKind = 'session' | 'beatCompleted' | 'clockChanged' | 'death';
 
-  let activeFilters = $state<Set<FilterKind>>(new Set(['session', 'beatCompleted', 'clockChanged']));
+  let activeFilters = $state<Set<FilterKind>>(new Set(['session', 'beatCompleted', 'clockChanged', 'death']));
 
   function toggleFilter(kind: FilterKind) {
     const next = new Set(activeFilters);
@@ -113,6 +113,12 @@
       >
         {$_('timeline.filter.clocks')}
       </Tag>
+      <Tag
+        tone={activeFilters.has('death') ? 'danger' : 'default'}
+        onclick={() => toggleFilter('death')}
+      >
+        {$_('timeline.filter.deaths')}
+      </Tag>
     </div>
 
     {#if groups.length === 0}
@@ -151,7 +157,7 @@
                         {/each}
                       </div>
                     {/if}
-                  {:else}
+                  {:else if entry.type === 'clockChanged'}
                     <span class="grid place-items-center w-8 h-8 rounded-full shrink-0 bg-[var(--clock-tint)] text-[var(--clock)]">
                       <Icon icon={Swords} />
                     </span>
@@ -159,6 +165,15 @@
                       {$_('timeline.clockChanged', { values: { name: entry.factionName, from: entry.from, to: entry.to } })}
                     </span>
                     <StatusPill tone="clock" dot={false} size="sm">{entry.to}/{entry.max}</StatusPill>
+                  {:else}
+                    <span class="grid place-items-center w-8 h-8 rounded-full shrink-0 bg-[var(--danger-tint)] text-[var(--danger)]">
+                      <Icon icon={Skull} />
+                    </span>
+                    <span class="flex-1 min-w-0 truncate text-[length:var(--text-body)]">
+                      {entry.cause
+                        ? $_('timeline.diedWithCause', { values: { name: entry.name, cause: entry.cause } })
+                        : $_('timeline.died', { values: { name: entry.name } })}
+                    </span>
                   {/if}
                   <span class="hidden md:inline text-[length:var(--text-caption)] text-[var(--text-muted)] shrink-0 ml-auto">
                     {formatTime(entry.timestamp)}
